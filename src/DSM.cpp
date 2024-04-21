@@ -618,15 +618,14 @@ void DSM::cas_mask(GlobalAddress gaddr, uint64_t equal, uint64_t val,
 
 bool DSM::cas_mask_sync(GlobalAddress gaddr, uint64_t equal, uint64_t val,
                         uint64_t *rdma_buffer, uint64_t mask, CoroContext *ctx) {
-
   cas_mask(gaddr, equal, val, rdma_buffer, mask, true, ctx);
 
   if (ctx == nullptr) {
     ibv_wc wc;
     pollWithCQ(iCon->cq, 1, &wc);
   }
-  return (equal & mask) == (*rdma_buffer & mask);
 
+  return (equal & mask) == (*rdma_buffer & mask);
 }
 
 void DSM::faa_boundary(GlobalAddress gaddr, uint64_t add_val,

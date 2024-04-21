@@ -30,9 +30,6 @@ uint64_t read_node_type[MAX_APP_THREAD][MAX_NODE_TYPE_NUM];
 uint64_t latency[MAX_APP_THREAD][MAX_CORO_NUM][LATENCY_WINDOWS];
 volatile bool need_stop = false;
 uint64_t retry_cnt[MAX_APP_THREAD][MAX_FLAG_NUM];
-uint64_t rdma_search_read_count=0;
-uint64_t rdma_insert_read_count=0;
-uint64_t rdma_insert_write_count=0;
 
 thread_local CoroCall Tree::worker[MAX_CORO_NUM];
 thread_local CoroCall Tree::master;
@@ -339,7 +336,7 @@ next:
   }
   // if no match slot, then find an empty slot to insert leaf directly
   for (int i = 0; i < max_num; ++ i) {
-    auto old_e = p_node->records[i];  
+    auto old_e = p_node->records[i];
     if (old_e == InternalEntry::Null()) {
       auto e_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(InternalEntry));
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
@@ -692,7 +689,7 @@ bool Tree::read_node(InternalEntry &p, bool& type_correct, char *node_buffer, co
     p.node_type = hdr.node_type;
     type_correct = false;
   }
-  type_correct = true;
+  else type_correct = true;
   // udpate reverse pointer if needed
   if (!from_cache && p_node->rev_ptr != p_ptr) {
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();

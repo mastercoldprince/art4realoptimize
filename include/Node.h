@@ -201,7 +201,7 @@ static_assert(1UL << (8 - define::nodeTypeNumBit) >= define::hPartialLenMax);
 /*
   Internal Nodes
 */
-class InternalEntry {    // slot
+class InternalEntry {
 public:
   union {
   union {

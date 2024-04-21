@@ -142,33 +142,25 @@ ibv_mr *createMemoryRegionOnChip(uint64_t mm, uint64_t mmSize,
                                  RdmaContext *ctx) {
 
   /* Device memory allocation request */
-  
-//修改  struct ibv_exp_alloc_dm_attr dm_attr;
-  struct ibv_alloc_dm_attr dm_attr;
+  struct ibv_exp_alloc_dm_attr dm_attr;
   memset(&dm_attr, 0, sizeof(dm_attr));
   dm_attr.length = mmSize;
-//修改  struct ibv_exp_dm *dm = ibv_exp_alloc_dm(ctx->ctx, &dm_attr);
-  struct ibv_dm *dm = ibv_alloc_dm(ctx->ctx, &dm_attr);
+  struct ibv_exp_dm *dm = ibv_exp_alloc_dm(ctx->ctx, &dm_attr);
   if (!dm) {
     Debug::notifyError("Allocate on-chip memory failed");
     return nullptr;
   }
 
   /* Device memory registration as memory region */
-//修改  struct ibv_exp_reg_mr_in mr_in;
-  struct ibv_reg_mr_in mr_in;
-
+  struct ibv_exp_reg_mr_in mr_in;
   memset(&mr_in, 0, sizeof(mr_in));
   mr_in.pd = ctx->pd, mr_in.addr = (void *)mm, mr_in.length = mmSize,
-  //修改 mr_in.exp_access = IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
-  //                   IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_ATOMIC,
- mr_in.access = IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
-                  IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_ATOMIC,
+  mr_in.exp_access = IBV_ACCESS_LOCAL_WRITE | IBV_ACCESS_REMOTE_READ |
+                     IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_ATOMIC,
   mr_in.create_flags = 0;
   mr_in.dm = dm;
-//  mr_in.comp_mask = IBV_EXP_REG_MR_DM;
-//修改  struct ibv_mr *mr = ibv_exp_reg_mr(&mr_in);
-  struct ibv_mr *mr = ibv_reg_mr(&mr_in);
+  mr_in.comp_mask = IBV_EXP_REG_MR_DM;
+  struct ibv_mr *mr = ibv_exp_reg_mr(&mr_in);
   if (!mr) {
     Debug::notifyError("Memory registration failed");
     return nullptr;
@@ -177,7 +169,7 @@ ibv_mr *createMemoryRegionOnChip(uint64_t mm, uint64_t mmSize,
   // init zero
   char *buffer = (char *)malloc(mmSize);
   memset(buffer, 0, mmSize);
-/*
+
   struct ibv_exp_memcpy_dm_attr cpy_attr;
   memset(&cpy_attr, 0, sizeof(cpy_attr));
   cpy_attr.memcpy_dir = IBV_EXP_DM_CPY_TO_DEVICE;
@@ -185,13 +177,9 @@ ibv_mr *createMemoryRegionOnChip(uint64_t mm, uint64_t mmSize,
   cpy_attr.length = mmSize;
   cpy_attr.dm_offset = 0;
   ibv_exp_memcpy_dm(dm, &cpy_attr);
-*/
-// 使用标准API复制内存到设备内存
-int ret = ibv_memcpy_to_dm(dm, 0, (void *)buffer, mmSize);
-if (ret) {
-Debug::notifyError("Memcpy to device memory failed");
-}
+
   free(buffer);
+
   return mr;
 }
 
@@ -199,24 +187,15 @@ bool createQueuePair(ibv_qp **qp, ibv_qp_type mode, ibv_cq *send_cq,
                      ibv_cq *recv_cq, RdmaContext *context,
                      uint32_t qpsMaxDepth, uint32_t maxInlineData) {
 
-//修改 struct ibv_exp_qp_init_attr attr;
-  struct ibv_qp_init_attr_ex attr_ex;
-  memset(&attr_ex, 0, sizeof(attr_ex));
-/*修改
+  struct ibv_exp_qp_init_attr attr;
+  memset(&attr, 0, sizeof(attr));
+
   attr.qp_type = mode;
   attr.sq_sig_all = 0;
   attr.send_cq = send_cq;
   attr.recv_cq = recv_cq;
   attr.pd = context->pd;
-*/
 
-  attr_ex.qp_type = mode;
-  attr_ex.sq_sig_all = 0;
-  attr_ex.send_cq = send_cq;
-  attr_ex.recv_cq = recv_cq;
-  attr_ex.pd = context->pd;
- 
-/*
   if (mode == IBV_QPT_RC) {
     attr.comp_mask = IBV_EXP_QP_INIT_ATTR_CREATE_FLAGS |
                      IBV_EXP_QP_INIT_ATTR_PD | IBV_EXP_QP_INIT_ATTR_ATOMICS_ARG;
@@ -224,25 +203,14 @@ bool createQueuePair(ibv_qp **qp, ibv_qp_type mode, ibv_cq *send_cq,
   } else {
     attr.comp_mask = IBV_EXP_QP_INIT_ATTR_PD;
   }
-*/
-  if (mode == IBV_QPT_RC) {
-  attr_ex.comp_mask |= IBV_QP_INIT_ATTR_PD;
-  attr_ex.max_atomic_arg = 32; // [CONFIG]
-  }
 
-/*  attr.cap.max_send_wr = qpsMaxDepth;
+  attr.cap.max_send_wr = qpsMaxDepth;
   attr.cap.max_recv_wr = qpsMaxDepth;
   attr.cap.max_send_sge = 1;
   attr.cap.max_recv_sge = 1;
   attr.cap.max_inline_data = maxInlineData;
-*/
-  attr_ex.cap.max_send_wr = qpsMaxDepth;
-  attr_ex.cap.max_recv_wr = qpsMaxDepth;
-  attr_ex.cap.max_send_sge = 1;
-  attr_ex.cap.max_recv_sge = 1;
-  attr_ex.cap.max_inline_data = maxInlineData; 
 
-  *qp = ibv_create_qp_ex(context->ctx, &attr_ex);
+  *qp = ibv_exp_create_qp(context->ctx, &attr);
   if (!(*qp)) {
     Debug::notifyError("Failed to create QP");
     return false;
@@ -251,7 +219,6 @@ bool createQueuePair(ibv_qp **qp, ibv_qp_type mode, ibv_cq *send_cq,
   // Debug::notifyInfo("Create Queue Pair with Num = %d", (*qp)->qp_num);
 
   return true;
-
 }
 
 bool createQueuePair(ibv_qp **qp, ibv_qp_type mode, ibv_cq *cq,
@@ -259,8 +226,7 @@ bool createQueuePair(ibv_qp **qp, ibv_qp_type mode, ibv_cq *cq,
                      uint32_t maxInlineData) {
   return createQueuePair(qp, mode, cq, cq, context, qpsMaxDepth, maxInlineData);
 }
-//修改？？？？？？？？？
-/*
+
 bool createDCTarget(ibv_exp_dct **dct, ibv_cq *cq, RdmaContext *context,
                     uint32_t qpsMaxDepth, uint32_t maxInlineData) {
 
@@ -297,7 +263,7 @@ bool createDCTarget(ibv_exp_dct **dct, ibv_cq *cq, RdmaContext *context,
 
   return true;
 }
-*/
+
 void fillAhAttr(ibv_ah_attr *attr, uint32_t remoteLid, uint8_t *remoteGid,
                 RdmaContext *context) {
 

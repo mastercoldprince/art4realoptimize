@@ -104,7 +104,7 @@ private:
 };
 
 
-// read-delegation    first lock   second  conflict
+// read-delegation
 inline std::pair<bool, bool> LocalLockTable::acquire_local_read_lock(const Key& k, CoroQueue *waiting_queue, CoroContext *cxt, int coro_id) {
   auto &node = local_locks[hasher.get_hashed_lock_index(k)];
 
@@ -206,7 +206,7 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
   if (!res) {
     delete new_key;
     if (*unique_key != k) {  // conflict keys
-      return std::make_pair(false, true);  
+      return std::make_pair(false, true);
     }
   }
 

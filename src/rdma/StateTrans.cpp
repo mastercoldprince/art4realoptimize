@@ -141,7 +141,7 @@ bool modifyUDtoRTS(struct ibv_qp *qp, RdmaContext *context) {
 bool modifyDCtoRTS(struct ibv_qp *qp, uint16_t remoteLid, uint8_t *remoteGid,
                    RdmaContext *context) {
     // assert(qp->qp_type == IBV_EXP_QPT_DC_INI);
-/*修改
+
     struct ibv_exp_qp_attr attr;
     memset(&attr, 0, sizeof(attr));
 
@@ -179,56 +179,6 @@ bool modifyDCtoRTS(struct ibv_qp *qp, uint16_t remoteLid, uint8_t *remoteGid,
 
         Debug::notifyError("failed to modify QP state to RTS");
         return false;
-    }
-
-    return true;
-*/
-
-    struct ibv_qp_attr attr;
-    memset(&attr, 0, sizeof(attr));
-
-    attr.qp_state = IBV_QPS_INIT;
-    attr.pkey_index = 0;
-    attr.port_num = context->port;
-    attr.qp_access_flags = IBV_ACCESS_REMOTE_WRITE | IBV_ACCESS_REMOTE_READ | IBV_ACCESS_REMOTE_ATOMIC;
-
-    int attr_mask = IBV_QP_STATE | IBV_QP_PKEY_INDEX | IBV_QP_PORT | IBV_QP_ACCESS_FLAGS;
-    if (ibv_modify_qp(qp, &attr, attr_mask)) {
-    Debug::notifyError("failed to modify QP state to INIT");
-    return false;
-    }
-
-    attr.qp_state = IBV_QPS_RTR;
-    attr.path_mtu = IBV_MTU_4096;
-    attr.ah_attr.is_global = 1;
-    attr.ah_attr.dlid = remoteLid;
-    attr.ah_attr.sl = 0;
-    attr.ah_attr.src_path_bits = 0;
-    attr.ah_attr.port_num = context->port;
-
-    // Assuming remoteGid is provided as an array of bytes
-    memcpy(&attr.ah_attr.grh.dgid, remoteGid, sizeof(attr.ah_attr.grh.dgid));
-    attr.ah_attr.grh.flow_label = 0;
-    attr.ah_attr.grh.sgid_index = 0;
-    attr.ah_attr.grh.hop_limit = 1;
-    attr.ah_attr.grh.traffic_class = 0;
-
-    attr_mask = IBV_QP_STATE | IBV_QP_AV | IBV_QP_PATH_MTU;
-    if (ibv_modify_qp(qp, &attr, attr_mask)) {
-    Debug::notifyError("failed to modify QP state to RTR");
-    return false;
-    }
-
-    attr.qp_state = IBV_QPS_RTS;
-    attr.timeout = 14;
-    attr.retry_cnt = 7;
-    attr.rnr_retry = 7;
-    attr.max_rd_atomic = 16;
-
-    attr_mask = IBV_QP_STATE | IBV_QP_TIMEOUT | IBV_QP_RETRY_CNT | IBV_QP_RNR_RETRY | IBV_QP_MAX_QP_RD_ATOMIC;
-    if (ibv_modify_qp(qp, &attr, attr_mask)) {
-    Debug::notifyError("failed to modify QP state to RTS");
-    return false;
     }
 
     return true;

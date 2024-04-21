@@ -121,12 +121,11 @@ constexpr uint32_t mnIdBit         = 8;
 constexpr uint32_t offsetBit       = 48 - ALLOC_ALLIGN_BIT;
 constexpr uint32_t hPartialLenMax  = 6;
 
-// On-chip memory     ? rnic memory?
+// On-chip memory
 constexpr uint64_t kLockStartAddr = 0;
 constexpr uint64_t kLockChipMemSize = ON_CHIP_SIZE * 1024;
 constexpr uint64_t kLocalLockNum = 4 * MB;  // tune to an appropriate value (as small as possible without affect the performance)
-constexpr uint64_t kOnChipLockNum = kLockChipMemSize * 8;
-  // 1bit-lock
+constexpr uint64_t kOnChipLockNum = kLockChipMemSize * 8;  // 1bit-lock
 }
 
 
