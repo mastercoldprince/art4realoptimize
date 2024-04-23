@@ -31,6 +31,8 @@ extern uint64_t read_node_repair[MAX_APP_THREAD];
 extern uint64_t try_read_node[MAX_APP_THREAD];
 extern uint64_t read_node_type[MAX_APP_THREAD][MAX_NODE_TYPE_NUM];
 extern uint64_t retry_cnt[MAX_APP_THREAD][MAX_FLAG_NUM];
+extern uint64_t MN_iops[MAX_APP_THREAD][MEMORY_NODE_NUM];
+extern uint64_t MN_datas[MAX_APP_THREAD][MEMORY_NODE_NUM];
 
 int kReadRatio;
 int kThreadCount;
@@ -288,6 +290,11 @@ int main(int argc, char *argv[]) {
   timespec s, e;
   uint64_t pre_tp = 0;
   int count = 0;
+    uint64_t MN_tp[MEMORY_NODE_NUM];
+  uint64_t MN_data[MEMORY_NODE_NUM];
+  memset(MN_tp, 0, sizeof(uint64_t) * MEMORY_NODE_NUM);
+  memset(MN_data, 0, sizeof(uint64_t) * MEMORY_NODE_NUM);
+
 
   clock_gettime(CLOCK_REALTIME, &s);
   while(!need_stop) {
@@ -357,6 +364,16 @@ int main(int argc, char *argv[]) {
         all_retry_cnt[i] += retry_cnt[j][i];
       }
     }
+        uint64_t MN_tps[MEMORY_NODE_NUM];
+    uint64_t MN_d[MEMORY_NODE_NUM];
+    memset(MN_tps, 0, sizeof(uint64_t) * MEMORY_NODE_NUM);
+    memset(MN_d, 0, sizeof(uint64_t) * MEMORY_NODE_NUM);
+    for(int i=0;i<MAX_APP_THREAD;++ i)
+      for(int j=0;j<MEMORY_NODE_NUM;j++)
+      {
+        MN_tps[j]+=MN_iops[i][j];
+        MN_d[j]+=MN_datas[i][j];
+      }
     tree->clear_debug_info();
 
     save_latency(++ count);
@@ -376,6 +393,21 @@ int main(int argc, char *argv[]) {
     uint64_t cluster_tp = dsm->sum((uint64_t)(per_node_tp * 1000));
 
     printf("%d, throughput %.4f\n", dsm->getMyNodeID(), per_node_tp);
+    uint64_t MN_cluster_tp[MEMORY_NODE_NUM];
+    memset(MN_cluster_tp,0,sizeof(uint64_t)*MEMORY_NODE_NUM);
+    for(int j=0;j<MEMORY_NODE_NUM;j++)
+    {
+      printf("CN %d MN %d, throughput %.4f \n",dsm->getMyNodeID(), j, (MN_tps[j]-MN_tp[j])*1.0/microseconds);
+      uint64_t MN_cluster_tp=dsm->sum((uint64_t)((MN_tps[j]-MN_tp[j])*1.0/microseconds) * 1000);
+      if(dsm->getMyNodeID()==0) printf("MN %d all throughput %.3f \n",j,MN_cluster_tp/1000.0);
+    }
+
+
+    for(int j=0;j<MEMORY_NODE_NUM;j++)
+      {
+        MN_tp[j]=MN_tps[j];
+        MN_data[j]=MN_d[j];
+      }
 
     if (dsm->getMyNodeID() == 0) {
       printf("epoch %d passed!\n", count);
