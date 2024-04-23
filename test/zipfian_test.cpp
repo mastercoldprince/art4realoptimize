@@ -374,6 +374,13 @@ int main(int argc, char *argv[]) {
         MN_tps[j]+=MN_iops[i][j];
         MN_d[j]+=MN_datas[i][j];
       }
+    uint64_t MN_cap[MEMORY_NODE_NUM];
+    memset(MN_cap, 0, sizeof(uint64_t) * MEMORY_NODE_NUM);  
+    for(int j=0;j<MEMORY_NODE_NUM;j++)
+      {
+        MN_cap[j]=MN_tps[j]-MN_tp[j];
+      }  
+
     tree->clear_debug_info();
 
     save_latency(++ count);
@@ -388,8 +395,14 @@ int main(int argc, char *argv[]) {
       }
       printf("\n");
     }
-
+    
     double per_node_tp = cap * 1.0 / microseconds;
+    double per_MN_tp[MEMORY_NODE_NUM];
+    memset(per_MN_tp, 0, sizeof(double) * MEMORY_NODE_NUM);    
+    for(int j=0;j<MEMORY_NODE_NUM;j++)
+      {
+        per_MN_tp[j]=MN_cap[j]*1.0/microseconds;
+      }       
     uint64_t cluster_tp = dsm->sum((uint64_t)(per_node_tp * 1000));
 
     printf("%d, throughput %.4f\n", dsm->getMyNodeID(), per_node_tp);
@@ -398,7 +411,7 @@ int main(int argc, char *argv[]) {
     for(int j=0;j<MEMORY_NODE_NUM;j++)
     {
       printf("CN %d MN %d, throughput %.4f \n",dsm->getMyNodeID(), j, (MN_tps[j]-MN_tp[j])*1.0/microseconds);
-      uint64_t MN_cluster_tp=dsm->sum((uint64_t)((MN_tps[j]-MN_tp[j])*1.0/microseconds) * 1000);
+      uint64_t MN_cluster_tp=dsm->sum((uint64_t)(per_MN_tp[j] * 1000));
       if(dsm->getMyNodeID()==0) printf("MN %d all throughput %.3f \n",j,MN_cluster_tp/1000.0);
     }
 
