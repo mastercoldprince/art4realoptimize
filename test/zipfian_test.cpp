@@ -40,7 +40,7 @@ int kNodeCount;
 
 
 uint64_t kKeySpace = 60 * define::MB;
-double kWarmRatio = 0.2;
+double kWarmRatio = 1;
 double zipfan = 0.99;
 int kCoroCnt = 2;
 #ifdef TEST_INSERT
@@ -81,7 +81,7 @@ public:
     Request r;
     r.is_search = rand_r(&seed) % 100 < kReadRatio;
     r.is_insert = !r.is_search;
-
+/*
 #ifdef TEST_INSERT
     if (r.is_insert) {
       r.k = int2key(insert_start_key);
@@ -91,8 +91,8 @@ public:
       int k = rand_r(&seed) % insert_start_key;
       if (!k) k = 1;
       r.k = int2key(k);
-    }
-#else
+    }*/
+//#else
     uint64_t dis = mehcached_zipf_next(&state);
 #ifdef NO_WRITE_CONFLICT
     if (r.is_insert) {
@@ -108,7 +108,7 @@ public:
 #else
     r.k = to_key(dis);
 #endif
-#endif
+//#endif
     r.v = ++ val;
 
     tp[id][coro_id]++;
