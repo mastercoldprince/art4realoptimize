@@ -12,7 +12,7 @@
 #include <fstream>
 #include <random>
 
-#define TEST_EPOCH 10
+#define TEST_EPOCH 500
 // #define NO_WRITE_CONFLICT
 // #define TEST_INSERT
 
