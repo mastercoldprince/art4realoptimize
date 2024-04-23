@@ -69,10 +69,6 @@ retry:
 }
 
 
-void Tree::cache_clear()
-{
-  index_cache->clear();
-}
 
 
 
