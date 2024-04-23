@@ -149,7 +149,10 @@ public:
     static uint64_t count = 0;
     return keeper->sum(std::string("sum-") + std::to_string(count++), value);
   }
-
+  uint64_t sum_MN(uint64_t value ,int mn_id) {
+    static uint64_t count = 0;
+    return keeper->sum(std::string("mn")+std::to_string(mn_id)+std::string("sum-") + std::to_string(count++), value);
+  }
   // Memcached operations for sync
   size_t Put(uint64_t key, const void *value, size_t count) {
 
