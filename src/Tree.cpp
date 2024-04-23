@@ -30,6 +30,8 @@ uint64_t read_node_type[MAX_APP_THREAD][MAX_NODE_TYPE_NUM];
 uint64_t latency[MAX_APP_THREAD][MAX_CORO_NUM][LATENCY_WINDOWS];
 volatile bool need_stop = false;
 uint64_t retry_cnt[MAX_APP_THREAD][MAX_FLAG_NUM];
+uint64_t MN_iops[MAX_APP_THREAD][MEMORY_NODE_NUM];
+uint64_t MN_datas[MAX_APP_THREAD][MEMORY_NODE_NUM];
 
 thread_local CoroCall Tree::worker[MAX_CORO_NUM];
 thread_local CoroCall Tree::master;
@@ -65,6 +67,13 @@ retry:
     }
   }
 }
+
+
+void Tree::cache_clear()
+{
+  index_cache->clear();
+}
+
 
 
 GlobalAddress Tree::get_root_ptr_ptr() {
@@ -186,6 +195,8 @@ next:
       // re-read leaf entry
       auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
       dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
+      MN_iops[dsm->getMyThreadID()][p_ptr.nodeID]++;
+      MN_datas[dsm->getMyThreadID()][p_ptr.nodeID]+=sizeof(InternalEntry);
       p = *(InternalEntry *)entry_buffer;
       from_cache = false;
       retry_flag = INVALID_LEAF;
@@ -267,6 +278,8 @@ next:
     // re-read node entry
     auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
     dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
+    MN_iops[dsm->getMyThreadID()][p_ptr.nodeID]++;
+    MN_datas[dsm->getMyThreadID()][p_ptr.nodeID]+=sizeof(InternalEntry);
     p = *(InternalEntry *)entry_buffer;
     from_cache = false;
     retry_flag = INVALID_NODE;
@@ -308,6 +321,8 @@ next:
       auto header_buffer = (dsm->get_rbuf(coro_id)).get_header_buffer();
       auto new_hdr = Header::split_header(hdr, i);
       dsm->cas_mask(GADD(p.addr(), sizeof(GlobalAddress)), (uint64_t)hdr, (uint64_t)new_hdr, header_buffer, ~Header::node_type_mask, false, cxt);
+      MN_iops[dsm->getMyThreadID()][GADD(p.addr(), sizeof(GlobalAddress)).nodeID]++;
+      MN_datas[dsm->getMyThreadID()][GADD(p.addr(), sizeof(GlobalAddress)).nodeID]+=8;
       goto insert_finish;
     }
   }
@@ -408,11 +423,15 @@ bool Tree::read_leaf(const GlobalAddress &leaf_addr, char *leaf_buffer, int leaf
   try_read_leaf[dsm->getMyThreadID()] ++;
 re_read:
   dsm->read_sync(leaf_buffer, leaf_addr, leaf_size, cxt);
+  MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
+  MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=leaf_size;
   auto leaf = (Leaf *)leaf_buffer;
   // udpate reverse pointer if needed
   if (!from_cache && leaf->rev_ptr != p_ptr) {
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
     dsm->cas(leaf_addr, leaf->rev_ptr, p_ptr, cas_buffer, false, cxt);
+    MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
+    MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=8;
     // dsm->cas_sync(leaf_addr, leaf->rev_ptr, p_ptr, cas_buffer, cxt);
   }
   // invalidation
@@ -440,12 +459,18 @@ void Tree::in_place_update_leaf(const Key &k, Value &v, const GlobalAddress &lea
   // lock function
   auto acquire_lock = [=](const GlobalAddress &unique_leaf_addr) {
 #ifdef TREE_ENABLE_EMBEDDING_LOCK
-    return dsm->cas_mask_sync(GADD(unique_leaf_addr, lock_cas_offset), 0UL, ~0UL, cas_buffer, lock_mask, cxt);
+    bool res=dsm->cas_mask_sync(GADD(unique_leaf_addr, lock_cas_offset), 0UL, ~0UL, cas_buffer, lock_mask, cxt);
+    MN_iops[dsm->getMyThreadID()][GADD(unique_leaf_addr, lock_cas_offset).nodeID]++;
+    MN_datas[dsm->getMyThreadID()][GADD(unique_leaf_addr, lock_cas_offset).nodeID]+=8;
+    return res;
 #else
     GlobalAddress lock_addr;
     uint64_t mask;
     get_on_chip_lock_addr(unique_leaf_addr, lock_addr, mask);
-    return dsm->cas_dm_mask_sync(lock_addr, 0UL, ~0UL, cas_buffer, mask, cxt);
+    bool res=dsm->cas_dm_mask_sync(lock_addr, 0UL, ~0UL, cas_buffer, mask, cxt);
+    MN_iops[dsm->getMyThreadID()][lock_addr.nodeID]++;
+    MN_datas[dsm->getMyThreadID()][lock_addr.nodeID]+=8;
+    return res;
 #endif
   };
 
@@ -453,11 +478,15 @@ void Tree::in_place_update_leaf(const Key &k, Value &v, const GlobalAddress &lea
   auto unlock = [=](const GlobalAddress &unique_leaf_addr){
 #ifdef TREE_ENABLE_EMBEDDING_LOCK
     dsm->cas_mask_sync(GADD(unique_leaf_addr, lock_cas_offset), ~0UL, 0UL, cas_buffer, lock_mask, cxt);
+    MN_iops[dsm->getMyThreadID()][GADD(unique_leaf_addr, lock_cas_offset).nodeID]++;
+    MN_datas[dsm->getMyThreadID()][GADD(unique_leaf_addr, lock_cas_offset).nodeID]+=8;
 #else
     GlobalAddress lock_addr;
     uint64_t mask;
     get_on_chip_lock_addr(unique_leaf_addr, lock_addr, mask);
     dsm->cas_dm_mask_sync(lock_addr, ~0UL, 0UL, cas_buffer, mask, cxt);
+    MN_iops[dsm->getMyThreadID()][lock_addr.nodeID]++;
+    MN_datas[dsm->getMyThreadID()][lock_addr.nodeID]+=8;
 #endif
   };
 
@@ -468,11 +497,15 @@ void Tree::in_place_update_leaf(const Key &k, Value &v, const GlobalAddress &lea
   // write w/o unlock
   auto write_without_unlock = [=](const GlobalAddress &unique_leaf_addr){
     dsm->write_sync((const char*)leaf, unique_leaf_addr, sizeof(Leaf), cxt);
+    MN_iops[dsm->getMyThreadID()][unique_leaf_addr.nodeID]++;
+    MN_datas[dsm->getMyThreadID()][unique_leaf_addr.nodeID]+=sizeof(Leaf);
   };
   // write and unlock
   auto write_and_unlock = [=](const GlobalAddress &unique_leaf_addr){
     leaf->unlock();
     dsm->write_sync((const char*)leaf, unique_leaf_addr, sizeof(Leaf), cxt);
+    MN_iops[dsm->getMyThreadID()][unique_leaf_addr.nodeID]++;
+    MN_datas[dsm->getMyThreadID()][unique_leaf_addr.nodeID]+=sizeof(Leaf);
   };
 #endif
 
@@ -504,6 +537,8 @@ write_leaf:
   local_lock_table->release_local_lock(leaf_addr, unlock, write_without_unlock, write_and_unlock);
 #else
   dsm->write_sync((const char*)leaf, leaf_addr, sizeof(Leaf), cxt);
+  MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
+  MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=sizeof(Leaf);
   local_lock_table->release_local_lock(leaf_addr, unlock);
 #endif
 
@@ -520,6 +555,8 @@ write_leaf:
   // write back the lock at the same time
   leaf->unlock();
   dsm->write_sync((const char*)leaf, leaf_addr, sizeof(Leaf), cxt);
+  MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
+  MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=sizeof(Leaf);
 #else
   // batch write updated leaf and on-chip lock
   RdmaOpRegion rs[2];
@@ -534,6 +571,10 @@ write_leaf:
   rs[1].dest = lock_addr;
   rs[1].is_on_chip = true;
   dsm->write_cas_mask_sync(rs[0], rs[1], ~0UL, 0UL, mask, cxt);
+  MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
+  MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=sizeof(Leaf);
+  MN_iops[dsm->getMyThreadID()][lock_addr.nodeID]++;
+  MN_datas[dsm->getMyThreadID()][lock_addr.nodeID]+=8;
 #endif
 #endif
   return;
@@ -649,17 +690,25 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
     new (leaf_buffer) Leaf(k, v, e_ptr);
     leaf_addr = dsm->alloc(sizeof(Leaf));
     dsm->write_sync(leaf_buffer, leaf_addr, sizeof(Leaf), cxt);
+    MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
+    MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=sizeof(Leaf);
   }
   else {  // write the changed e_ptr inside leaf
     auto ptr_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
     *ptr_buffer = e_ptr;
     dsm->write((const char *)ptr_buffer, leaf_addr, sizeof(GlobalAddress), false, cxt);
+    MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
+    MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=sizeof(GlobalAddress);
   }
 
   // cas entry
   auto new_e = InternalEntry(partial_key, sizeof(Leaf) < 128 ? sizeof(Leaf) : 0, leaf_addr);
   auto remote_cas = [=](){
-    return dsm->cas_sync(e_ptr, (uint64_t)old_e, (uint64_t)new_e, ret_buffer, cxt);
+    bool res=dsm->cas_sync(e_ptr, (uint64_t)old_e, (uint64_t)new_e, ret_buffer, cxt);
+    MN_iops[dsm->getMyThreadID()][e_ptr.nodeID]++;
+    MN_datas[dsm->getMyThreadID()][e_ptr.nodeID]+=8;
+    return res;
+
   };
 
 // #ifndef TREE_TEST_ROWEX_ART
@@ -674,6 +723,8 @@ bool Tree::read_node(InternalEntry &p, bool& type_correct, char *node_buffer, co
                      CoroContext *cxt, int coro_id) {
   auto read_size = sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(p.type()) * sizeof(InternalEntry);
   dsm->read_sync(node_buffer, p.addr(), read_size, cxt);
+  MN_iops[dsm->getMyThreadID()][p.addr().nodeID]++;
+  MN_datas[dsm->getMyThreadID()][p.addr().nodeID]+=read_size;
   auto p_node = (InternalPage *)node_buffer;
   auto& hdr = p_node->hdr;
 
@@ -685,6 +736,8 @@ bool Tree::read_node(InternalEntry &p, bool& type_correct, char *node_buffer, co
       read_node_repair[dsm->getMyThreadID()] ++;
       auto remain_size = (node_type_to_num(hdr.type()) - node_type_to_num(p.type())) * sizeof(InternalEntry);
       dsm->read_sync(node_buffer + read_size, GADD(p.addr(), read_size), remain_size, cxt);
+      MN_iops[dsm->getMyThreadID()][GADD(p.addr(), read_size).nodeID]++;
+     MN_datas[dsm->getMyThreadID()][GADD(p.addr(), read_size).nodeID]+=remain_size;
     }
     p.node_type = hdr.node_type;
     type_correct = false;
@@ -694,6 +747,8 @@ bool Tree::read_node(InternalEntry &p, bool& type_correct, char *node_buffer, co
   if (!from_cache && p_node->rev_ptr != p_ptr) {
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
     dsm->cas(p.addr(), p_node->rev_ptr, p_ptr, cas_buffer, false, cxt);
+    MN_iops[dsm->getMyThreadID()][p.addr().nodeID]++;
+    MN_datas[dsm->getMyThreadID()][p.addr().nodeID]+=8;
     // dsm->cas_sync(p.addr(), p_node->rev_ptr, p_ptr, cas_buffer, cxt);
   }
   return p_node->is_valid(p_ptr, depth, from_cache);
@@ -724,6 +779,8 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
     auto ptr_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
     *ptr_buffer = leaf_e_ptr;
     dsm->write((const char *)ptr_buffer, leaf_addr, sizeof(GlobalAddress), false, cxt);
+    MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
+    MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=sizeof(GlobalAddress);
   }
 
   // init inner nodes
@@ -768,9 +825,22 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   }
   dsm->write_batches_sync(rs, (leaf_unwrite ? new_node_num + 1 : new_node_num), cxt, coro_id);
 
+  for(i=0;i<new_node_num;++ i)
+  {
+    MN_iops[dsm->getMyThreadID()][node_addrs[i].nodeID]++;
+    MN_datas[dsm->getMyThreadID()][node_addrs[i].nodeID]+=page_size;
+  }
+  if(leaf_unwrite) 
+  {
+    MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
+    MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=sizeof(Leaf);
+  }
   // cas
   auto remote_cas = [=](){
-    return dsm->cas_sync(e_ptr, (uint64_t)old_e, (uint64_t)new_e, ret_buffer, cxt);
+    bool res=dsm->cas_sync(e_ptr, (uint64_t)old_e, (uint64_t)new_e, ret_buffer, cxt);
+    MN_iops[dsm->getMyThreadID()][e_ptr.nodeID]++;
+    MN_datas[dsm->getMyThreadID()][e_ptr.nodeID]+=8;
+    return res;
   };
   auto reclaim_memory = [=](){
     for (int i = 0; i < new_node_num; ++ i) {
@@ -788,6 +858,8 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   if (res) {
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
     dsm->cas(old_e.addr(), e_ptr, GADD(node_addrs[new_node_num - 1], sizeof(GlobalAddress) + sizeof(Header)), cas_buffer, false, cxt);
+    MN_iops[dsm->getMyThreadID()][old_e.addr().nodeID]++;
+    MN_datas[dsm->getMyThreadID()][old_e.addr().nodeID]+=8;
   }
 
 
@@ -823,8 +895,13 @@ void Tree::cas_node_type(NodeType next_type, GlobalAddress p_ptr, InternalEntry 
     rs[1].source     = (uint64_t)cas_buffer_2;
     rs[1].dest       = header_addr;
     rs[1].is_on_chip = false;
-    return dsm->two_cas_mask_sync(rs[0], (uint64_t)p, (uint64_t)new_e, ~0UL,
+    std::pair<bool, bool> res=dsm->two_cas_mask_sync(rs[0], (uint64_t)p, (uint64_t)new_e, ~0UL,
                                   rs[1], hdr, Header(next_type), Header::node_type_mask, cxt);
+    MN_iops[dsm->getMyThreadID()][p_ptr.nodeID]++;
+    MN_datas[dsm->getMyThreadID()][p_ptr.nodeID]+=8;
+    MN_iops[dsm->getMyThreadID()][header_addr.nodeID]++;
+    MN_datas[dsm->getMyThreadID()][header_addr.nodeID]+=8;
+    return res;
   };
 
   // only cas old_entry
@@ -991,6 +1068,8 @@ next:
       // re-read leaf entry
       auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
       dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
+      MN_iops[dsm->getMyThreadID()][p_ptr.nodeID]++;
+      MN_datas[dsm->getMyThreadID()][p_ptr.nodeID]+=sizeof(InternalEntry);
       p = *(InternalEntry *)entry_buffer;
       from_cache = false;
       retry_flag = INVALID_LEAF;
