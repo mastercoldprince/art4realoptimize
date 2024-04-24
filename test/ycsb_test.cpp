@@ -23,7 +23,7 @@
   #define TEST_EPOCH 10
   #define TIME_INTERVAL 1
 #else
-  #define TEST_EPOCH 10
+  #define TEST_EPOCH 800
   #define TIME_INTERVAL 0.5
 #endif
 #endif
@@ -425,7 +425,7 @@ int main(int argc, char *argv[]) {
 
   printf("当前时间: %ld 秒 %ld 微秒\n", s.tv_sec, microsec);
   while(!need_stop) {
-      if(count++ ==500 ) tree->clear_cache();
+      if(count++ ==400 ) tree->clear_cache();
     usleep(10000);
     clock_gettime(CLOCK_REALTIME, &e);
     int microseconds = (e.tv_sec - s.tv_sec) * 1000000 +
@@ -579,7 +579,7 @@ int main(int argc, char *argv[]) {
     }
   }
 #ifndef EPOCH_LAT_TEST
-  save_latency(1);
+//  save_latency(1);
 #endif
   for (int i = 0; i < kThreadCount; i++) {
     th[i].join();
