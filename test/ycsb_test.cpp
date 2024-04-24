@@ -520,14 +520,14 @@ int main(int argc, char *argv[]) {
     }
 #endif
 
-    if (dsm->getMyNodeID() == 1) {
+/*    if (dsm->getMyNodeID() == 1) {
       printf("total %lu", all_retry_cnt[0]);
       for (int i = 1; i < MAX_FLAG_NUM; ++ i) {
         printf(",  retry%d %lu", i, all_retry_cnt[i]);
       }
       printf("\n");
-    }
-
+   }
+*/ 
     double per_node_tp = cap * 1.0 / microseconds;
     uint64_t cluster_tp = dsm->sum((uint64_t)(per_node_tp * 1000));  // only node 0 return the sum
 
@@ -546,7 +546,7 @@ int main(int argc, char *argv[]) {
 
       for(int j=0;j<MEMORY_NODE_NUM;j++)
      {
-      printf("CN %d MN %d, throughput %.4f \n",dsm->getMyNodeID(), j, (MN_tps[j]-MN_tp[j])*1.0/microseconds);
+      //printf("CN %d MN %d, throughput %.4f \n",dsm->getMyNodeID(), j, (MN_tps[j]-MN_tp[j])*1.0/microseconds);
       uint64_t MN_cluster_tp=dsm->sum_MN((uint64_t)(per_MN_tp[j] * 1000),j);
       if(dsm->getMyNodeID()==0) printf("MN %d all throughput %.3f \n",j,MN_cluster_tp/1000.0);
      }
