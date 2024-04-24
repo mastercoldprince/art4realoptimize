@@ -171,6 +171,7 @@ public:
   bool search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx);
   void search_range_from_cache(const Key &from, const Key &to, std::vector<RangeCache> &result);
   void invalidate(volatile CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr);
+  void clear();
   void statistics();
 
 private:

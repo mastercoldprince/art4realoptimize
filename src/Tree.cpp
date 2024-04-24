@@ -68,7 +68,9 @@ retry:
   }
 }
 
-
+void Tree::clear_cache() {
+  index_cache->clear();
+}
 
 
 

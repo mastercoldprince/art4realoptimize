@@ -13,7 +13,12 @@ RadixCache::RadixCache(int cache_size, DSM *dsm) : cache_size(cache_size), dsm(d
   node_queue = new tbb::concurrent_queue<CacheNode*>();
   node_queue->push(cache_root);
 }
-
+void RadixCache::clear() {
+  free_manager = new FreeMemManager(define::MB * cache_size);
+  cache_root = new CacheNode();
+  node_queue = new tbb::concurrent_queue<CacheNode*>();
+  node_queue->push(cache_root);
+}
 
 void RadixCache::add_to_cache(const Key& k, const InternalPage* p_node, const GlobalAddress &node_addr) {
   auto depth = p_node->hdr.depth - 1;

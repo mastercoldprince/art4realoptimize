@@ -411,11 +411,19 @@ int main(int argc, char *argv[]) {
   timespec s, e;
   uint64_t pre_tp = 0;
   int count = 0;
+    uint64_t MN_tp[MEMORY_NODE_NUM];
+  uint64_t MN_data[MEMORY_NODE_NUM];
+  memset(MN_tp, 0, sizeof(uint64_t) * MEMORY_NODE_NUM);
+  memset(MN_data, 0, sizeof(uint64_t) * MEMORY_NODE_NUM);
 
   clock_gettime(CLOCK_REALTIME, &s);
-  while(!need_stop) {
 
-    sleep(TIME_INTERVAL);
+  long microsec = s.tv_nsec / 1000;
+
+  printf("当前时间: %ld 秒 %ld 微秒\n", s.tv_sec, microsec);
+  while(!need_stop) {
+      if(count++ ==500 ) tree->clear_cache();
+    usleep(10000);
     clock_gettime(CLOCK_REALTIME, &e);
     int microseconds = (e.tv_sec - s.tv_sec) * 1000000 +
                        (double)(e.tv_nsec - s.tv_nsec) / 1000;
@@ -482,10 +490,27 @@ int main(int argc, char *argv[]) {
         all_retry_cnt[i] += retry_cnt[j][i];
       }
     }
+
+     uint64_t MN_tps[MEMORY_NODE_NUM];
+    uint64_t MN_d[MEMORY_NODE_NUM];
+    memset(MN_tps, 0, sizeof(uint64_t) * MEMORY_NODE_NUM);
+    memset(MN_d, 0, sizeof(uint64_t) * MEMORY_NODE_NUM);
+    for(int i=0;i<MAX_APP_THREAD;++ i)
+      for(int j=0;j<MEMORY_NODE_NUM;j++)
+      {
+        MN_tps[j]+=MN_iops[i][j];
+        MN_d[j]+=MN_datas[i][j];
+      }
+    uint64_t MN_cap[MEMORY_NODE_NUM];
+    memset(MN_cap, 0, sizeof(uint64_t) * MEMORY_NODE_NUM);  
+    for(int j=0;j<MEMORY_NODE_NUM;j++)
+      {
+        MN_cap[j]=MN_tps[j]-MN_tp[j];
+      }  
     tree->clear_debug_info();
 
 #ifdef EPOCH_LAT_TEST
-    save_latency(++ count);
+    //save_latency(++ count);
 #else
     if (++ count == TEST_EPOCH / 2) {  // rm latency during warm up
       memset(latency, 0, sizeof(uint64_t) * MAX_APP_THREAD * MAX_CORO_NUM * LATENCY_WINDOWS);
@@ -503,8 +528,33 @@ int main(int argc, char *argv[]) {
     double per_node_tp = cap * 1.0 / microseconds;
     uint64_t cluster_tp = dsm->sum((uint64_t)(per_node_tp * 1000));  // only node 0 return the sum
 
-    printf("%d, throughput %.4f\n", dsm->getMyNodeID(), per_node_tp);
+    printf("%d, throughput %.4f duration %d\n", dsm->getMyNodeID(), per_node_tp,microseconds);
 
+    double per_MN_tp[MEMORY_NODE_NUM];
+    memset(per_MN_tp, 0, sizeof(double) * MEMORY_NODE_NUM);    
+    for(int j=0;j<MEMORY_NODE_NUM;j++)
+      {
+        per_MN_tp[j]=MN_cap[j]*1.0/microseconds;
+      }       
+    uint64_t cluster_tp = dsm->sum((uint64_t)(per_node_tp * 1000));
+
+    printf("%d, throughput %.4f ,duration %d\n", dsm->getMyNodeID(), per_node_tp, microseconds);
+    uint64_t MN_cluster_tp[MEMORY_NODE_NUM];
+    memset(MN_cluster_tp,0,sizeof(uint64_t)*MEMORY_NODE_NUM);
+    if (dsm->getMyNodeID() == 0)
+    {       for(int j=0;j<MEMORY_NODE_NUM;j++)
+     {
+      printf("CN %d MN %d, throughput %.4f \n",dsm->getMyNodeID(), j, (MN_tps[j]-MN_tp[j])*1.0/microseconds);
+      uint64_t MN_cluster_tp=dsm->sum_MN((uint64_t)(per_MN_tp[j] * 1000),j);
+      if(dsm->getMyNodeID()==0) printf("MN %d all throughput %.3f \n",j,MN_cluster_tp/1000.0);
+     }
+    }
+    for(int j=0;j<MEMORY_NODE_NUM;j++)
+      {
+        MN_tp[j]=MN_tps[j];
+        MN_data[j]=MN_d[j];
+      }
+/*
     if (dsm->getMyNodeID() == 0) {
       printf("epoch %d passed!\n", count);
       printf("cluster throughput %.3f Mops\n", cluster_tp / 1000.0);
@@ -520,7 +570,7 @@ int main(int argc, char *argv[]) {
         printf("node_type%d %lu   ", i, read_node_type_cnt[i]);
       }
       printf("\n\n");
-    }
+    }*/
     if (count >= TEST_EPOCH) {
       need_stop = true;
     }
