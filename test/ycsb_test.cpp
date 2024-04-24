@@ -531,7 +531,7 @@ int main(int argc, char *argv[]) {
     double per_node_tp = cap * 1.0 / microseconds;
     uint64_t cluster_tp = dsm->sum((uint64_t)(per_node_tp * 1000));  // only node 0 return the sum
 
-    printf("%d, throughput %.4f duration %d\n", dsm->getMyNodeID(), per_node_tp,microseconds);
+ 
 
     double per_MN_tp[MEMORY_NODE_NUM];
     memset(per_MN_tp, 0, sizeof(double) * MEMORY_NODE_NUM);    
