@@ -543,16 +543,15 @@ int main(int argc, char *argv[]) {
     printf("%d, throughput %.4f ,duration %d\n", dsm->getMyNodeID(), per_node_tp, microseconds);
     uint64_t MN_cluster_tp[MEMORY_NODE_NUM];
     memset(MN_cluster_tp,0,sizeof(uint64_t)*MEMORY_NODE_NUM);
-    if (dsm->getMyNodeID() == 0)
-    {
+
       for(int j=0;j<MEMORY_NODE_NUM;j++)
      {
       printf("CN %d MN %d, throughput %.4f \n",dsm->getMyNodeID(), j, (MN_tps[j]-MN_tp[j])*1.0/microseconds);
       uint64_t MN_cluster_tp=dsm->sum_MN((uint64_t)(per_MN_tp[j] * 1000),j);
       if(dsm->getMyNodeID()==0) printf("MN %d all throughput %.3f \n",j,MN_cluster_tp/1000.0);
      }
-      printf("cluster throughput %.3f Mops\n", cluster_tp / 1000.0);
-    }
+      if (dsm->getMyNodeID() == 0)  printf("cluster throughput %.3f Mops\n", cluster_tp / 1000.0);
+  
     for(int j=0;j<MEMORY_NODE_NUM;j++)
       {
         MN_tp[j]=MN_tps[j];
