@@ -97,15 +97,36 @@ os.system(cmd)
 #####################################################################################
 
 if key_type == 'randint' :
-    f_load = open (out_load_ycsbkey, 'r')
-    f_load_out = open (out_load, 'w')
-    for line in f_load :
-        f_load_out.write (line)
+#    f_load = open (out_load_ycsbkey, 'r')
+#    f_load_out = open (out_load, 'w')
+#    for line in f_load :
+#        f_load_out.write (line)
 
-    f_txn = open (out_txn_ycsbkey, 'r')
-    f_txn_out = open (out_txn, 'w')
-    for line in f_txn :
-        f_txn_out.write (line)
+#    f_txn = open (out_txn_ycsbkey, 'r')
+#    f_txn_out = open (out_txn, 'w')
+#    for line in f_txn :
+#        f_txn_out.write (line)
+    # 修改后的randint部分
+    prefix = '2056258949'
+    suffix_length = 9
+    f_load = open(out_load_ycsbkey, 'r')
+    f_load_out = open(out_load, 'w')
+    for line in f_load:
+    # 生成具有相同前缀和随机后缀的整数键
+        random_suffix = ''.join(["{}".format(random.randint(0, 9)) for num in range(0, suffix_length)])
+        new_key = prefix + random_suffix
+        f_load_out.write(line.replace(line.split()[1], new_key) + '\n')
+
+    f_load.close()
+    f_load_out.close()
+
+    f_txn = open(out_txn_ycsbkey, 'r')
+    f_txn_out = open(out_txn, 'w')
+    for line in f_txn:
+        # 对于事务文件，也执行相同的替换操作
+        random_suffix = ''.join(["{}".format(random.randint(0, 9)) for num in range(0, suffix_length)])
+        new_key = prefix + random_suffix
+        f_txn_out.write(line.replace(line.split()[1], new_key) + '\n')
 
 elif key_type == 'monoint' :
     keymap = {}

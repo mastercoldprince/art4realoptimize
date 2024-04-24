@@ -135,7 +135,7 @@ static double mehcached_zeta(uint64_t last_n, double last_sum, uint64_t n,
     return last_sum;
 }
 
-static uint64_t mehcached_zipf_next(struct zipf_gen_state *state) {
+static uint64_t mehcached_zipf_next(struct zipf_gen_state *state) {  //产生符合Zipf分布的随机数
     if (state->last_n != state->n) {
         if (state->theta > 0. && state->theta < 1.) {
             state->zetan = mehcached_zeta(state->last_n, state->zetan, state->n,

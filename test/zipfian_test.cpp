@@ -77,8 +77,8 @@ public:
     insert_start_key = kWarmRatio * kKeySpace + kThreadCount * kCoroCnt * dsm->getMyNodeID() + id * kCoroCnt + coro_id;
   }
 
-  Request next() override {
-    Request r;
+  Request next() override {   //每个节点随机产生符合Zipf分布的键值 进行更新或搜索
+    Request r;   
     r.is_search = rand_r(&seed) % 100 < kReadRatio;
     r.is_insert = !r.is_search;
 /*
