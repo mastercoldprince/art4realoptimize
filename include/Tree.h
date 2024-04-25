@@ -67,7 +67,7 @@ public:
   bool search(const Key &k, Value &v, CoroContext *cxt = nullptr, int coro_id = 0);
   void range_query(const Key &from, const Key &to, std::map<Key, Value> &ret);
   void statistics();
-  void clear_cache();
+  void ();
   void clear_debug_info();
 
   GlobalAddress get_root_ptr_ptr();
