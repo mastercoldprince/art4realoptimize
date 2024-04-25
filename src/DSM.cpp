@@ -143,7 +143,7 @@ void DSM::read(char *buffer, GlobalAddress gaddr, size_t size, bool signal,
              ctx->coro_id);
     (*ctx->yield)(*ctx->master);
   }
-    printf("write size : %" PRIu64 " \n",size);
+    printf("read size : %" PRIu64 " \n",size);
 }
 
 void DSM::read_sync(char *buffer, GlobalAddress gaddr, size_t size,
