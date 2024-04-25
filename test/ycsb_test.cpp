@@ -540,7 +540,7 @@ int main(int argc, char *argv[]) {
         per_MN_tp[j]=MN_cap[j]*1.0/microseconds;
       }       
 
-    printf("%d, throughput %.4f ,duration %d\n", dsm->getMyNodeID(), per_node_tp, microseconds);
+    printf("%d, throughput %.4f ,duration %d ,cache hit rate: %lf \n", dsm->getMyNodeID(), per_node_tp, microseconds, hit * 1.0 / all);
     uint64_t MN_cluster_tp[MEMORY_NODE_NUM];
     memset(MN_cluster_tp,0,sizeof(uint64_t)*MEMORY_NODE_NUM);
 
