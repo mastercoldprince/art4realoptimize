@@ -300,6 +300,8 @@ int main(int argc, char *argv[]) {
   while(!need_stop) {
 #ifdef TREE_ENABLE_CACHE
 printf("Cache \n");
+#else 
+printf("No Cache \n");
 #endif
     usleep(10000);
     clock_gettime(CLOCK_REALTIME, &e);
