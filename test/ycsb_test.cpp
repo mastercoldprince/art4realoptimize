@@ -446,7 +446,6 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < MAX_APP_THREAD; ++i) {
       all += (cache_hit[i] + cache_miss[i]);
       hit += cache_hit[i];
-      printf("cache hit %f \n",hit);
     }
 
     uint64_t lock_fail_cnt = 0;

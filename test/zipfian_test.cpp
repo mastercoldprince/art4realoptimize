@@ -405,7 +405,7 @@ int main(int argc, char *argv[]) {
       }       
     uint64_t cluster_tp = dsm->sum((uint64_t)(per_node_tp * 1000));
 
-    printf("%d, throughput %.4f ,duration %d\n", dsm->getMyNodeID(), per_node_tp, microseconds);
+    printf("%d, throughput %.4f ,duration %d cache hit rate: %lf\n", dsm->getMyNodeID(), per_node_tp, microseconds,hit * 1.0 / all);
     uint64_t MN_cluster_tp[MEMORY_NODE_NUM];
     memset(MN_cluster_tp,0,sizeof(uint64_t)*MEMORY_NODE_NUM);
     for(int j=0;j<MEMORY_NODE_NUM;j++)
