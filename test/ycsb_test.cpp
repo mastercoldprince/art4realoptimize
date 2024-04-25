@@ -425,8 +425,8 @@ int main(int argc, char *argv[]) {
 
   printf("当前时间: %ld 秒 %ld 微秒\n", s.tv_sec, microsec);
   while(!need_stop) {
-//      if(count++ ==400 ) tree->clear_cache();
-    count++;
+    if(count++ ==400 ) tree->clear_cache();
+
     usleep(10000);
     clock_gettime(CLOCK_REALTIME, &e);
     int microseconds = (e.tv_sec - s.tv_sec) * 1000000 +
@@ -446,6 +446,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < MAX_APP_THREAD; ++i) {
       all += (cache_hit[i] + cache_miss[i]);
       hit += cache_hit[i];
+      print("cache hit %f \n",hit);
     }
 
     uint64_t lock_fail_cnt = 0;
