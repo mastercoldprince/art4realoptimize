@@ -12,6 +12,7 @@
 #include <fstream>
 #include <random>
 
+#define TREE_ENABLE_CACHE
 #define TEST_EPOCH 1000
 // #define NO_WRITE_CONFLICT
 // #define TEST_INSERT
@@ -298,11 +299,6 @@ int main(int argc, char *argv[]) {
 
   clock_gettime(CLOCK_REALTIME, &s);
   while(!need_stop) {
-#ifdef TREE_ENABLE_CACHE
-printf("Cache \n");
-#else 
-printf("No Cache \n");
-#endif
     usleep(10000);
     clock_gettime(CLOCK_REALTIME, &e);
     int microseconds = (e.tv_sec - s.tv_sec) * 1000000 +
