@@ -69,7 +69,8 @@ retry:
 }
 
 void Tree::clear_cache() {
-  index_cache->clear();
+  index_cache->~RadixCache();
+  index_cache = new RadixCache(define::kIndexCacheSize, dsm);
 }
 
 
