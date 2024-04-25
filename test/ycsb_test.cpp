@@ -23,7 +23,7 @@
   #define TEST_EPOCH 10
   #define TIME_INTERVAL 1
 #else
-  #define TEST_EPOCH 800
+  #define TEST_EPOCH 1000
   #define TIME_INTERVAL 0.5
 #endif
 #endif
@@ -425,7 +425,7 @@ int main(int argc, char *argv[]) {
 
   printf("当前时间: %ld 秒 %ld 微秒\n", s.tv_sec, microsec);
   while(!need_stop) {
-    if(count++ ==400 ) tree->clear_cache();
+    if(count++ ==500 ) tree->clear_cache();
 
     usleep(10000);
     clock_gettime(CLOCK_REALTIME, &e);

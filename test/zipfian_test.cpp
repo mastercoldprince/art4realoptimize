@@ -12,7 +12,7 @@
 #include <fstream>
 #include <random>
 
-#define TREE_ENABLE_CACHE
+
 #define TEST_EPOCH 1000
 // #define NO_WRITE_CONFLICT
 // #define TEST_INSERT

@@ -36,7 +36,7 @@ endif()
 if(ENABLE_CACHE)
     add_definitions(-DTREE_ENABLE_CACHE)
 else()
-    remove_definitions(-DTREE_ENABLE_CACHE)
+    add_definitions(-DTREE_ENABLE_CACHE)
 endif()
 
 if(LONG_TEST_EPOCH)
