@@ -590,7 +590,7 @@ int main(int argc, char *argv[]) {
     insert_time_total+=insert_time[i];
     retry_time_total+=retry_time[i];
   }
-  printf("insert time: % " PRIu64 ",update retry time:% " PRIu64 " \n",insert_time_total,retry_time_total);
+  printf("insert time: %" PRIu64",update retry time:%" PRIu64" \n",insert_time_total,retry_time_total);
 
 #ifndef EPOCH_LAT_TEST
 //  save_latency(1);
