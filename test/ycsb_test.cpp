@@ -564,13 +564,13 @@ printf("total %lu", all_retry_cnt[0]);
     }
 //    printf("insert time: %" PRIu64",update retry time:%" PRIu64" \n",insert_time_total,retry_time_total);
       
-      printf("op cnt: %" PRIu64 ",cas retry cnt: %" PRIu64" \n",total_cnt,cas_retry_cnt);
+    printf("op cnt: %" PRIu64 ",cas retry cnt: %" PRIu64" \n",total_cnt,cas_retry_cnt);
     printf("%d, throughput %.4f ,duration %d ,cache hit rate: %lf conflict time rate:%lf \n", dsm->getMyNodeID(), per_node_tp, microseconds, hit * 1.0 / all,(retry_time_total-u_r_t)*1.0/(insert_time_total-u_t));
     u_t=insert_time_total;
     u_r_t=retry_time_total;
     uint64_t MN_cluster_tp[MEMORY_NODE_NUM];
     memset(MN_cluster_tp,0,sizeof(uint64_t)*MEMORY_NODE_NUM);
-/*
+
       for(int j=0;j<MEMORY_NODE_NUM;j++)
      {
       //printf("CN %d MN %d, throughput %.4f \n",dsm->getMyNodeID(), j, (MN_tps[j]-MN_tp[j])*1.0/microseconds);
@@ -583,7 +583,7 @@ printf("total %lu", all_retry_cnt[0]);
       {
         MN_tp[j]=MN_tps[j];
         MN_data[j]=MN_d[j];
-      }*/
+      }
 
 
 /*
