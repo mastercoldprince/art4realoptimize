@@ -53,6 +53,10 @@ extern uint64_t retry_cnt[MAX_APP_THREAD][MAX_FLAG_NUM];
 extern uint64_t MN_iops[MAX_APP_THREAD][MEMORY_NODE_NUM];
 extern uint64_t MN_datas[MAX_APP_THREAD][MEMORY_NODE_NUM];
 
+extern uint64_t retry_time[MAX_APP_THREAD];
+extern uint64_t insert_time[MAX_APP_THREAD];
+
+
 int kThreadCount;
 int kNodeCount;
 int kCoroCnt = 8;
@@ -425,8 +429,8 @@ int main(int argc, char *argv[]) {
 
   printf("当前时间: %ld 秒 %ld 微秒\n", s.tv_sec, microsec);
   while(!need_stop) {
-    if(count++ ==500 ) tree->clear_cache();
-
+//  if(count++ ==500 ) tree->clear_cache();
+    count++;
     usleep(10000);
     clock_gettime(CLOCK_REALTIME, &e);
     int microseconds = (e.tv_sec - s.tv_sec) * 1000000 +
@@ -579,6 +583,15 @@ int main(int argc, char *argv[]) {
       need_stop = true;
     }
   }
+  uint64_t insert_time_total=0;
+  uint64_t retry_time_total=0;
+  for(int i=0;i<MAX_APP_THREAD;i++)
+  {
+    insert_time_total+=insert_time[i];
+    retry_time_total+=retry_time[i];
+  }
+  printF("insert time: % " PRIu64 ",update retry time:% " PRIu64 " \n",insert_time_total,retry_time_total);
+
 #ifndef EPOCH_LAT_TEST
 //  save_latency(1);
 #endif
