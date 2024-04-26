@@ -433,7 +433,7 @@ auto stop = std::chrono::high_resolution_clock::now();
 auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
 
 insert_time[dsm->getMyThreadID()]+=(uint64_t)duration.count();
-if(update_retry_flag[dsm->getMyThreadID()]) retry_time+=(uint64_t)duration.count();
+if(update_retry_flag[dsm->getMyThreadID()]) retry_time[dsm->getMyThreadID()]+=(uint64_t)duration.count();
   return;
 }
 
