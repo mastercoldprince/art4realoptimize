@@ -422,6 +422,8 @@ int main(int argc, char *argv[]) {
   uint64_t MN_data[MEMORY_NODE_NUM];
   memset(MN_tp, 0, sizeof(uint64_t) * MEMORY_NODE_NUM);
   memset(MN_data, 0, sizeof(uint64_t) * MEMORY_NODE_NUM);
+  uint64_t u_r_t=0;
+  uint64_t u_t=0;
 
   clock_gettime(CLOCK_REALTIME, &s);
 
@@ -545,7 +547,19 @@ int main(int argc, char *argv[]) {
         per_MN_tp[j]=MN_cap[j]*1.0/microseconds;
       }       
 
-    printf("%d, throughput %.4f ,duration %d ,cache hit rate: %lf \n", dsm->getMyNodeID(), per_node_tp, microseconds, hit * 1.0 / all);
+    uint64_t insert_time_total=0;
+    uint64_t retry_time_total=0;
+    for(int i=0;i<MAX_APP_THREAD;i++)
+    {
+      insert_time_total+=insert_time[i];
+      retry_time_total+=retry_time[i];
+    }
+    printf("insert time: %" PRIu64",update retry time:%" PRIu64" \n",insert_time_total,retry_time_total);
+      
+
+    printf("%d, throughput %.4f ,duration %d ,cache hit rate: %lf conflict time rate:%lf \n", dsm->getMyNodeID(), per_node_tp, microseconds, hit * 1.0 / all,(retry_time_total-u_r_t)*1.0/(insert_time_total-u_t));
+    u_t=insert_time_total;
+    u_r_t=retry_time_total;
     uint64_t MN_cluster_tp[MEMORY_NODE_NUM];
     memset(MN_cluster_tp,0,sizeof(uint64_t)*MEMORY_NODE_NUM);
 
@@ -583,14 +597,7 @@ int main(int argc, char *argv[]) {
       need_stop = true;
     }
   }
-  uint64_t insert_time_total=0;
-  uint64_t retry_time_total=0;
-  for(int i=0;i<MAX_APP_THREAD;i++)
-  {
-    insert_time_total+=insert_time[i];
-    retry_time_total+=retry_time[i];
-  }
-  printf("insert time: %" PRIu64",update retry time:%" PRIu64" \n",insert_time_total,retry_time_total);
+
 
 #ifndef EPOCH_LAT_TEST
 //  save_latency(1);
