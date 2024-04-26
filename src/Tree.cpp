@@ -11,6 +11,7 @@
 #include <vector>
 #include <atomic>
 #include <mutex>
+#include <fstream>
 
 
 double cache_miss[MAX_APP_THREAD];
