@@ -440,7 +440,7 @@ std::ofstream outFile("/users/Shijia/SMART/updateTime.txt", std::ios::app);
  if (!outFile.is_open()) {
         std::cerr << "Failed to open file for writing!" << std::endl;
     }
-        outFile <<update_retry_flag[dsm->getMyThreadID()]<<"\t"<<insert_time[dsm->getMyThreadID()]<< std::endl;
+        outFile <<update_retry_flag[dsm->getMyThreadID()]<<"\t"<<duration.count()<< std::endl;
         outFile.close();
   return;
 }
