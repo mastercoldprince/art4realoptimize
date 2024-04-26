@@ -33,7 +33,7 @@ uint64_t retry_cnt[MAX_APP_THREAD][MAX_FLAG_NUM];
 uint64_t MN_iops[MAX_APP_THREAD][MEMORY_NODE_NUM];
 uint64_t MN_datas[MAX_APP_THREAD][MEMORY_NODE_NUM];
 
-uint64_t retry_flag[MAX_APP_THREAD];
+int retry_flag[MAX_APP_THREAD];
 uint64_t retry_time[MAX_APP_THREAD];
 uint64_t insert_time[MAX_APP_THREAD];
 
