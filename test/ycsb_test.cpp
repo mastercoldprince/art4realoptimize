@@ -529,6 +529,11 @@ int main(int argc, char *argv[]) {
       memset(latency, 0, sizeof(uint64_t) * MAX_APP_THREAD * MAX_CORO_NUM * LATENCY_WINDOWS);
     }
 #endif
+printf("total %lu", all_retry_cnt[0]);
+      for (int i = 1; i < MAX_FLAG_NUM; ++ i) {
+        printf(",  retry%d %lu", i, all_retry_cnt[i]);
+      }
+      printf("\n");
 
 /*    if (dsm->getMyNodeID() == 1) {
       printf("total %lu", all_retry_cnt[0]);
