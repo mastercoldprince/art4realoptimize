@@ -429,9 +429,9 @@ int main(int argc, char *argv[]) {
 
   printf("当前时间: %ld 秒 %ld 微秒\n", s.tv_sec, microsec);
   while(!need_stop) {
-//  if(count++ ==500 ) tree->clear_cache();
-    count++;
-    usleep(10000);
+    if(count++ ==500 ) tree->clear_cache();
+ //    count++;
+    usleep(5000);
     clock_gettime(CLOCK_REALTIME, &e);
     int microseconds = (e.tv_sec - s.tv_sec) * 1000000 +
                        (double)(e.tv_nsec - s.tv_nsec) / 1000;
