@@ -16,7 +16,6 @@ thread_local LocalAllocator DSM::local_allocators[MEMORY_NODE_NUM][NR_DIRECTORY]
 thread_local RdmaBuffer DSM::rbuf[MAX_CORO_NUM];
 thread_local uint64_t DSM::thread_tag = 0;
 
-
 DSM *DSM::getInstance(const DSMConfig &conf) {
   static DSM *dsm = nullptr;
   static WRLock lock;

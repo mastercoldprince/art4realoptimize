@@ -23,7 +23,7 @@
   #define TEST_EPOCH 10
   #define TIME_INTERVAL 1
 #else
-  #define TEST_EPOCH 1500
+  #define TEST_EPOCH 10
   #define TIME_INTERVAL 0.5
 #endif
 #endif
@@ -431,9 +431,9 @@ int main(int argc, char *argv[]) {
 
   printf("当前时间: %ld 秒 %ld 微秒\n", s.tv_sec, microsec);
   while(!need_stop) {
-    if(count++ ==500 ) tree->clear_cache();
- //    count++;
-    usleep(5000);
+ //   if(count++ ==500 ) tree->clear_cache();
+//    count++;
+    sleep(TIME_INTERVAL);
     clock_gettime(CLOCK_REALTIME, &e);
     int microseconds = (e.tv_sec - s.tv_sec) * 1000000 +
                        (double)(e.tv_nsec - s.tv_nsec) / 1000;
@@ -500,6 +500,9 @@ int main(int argc, char *argv[]) {
         all_retry_cnt[i] += retry_cnt[j][i];
       }
     }
+    uint64_t cas_retry_cnt=0;
+    cas_retry_cnt += all_retry_cnt[1]+all_retry_cnt[3]+all_retry_cnt[7];
+    uint64_t total_cnt=all_retry_cnt[0];
 
      uint64_t MN_tps[MEMORY_NODE_NUM];
     uint64_t MN_d[MEMORY_NODE_NUM];
@@ -520,7 +523,7 @@ int main(int argc, char *argv[]) {
     tree->clear_debug_info();
 
 #ifdef EPOCH_LAT_TEST
-    //save_latency(++ count);
+    save_latency(++ count);
 #else
     if (++ count == TEST_EPOCH / 2) {  // rm latency during warm up
       memset(latency, 0, sizeof(uint64_t) * MAX_APP_THREAD * MAX_CORO_NUM * LATENCY_WINDOWS);
@@ -556,13 +559,13 @@ int main(int argc, char *argv[]) {
     }
 //    printf("insert time: %" PRIu64",update retry time:%" PRIu64" \n",insert_time_total,retry_time_total);
       
-
-    printf("%d, throughput %.4f ,duration %d ,cache hit rate: %lf conflict time rate:%lf \n", dsm->getMyNodeID(), per_node_tp, microseconds, hit * 1.0 / all,(retry_time_total-u_r_t)*1.0/(insert_time_total-u_t));
+      printf("op cnt: %" PRIu64 ",cas retry cnt: %" PRIu64" \n",total_cnt,cas_retry_cnt);
+//    printf("%d, throughput %.4f ,duration %d ,cache hit rate: %lf conflict time rate:%lf \n", dsm->getMyNodeID(), per_node_tp, microseconds, hit * 1.0 / all,(retry_time_total-u_r_t)*1.0/(insert_time_total-u_t));
     u_t=insert_time_total;
     u_r_t=retry_time_total;
     uint64_t MN_cluster_tp[MEMORY_NODE_NUM];
     memset(MN_cluster_tp,0,sizeof(uint64_t)*MEMORY_NODE_NUM);
-
+/*
       for(int j=0;j<MEMORY_NODE_NUM;j++)
      {
       //printf("CN %d MN %d, throughput %.4f \n",dsm->getMyNodeID(), j, (MN_tps[j]-MN_tp[j])*1.0/microseconds);
@@ -575,7 +578,9 @@ int main(int argc, char *argv[]) {
       {
         MN_tp[j]=MN_tps[j];
         MN_data[j]=MN_d[j];
-      }
+      }*/
+
+
 /*
     if (dsm->getMyNodeID() == 0) {
       printf("epoch %d passed!\n", count);
@@ -597,6 +602,7 @@ int main(int argc, char *argv[]) {
       need_stop = true;
     }
   }
+
 
 
 #ifndef EPOCH_LAT_TEST
