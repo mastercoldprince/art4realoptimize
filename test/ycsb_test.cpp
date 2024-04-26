@@ -565,7 +565,7 @@ printf("total %lu", all_retry_cnt[0]);
 //    printf("insert time: %" PRIu64",update retry time:%" PRIu64" \n",insert_time_total,retry_time_total);
       
       printf("op cnt: %" PRIu64 ",cas retry cnt: %" PRIu64" \n",total_cnt,cas_retry_cnt);
-//    printf("%d, throughput %.4f ,duration %d ,cache hit rate: %lf conflict time rate:%lf \n", dsm->getMyNodeID(), per_node_tp, microseconds, hit * 1.0 / all,(retry_time_total-u_r_t)*1.0/(insert_time_total-u_t));
+    printf("%d, throughput %.4f ,duration %d ,cache hit rate: %lf conflict time rate:%lf \n", dsm->getMyNodeID(), per_node_tp, microseconds, hit * 1.0 / all,(retry_time_total-u_r_t)*1.0/(insert_time_total-u_t));
     u_t=insert_time_total;
     u_r_t=retry_time_total;
     uint64_t MN_cluster_tp[MEMORY_NODE_NUM];
@@ -607,7 +607,14 @@ printf("total %lu", all_retry_cnt[0]);
       need_stop = true;
     }
   }
-
+    uint64_t insert_time_total=0;
+    uint64_t retry_time_total=0;
+    for(int i=0;i<MAX_APP_THREAD;i++)
+    {
+      insert_time_total+=insert_time[i];
+      retry_time_total+=retry_time[i];
+    }
+    printf("insert time: %" PRIu64",update retry time:%" PRIu64" \n",insert_time_total,retry_time_total);
 
 
 #ifndef EPOCH_LAT_TEST

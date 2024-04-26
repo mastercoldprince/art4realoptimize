@@ -96,6 +96,7 @@ InternalEntry Tree::get_root_ptr(CoroContext *cxt, int coro_id) {
 
 void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_update, bool is_load) {
   assert(dsm->is_register());
+  update_retry_flag[dsm->getMyThreadID()]=0;
   auto start = std::chrono::high_resolution_clock::now();
 
   // handover
