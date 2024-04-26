@@ -23,7 +23,7 @@
   #define TEST_EPOCH 10
   #define TIME_INTERVAL 1
 #else
-  #define TEST_EPOCH 1000
+  #define TEST_EPOCH 1500
   #define TIME_INTERVAL 0.5
 #endif
 #endif
@@ -554,7 +554,7 @@ int main(int argc, char *argv[]) {
       insert_time_total+=insert_time[i];
       retry_time_total+=retry_time[i];
     }
-    printf("insert time: %" PRIu64",update retry time:%" PRIu64" \n",insert_time_total,retry_time_total);
+//    printf("insert time: %" PRIu64",update retry time:%" PRIu64" \n",insert_time_total,retry_time_total);
       
 
     printf("%d, throughput %.4f ,duration %d ,cache hit rate: %lf conflict time rate:%lf \n", dsm->getMyNodeID(), per_node_tp, microseconds, hit * 1.0 / all,(retry_time_total-u_r_t)*1.0/(insert_time_total-u_t));
