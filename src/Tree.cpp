@@ -148,6 +148,13 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
 
   auto search_cache_stop = std::chrono::high_resolution_clock::now();
   auto search_cache_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(search_cache_stop - search_cache_start);
+
+  auto update_cache_read_start = std::chrono::high_resolution_clock::now();
+
+  auto update_cache_read_stop = std::chrono::high_resolution_clock::now();
+  auto update_cache_read_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(search_cache_stop - search_cache_start);
+
+
   
 
 
@@ -313,7 +320,12 @@ next:
   // 3. Find out a node
   // 3.1 read the node
   page_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
-  is_valid = read_node(p, type_correct, page_buffer, p_ptr, depth, from_cache, cxt, coro_id);
+    auto update_cache_read_start = std::chrono::high_resolution_clock::now();
+    is_valid = read_node(p, type_correct, page_buffer, p_ptr, depth, from_cache, cxt, coro_id);
+    auto update_cache_read_stop = std::chrono::high_resolution_clock::now();
+    auto update_cache_read_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(search_cache_stop - search_cache_start);
+
+
   p_node = (InternalPage *)page_buffer;
 
   if (!is_valid) {  // node deleted || outdated cache entry in cached node
@@ -360,6 +372,7 @@ next:
         auto add_cache_stop = std::chrono::high_resolution_clock::now();
   auto add_cache_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(add_cache_stop - add_cache_start);
   cache_update_time[dsm->getMyThreadID()] +=add_cache_duration.count();
+  cache_update_time[dsm->getMyThreadID()] +=update_cache_read_duration.count();
   }
 #else
   UNUSED(type_correct);
