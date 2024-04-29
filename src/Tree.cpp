@@ -144,6 +144,12 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   int max_num;
   uint64_t* cas_buffer;
   int debug_cnt = 0;
+  auto search_cache_start = std::chrono::high_resolution_clock::now();
+
+  auto search_cache_stop = std::chrono::high_resolution_clock::now();
+  auto search_cache_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(search_cache_stop - search_cache_start);
+  
+
 
 #ifdef TREE_ENABLE_WRITE_COMBINING
   lock_res = local_lock_table->acquire_local_write_lock(k, v, &busy_waiting_queue, cxt, coro_id);
@@ -157,10 +163,10 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
 
   // search local cache
 #ifdef TREE_ENABLE_CACHE
-     auto search_cache_start = std::chrono::high_resolution_clock::now();
+  search_cache_start = std::chrono::high_resolution_clock::now();
   from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, entry_idx);
-    auto search_cache_stop = std::chrono::high_resolution_clock::now();
-  auto search_cache_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(search_cache_stop - search_cache_start);
+  search_cache_stop = std::chrono::high_resolution_clock::now();
+  search_cache_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(search_cache_stop - search_cache_start);
   cache_search_time[dsm->getMyThreadID()]+=search_cache_duration.count();
   if (from_cache) { // cache hit
     assert(entry_idx >= 0);
