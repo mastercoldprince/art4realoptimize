@@ -7,13 +7,6 @@
 #include <queue>
 #include <chrono>
 
-extern uint64_t cache_update_time[MAX_APP_THREAD];
-extern uint64_t cache_update_cnt[MAX_APP_THREAD];
-extern uint64_t cache_search_time[MAX_APP_THREAD];
-extern uint64_t cache_invalid_time[MAX_APP_THREAD];
-extern uint64_t cache_invalid_cnt[MAX_APP_THREAD];
-
-
 
 RadixCache::RadixCache(int cache_size, DSM *dsm) : cache_size(cache_size), dsm(dsm) {
   free_manager = new FreeMemManager(define::MB * cache_size);
@@ -29,8 +22,6 @@ void RadixCache::clear() {
 }
 
 void RadixCache::add_to_cache(const Key& k, const InternalPage* p_node, const GlobalAddress &node_addr) {
-  cache_update_cnt[dsm->getMyThreadID()] ++;
-  auto start = std::chrono::high_resolution_clock::now();
 
   auto depth = p_node->hdr.depth - 1;
   if (depth == 0) return;
@@ -46,9 +37,7 @@ void RadixCache::add_to_cache(const Key& k, const InternalPage* p_node, const Gl
   if (free_manager->remain_size() < 0) {
     _evict();
   }
-    auto stop = std::chrono::high_resolution_clock::now();
-  auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
-  cache_update_time[dsm->getMyThreadID()] +=duration.count();
+
   return;
 }
 
@@ -167,7 +156,7 @@ next:
 
 
 bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
-   auto start = std::chrono::high_resolution_clock::now();
+
 
   CacheKey byte_array(k.begin(), k.begin() + define::keyLen - 1);
 
@@ -195,9 +184,7 @@ bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_pt
       ret.pop();
     }
   }
-  auto stop = std::chrono::high_resolution_clock::now();
-  auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
-  cache_search_time[dsm->getMyThreadID()]+=duration.count();
+
   return false;
 }
 
@@ -263,16 +250,12 @@ void RadixCache::search_range_from_cache(const Key &from, const Key &to, std::ve
 }
 
 void RadixCache::invalidate(volatile CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr) {
-      cache_invalid_cnt[dsm->getMyThreadID()] ++;
-  auto start = std::chrono::high_resolution_clock::now();
+      
   if (entry_ptr_ptr && entry_ptr && __sync_bool_compare_and_swap(entry_ptr_ptr, entry_ptr, 0UL)) {
     free_manager->free(entry_ptr->content_size());
     _safely_delete(entry_ptr);
   }
-  auto stop = std::chrono::high_resolution_clock::now();
 
-  auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
-  cache_invalid_time[dsm->getMyThreadID()] += duration.count();
 }
 
 void RadixCache::_evict() {

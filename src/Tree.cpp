@@ -157,7 +157,11 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
 
   // search local cache
 #ifdef TREE_ENABLE_CACHE
+     auto search_cache_start = std::chrono::high_resolution_clock::now();
   from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, entry_idx);
+    auto search_cache_stop = std::chrono::high_resolution_clock::now();
+  auto search_cache_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(search_cache_stop - search_cache_start);
+  cache_search_time[dsm->getMyThreadID()]+=search_cache_duration.count();
   if (from_cache) { // cache hit
     assert(entry_idx >= 0);
     p_ptr = GADD(entry_ptr->addr, sizeof(InternalEntry) * entry_idx);
@@ -214,7 +218,13 @@ next:
 #ifdef TREE_ENABLE_CACHE
       // invalidate the old leaf entry cache
       if (from_cache) {
+        cache_invalid_cnt[dsm->getMyThreadID()] ++;
+  auto inv_cache_start = std::chrono::high_resolution_clock::now();
         index_cache->invalidate(entry_ptr_ptr, entry_ptr);
+          auto inv_cache_stop = std::chrono::high_resolution_clock::now();
+
+  auto inv_cache_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(inv_cache_stop - inv_cache_start);
+  cache_invalid_time[dsm->getMyThreadID()] += duration.count();
       }
 #endif
       // re-read leaf entry
@@ -252,7 +262,13 @@ next:
 #ifdef TREE_ENABLE_CACHE
       // invalidate the old leaf entry cache
       if (from_cache) {
+                cache_invalid_cnt[dsm->getMyThreadID()] ++;
+  auto inv_cache_start = std::chrono::high_resolution_clock::now();
         index_cache->invalidate(entry_ptr_ptr, entry_ptr);
+          auto inv_cache_stop = std::chrono::high_resolution_clock::now();
+
+  auto inv_cache_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(inv_cache_stop - inv_cache_start);
+  cache_invalid_time[dsm->getMyThreadID()] += inv_cache_duration.count();
       }
 #endif
       if (!res) {
@@ -299,7 +315,13 @@ next:
 #ifdef TREE_ENABLE_CACHE
     // invalidate the old node cache
     if (from_cache) {
-      index_cache->invalidate(entry_ptr_ptr, entry_ptr);
+              cache_invalid_cnt[dsm->getMyThreadID()] ++;
+  auto inv_cache_start = std::chrono::high_resolution_clock::now();
+        index_cache->invalidate(entry_ptr_ptr, entry_ptr);
+          auto inv_cache_stop = std::chrono::high_resolution_clock::now();
+
+  auto inv_cache_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(inv_cache_stop - inv_cache_start);
+  cache_invalid_time[dsm->getMyThreadID()] += inv_cache_duration.count();
     }
 #endif
     // re-read node entry
@@ -317,10 +339,21 @@ next:
   hdr = p_node->hdr;
 #ifdef TREE_ENABLE_CACHE
   if (from_cache && !type_correct) {  // invalidate the out dated node type
-    index_cache->invalidate(entry_ptr_ptr, entry_ptr);
+            cache_invalid_cnt[dsm->getMyThreadID()] ++;
+  auto inv_cache_start = std::chrono::high_resolution_clock::now();
+        index_cache->invalidate(entry_ptr_ptr, entry_ptr);
+          auto inv_cache_stop = std::chrono::high_resolution_clock::now();
+
+  auto inv_cache_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(inv_cache_stop - inv_cache_start);
+  cache_invalid_time[dsm->getMyThreadID()] += inv_cache_duration.count();
   }
   if (depth == hdr.depth) {
+    cache_update_cnt[dsm->getMyThreadID()] ++;
+      auto add_cache_start = std::chrono::high_resolution_clock::now();
     index_cache->add_to_cache(k, p_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header)));
+        auto add_cache_stop = std::chrono::high_resolution_clock::now();
+  auto add_cache_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(add_cache_stop - add_cache_start);
+  cache_update_time[dsm->getMyThreadID()] +=add_cache_duration.count();
   }
 #else
   UNUSED(type_correct);
@@ -342,7 +375,13 @@ next:
 #ifdef TREE_ENABLE_CACHE
       // invalidate cache node due to outdated cache entry in cache node
       if (from_cache) {
+                cache_invalid_cnt[dsm->getMyThreadID()] ++;
+  auto inv_cache_start = std::chrono::high_resolution_clock::now();
         index_cache->invalidate(entry_ptr_ptr, entry_ptr);
+          auto inv_cache_stop = std::chrono::high_resolution_clock::now();
+
+  auto inv_cache_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(inv_cache_stop - inv_cache_start);
+  cache_invalid_time[dsm->getMyThreadID()] += inv_cache_duration.count();
       }
 #endif
       // udpate cas header. Optimization: no need to snyc; mask node_type
@@ -413,7 +452,13 @@ next:
     cas_node_type(next_type, p_ptr, p, hdr, cxt, coro_id);
 #ifdef TREE_ENABLE_CACHE
     if (from_cache) {  // cache is outdated since node type is changed
-      index_cache->invalidate(entry_ptr_ptr, entry_ptr);
+              cache_invalid_cnt[dsm->getMyThreadID()] ++;
+  auto inv_cache_start = std::chrono::high_resolution_clock::now();
+        index_cache->invalidate(entry_ptr_ptr, entry_ptr);
+          auto inv_cache_stop = std::chrono::high_resolution_clock::now();
+
+  auto inv_cache_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(inv_cache_stop - inv_cache_start);
+  cache_invalid_time[dsm->getMyThreadID()] += inv_cache_duration.count();
     }
 #endif
     goto insert_finish;
