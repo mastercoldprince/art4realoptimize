@@ -224,7 +224,7 @@ next:
           auto inv_cache_stop = std::chrono::high_resolution_clock::now();
 
   auto inv_cache_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(inv_cache_stop - inv_cache_start);
-  cache_invalid_time[dsm->getMyThreadID()] += duration.count();
+  cache_invalid_time[dsm->getMyThreadID()] += inv_cache_duration.count();
       }
 #endif
       // re-read leaf entry
@@ -478,11 +478,11 @@ next:
 
 insert_finish:
 
-cache_invalid_time_total[dsm->getMyThreadID()] +=cache_invalid_time[dsm->getmythread()];
-cache_invalid_cnt_total[dsm->getMyThreadID()] +=cache_invalid_cnt[dsm->getmythread()];
-cache_update_time_total[dsm->getMyThreadID()] +=cache_update_time[dsm->getmythread()];
-cache_update_cnt_total[dsm->getMyThreadID()] +=cache_update_cnt[dsm->getmythread()];
-cache_search_time_total[dsm->getMyThreadID()] +=cache_search_time[dsm->getmythread()];
+cache_invalid_time_total[dsm->getMyThreadID()] +=cache_invalid_time[dsm->getMyThreadID()];
+cache_invalid_cnt_total[dsm->getMyThreadID()] +=cache_invalid_cnt[dsm->getmythreadID()];
+cache_update_time_total[dsm->getMyThreadID()] +=cache_update_time[dsm->getmythreadID()];
+cache_update_cnt_total[dsm->getMyThreadID()] +=cache_update_cnt[dsm->getmythreadID()];
+cache_search_time_total[dsm->getMyThreadID()] +=cache_search_time[dsm->getmythreadID()];
 #ifdef TREE_TEST_ROWEX_ART
   if (!is_update) unlock_node(node_ptr, cxt, coro_id);
 #endif

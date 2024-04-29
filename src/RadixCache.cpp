@@ -157,7 +157,6 @@ next:
 
 bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
 
-
   CacheKey byte_array(k.begin(), k.begin() + define::keyLen - 1);
 
   SearchRetStk ret;
@@ -174,9 +173,6 @@ bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_pt
             // __sync_fetch_and_add(&(entry_ptr->counter), 1UL);
             entry_ptr_ptr = item.entry_ptr_ptr;
             entry_idx = i;
-            auto stop = std::chrono::high_resolution_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
-            cache_search_time[dsm->getMyThreadID()]+=duration.count();
             return true;
           }
         }
