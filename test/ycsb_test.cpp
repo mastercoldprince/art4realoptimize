@@ -56,11 +56,11 @@ extern uint64_t MN_datas[MAX_APP_THREAD][MEMORY_NODE_NUM];
 extern uint64_t retry_time[MAX_APP_THREAD];
 extern uint64_t insert_time[MAX_APP_THREAD];
 
-uint64_t cache_update_time_total[MAX_APP_THREAD];
-uint64_t cache_update_cnt_total[MAX_APP_THREAD];
-uint64_t cache_invalid_time_total[MAX_APP_THREAD];
-uint64_t cache_invalid_cnt_total[MAX_APP_THREAD];
-uint64_t cache_search_time_total[MAX_APP_THREAD];
+extern uint64_t cache_update_time_total[MAX_APP_THREAD];
+extern uint64_t cache_update_cnt_total[MAX_APP_THREAD];
+extern uint64_t cache_invalid_time_total[MAX_APP_THREAD];
+extern uint64_t cache_invalid_cnt_total[MAX_APP_THREAD];
+extern uint64_t cache_search_time_total[MAX_APP_THREAD];
 
 
 int kThreadCount;
