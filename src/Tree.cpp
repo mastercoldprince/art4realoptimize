@@ -525,7 +525,7 @@ std::ofstream outFile("/users/Shijia/SMART/Cache.txt", std::ios::app);
  if (!outFile.is_open()) {
         std::cerr << "Failed to open file for writing!" << std::endl;
     }
-        outFile <<"insertime(us) :"<<"\t"<<duration.count()<<"\t"<<"\t"<<"cache search time(ns) :"<<cache_search_time[dsm->getMyThreadID()]<<"\t"<<"cache invalid time(ns) :"<<cache_invalid_time[dsm->getMyThreadID()]<< "\t"<<"cache update time(ns) :"<<cache_update_time[dsm->getMyThreadID()]<< std::endl;
+        outFile <<"insertime(us) :"<<"\t"<<duration.count()<<"\t"<<"\t"<<"cache search time(ns) :"<<cache_search_time[dsm->getMyThreadID()]<<"\t"<<"cache invalid count: "<<cache_invalid_cnt[dsm->getMyThreadID()]<<"\t"<<"cache invalid time(ns) :"<<cache_invalid_time[dsm->getMyThreadID()]<< "\t"<<"cache update count:"<<cache_update_cnt[dsm->getMyThreadID()]<<"\t"<<"cache update time(ns) :"<<cache_update_time[dsm->getMyThreadID()]<< std::endl;
         outFile.close();        
   return;
 }
