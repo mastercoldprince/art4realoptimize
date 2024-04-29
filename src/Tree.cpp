@@ -320,10 +320,10 @@ next:
   // 3. Find out a node
   // 3.1 read the node
   page_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
-    auto update_cache_read_start = std::chrono::high_resolution_clock::now();
+    update_cache_read_start = std::chrono::high_resolution_clock::now();
     is_valid = read_node(p, type_correct, page_buffer, p_ptr, depth, from_cache, cxt, coro_id);
-    auto update_cache_read_stop = std::chrono::high_resolution_clock::now();
-    auto update_cache_read_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(update_cache_read_stop - update_cache_read_start);
+    update_cache_read_stop = std::chrono::high_resolution_clock::now();
+    update_cache_read_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(update_cache_read_stop - update_cache_read_start);
 
 
   p_node = (InternalPage *)page_buffer;
