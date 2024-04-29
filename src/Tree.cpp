@@ -479,10 +479,10 @@ next:
 insert_finish:
 
 cache_invalid_time_total[dsm->getMyThreadID()] +=cache_invalid_time[dsm->getMyThreadID()];
-cache_invalid_cnt_total[dsm->getMyThreadID()] +=cache_invalid_cnt[dsm->getmythreadID()];
-cache_update_time_total[dsm->getMyThreadID()] +=cache_update_time[dsm->getmythreadID()];
-cache_update_cnt_total[dsm->getMyThreadID()] +=cache_update_cnt[dsm->getmythreadID()];
-cache_search_time_total[dsm->getMyThreadID()] +=cache_search_time[dsm->getmythreadID()];
+cache_invalid_cnt_total[dsm->getMyThreadID()] +=cache_invalid_cnt[dsm->getMyThreadID()];
+cache_update_time_total[dsm->getMyThreadID()] +=cache_update_time[dsm->getMyThreadID()];
+cache_update_cnt_total[dsm->getMyThreadID()] +=cache_update_cnt[dsm->getMyThreadID()];
+cache_search_time_total[dsm->getMyThreadID()] +=cache_search_time[dsm->getMyThreadID()];
 #ifdef TREE_TEST_ROWEX_ART
   if (!is_update) unlock_node(node_ptr, cxt, coro_id);
 #endif
