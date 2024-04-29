@@ -631,10 +631,10 @@ printf("total %lu", all_retry_cnt[0]);
       cache_update_time_all += cache_update_time_total[i];
       cache_update_cnt_all += cache_update_cnt_total[i];
       cache_invalid_time_all += cache_invalid_time_total[i];
-      cache_invalid_cnt_total += cache_invalid_cnt_total[i];
+      cache_invalid_cnt_all += cache_invalid_cnt_total[i];
       cache_search_time_all += cache_search_time_total[i];
     }
-        printf("cache search time: %" PRIu64",cache invalid count %" PRIu64",cache invalid time %" PRIu64" , cache update count %" PRIu4 " ,cache update time %" PRIu64" \n",cache_search_time_all,cache_invalid_cnt_all,cache_invalid_time_all,cache_update_cnt_all,cache_update_time_all );    
+        printf("cache search time: %" PRIu64",cache invalid count %" PRIu64",cache invalid time %" PRIu64" , cache update count %" PRIu64 " ,cache update time %" PRIu64" \n",cache_search_time_all,cache_invalid_cnt_all,cache_invalid_time_all,cache_update_cnt_all,cache_update_time_all );    
 
 #ifndef EPOCH_LAT_TEST
 //  save_latency(1);
