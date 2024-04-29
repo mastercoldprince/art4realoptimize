@@ -37,6 +37,18 @@ uint64_t MN_datas[MAX_APP_THREAD][MEMORY_NODE_NUM];
 int update_retry_flag[MAX_APP_THREAD];
 uint64_t retry_time[MAX_APP_THREAD];
 uint64_t insert_time[MAX_APP_THREAD];
+uint64_t cache_update_time_total[MAX_APP_THREAD];
+uint64_t cache_update_cnt_total[MAX_APP_THREAD];
+uint64_t cache_invalid_cnt[MAX_APP_THREAD];
+uint64_t cache_invalid_cnt_total[MAX_APP_THREAD];
+uint64_t cache_invalid_time[MAX_APP_THREAD];
+uint64_t cache_invalid_time_total[MAX_APP_THREAD];
+uint64_t cache_update_time[MAX_APP_THREAD];
+uint64_t cache_update_cnt[MAX_APP_THREAD];
+uint64_t cache_search_time_total[MAX_APP_THREAD];
+uint64_t cache_search_time[MAX_APP_THREAD];
+
+
 
 thread_local CoroCall Tree::worker[MAX_CORO_NUM];
 thread_local CoroCall Tree::master;
@@ -97,6 +109,12 @@ InternalEntry Tree::get_root_ptr(CoroContext *cxt, int coro_id) {
 void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_update, bool is_load) {
   assert(dsm->is_register());
   update_retry_flag[dsm->getMyThreadID()]=0;
+  cache_update_time[dsm->getMyThreadID()]=0;
+  cache_update_cnt[dsm->getMyThreadID()]=0;
+  cache_search_time[dsm->getMyThreadID()]=0;
+  cache_invalid_cnt[dsm->getMyThreadID()] =0;
+  cache_invalid_time[dsm->getMyThreadID()] =0;
+  
   auto start = std::chrono::high_resolution_clock::now();
 
   // handover
@@ -414,6 +432,12 @@ next:
 #endif
 
 insert_finish:
+
+cache_invalid_time_total[dsm->getMyThreadID()] +=cache_invalid_time[dsm->getmythread()];
+cache_invalid_cnt_total[dsm->getMyThreadID()] +=cache_invalid_cnt[dsm->getmythread()];
+cache_update_time_total[dsm->getMyThreadID()] +=cache_update_time[dsm->getmythread()];
+cache_update_cnt_total[dsm->getMyThreadID()] +=cache_update_cnt[dsm->getmythread()];
+cache_search_time_total[dsm->getMyThreadID()] +=cache_search_time[dsm->getmythread()];
 #ifdef TREE_TEST_ROWEX_ART
   if (!is_update) unlock_node(node_ptr, cxt, coro_id);
 #endif
@@ -442,6 +466,16 @@ std::ofstream outFile("/users/Shijia/SMART/updateTime.txt", std::ios::app);
     }
         outFile <<update_retry_flag[dsm->getMyThreadID()]<<"\t"<<duration.count()<< std::endl;
         outFile.close();*/
+
+
+
+
+std::ofstream outFile("/users/Shijia/SMART/Cache.txt", std::ios::app);
+ if (!outFile.is_open()) {
+        std::cerr << "Failed to open file for writing!" << std::endl;
+    }
+        outFile <<"insertime(us) :"<<"\t"<<duration.count()<<"\t"<<"\t"<<"cache search time(ns) :"<<cache_search_time[dsm->getMyThreadID()]<<"\t"<<"cache invalid time(ns) :"<<cache_invalid_time[dsm->getMyThreadID()]<< "\t"<<"cache update time(ns) :"<<cache_update_time[dsm->getMyThreadID()]<< std::endl;
+        outFile.close();        
   return;
 }
 
@@ -463,6 +497,7 @@ re_read:
   }
   // invalidation
   if (!leaf->is_valid(p_ptr, from_cache)) {
+
     leaf_cache_invalid[dsm->getMyThreadID()] ++;
     return false;
   }

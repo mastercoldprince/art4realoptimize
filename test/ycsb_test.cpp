@@ -56,6 +56,12 @@ extern uint64_t MN_datas[MAX_APP_THREAD][MEMORY_NODE_NUM];
 extern uint64_t retry_time[MAX_APP_THREAD];
 extern uint64_t insert_time[MAX_APP_THREAD];
 
+uint64_t cache_update_time_total[MAX_APP_THREAD];
+uint64_t cache_update_cnt_total[MAX_APP_THREAD];
+uint64_t cache_invalid_time_total[MAX_APP_THREAD];
+uint64_t cache_invalid_cnt_total[MAX_APP_THREAD];
+uint64_t cache_search_time_total[MAX_APP_THREAD];
+
 
 int kThreadCount;
 int kNodeCount;
@@ -614,8 +620,21 @@ printf("total %lu", all_retry_cnt[0]);
       insert_time_total+=insert_time[i];
       retry_time_total+=retry_time[i];
     }
-    printf("insert time: %" PRIu64",update retry time:%" PRIu64" \n",insert_time_total,retry_time_total);
-
+    printf("insert time: %" PRIu64"\n",insert_time_total);
+    uint64_t cache_update_time_all=0;
+    uint64_t cache_update_cnt_all=0;
+    uint64_t cache_invalid_time_all=0;
+    uint64_t cache_invalid_cnt_all=0;
+    uint64_t cache_search_time_all=0;
+    for(int i=0;i<MAX_APP_THREAD; ++ i)
+    {
+      cache_update_time_all += cache_update_time_total[i];
+      cache_update_cnt_all += cache_update_cnt_total[i];
+      cache_invalid_time_all += cache_invalid_time_total[i];
+      cache_invalid_cnt_total += cache_invalid_cnt_total[i];
+      cache_search_time_all += cache_search_time_total[i];
+    }
+        printf("cache search time: %" PRIu64",cache invalid count %" PRIu64",cache invalid time %" PRIu64" , cache update count %" PRIu4 " ,cache update time %" PRIu64" \n",cache_search_time_all,cache_invalid_cnt_all,cache_invalid_time_all,cache_update_cnt_all,cache_update_time_all );    
 
 #ifndef EPOCH_LAT_TEST
 //  save_latency(1);
