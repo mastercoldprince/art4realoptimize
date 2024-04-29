@@ -323,7 +323,7 @@ next:
     auto update_cache_read_start = std::chrono::high_resolution_clock::now();
     is_valid = read_node(p, type_correct, page_buffer, p_ptr, depth, from_cache, cxt, coro_id);
     auto update_cache_read_stop = std::chrono::high_resolution_clock::now();
-    auto update_cache_read_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(search_cache_stop - search_cache_start);
+    auto update_cache_read_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(update_cache_read_stop - update_cache_read_start);
 
 
   p_node = (InternalPage *)page_buffer;
