@@ -155,10 +155,12 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
 
   insert_empty_slot_cas[dsm->getMyThreadID()]=0;
   insert_empty_slot_write[dsm->getMyThreadID()]=0;
+    insert_empty_slot_other[dsm->getMyThreadID()]=0;
   leaf_merge_write[dsm->getMyThreadID()]=0;
   leaf_merge_cas_old[dsm->getMyThreadID()]=0;
   leaf_merge_cas_rev[dsm->getMyThreadID()]=0;
   leaf_merge_cache_update[dsm->getMyThreadID()]=0;
+    leaf_merge_other[dsm->getMyThreadID()]=0;
 
   
   auto start = std::chrono::high_resolution_clock::now();
