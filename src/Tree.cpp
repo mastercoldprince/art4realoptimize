@@ -961,6 +961,8 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
       insert_empty_slot_write[dsm->getMyThreadID()] += insert_empty_slot_write_duration.count();
   // cas entry
   auto new_e = InternalEntry(partial_key, sizeof(Leaf) < 128 ? sizeof(Leaf) : 0, leaf_addr);
+  auto insert_empty_slot_other_stop = std::chrono::high_resolution_clock::now();
+  auto insert_empty_slot_other_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(insert_empty_slot_other_stop - insert_empty_slot_write_stop);
   auto remote_cas = [=](){
     auto insert_empty_slot_cas_start = std::chrono::high_resolution_clock::now();
     bool res=dsm->cas_sync(e_ptr, (uint64_t)old_e, (uint64_t)new_e, ret_buffer, cxt);
@@ -975,7 +977,9 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
   };
 
 // #ifndef TREE_TEST_ROWEX_ART
-  return remote_cas();
+  bool res=remote_cas();
+  if(res) insert_empty_slot_other[dsm->getMyThreadID()] += insert_empty_slot_other_duration.count();
+  return res;
 // #else
 //   return lock_and_cas_in_node(node_addr, remote_cas, cxt, coro_id);
 // #endif
