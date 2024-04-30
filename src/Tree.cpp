@@ -487,11 +487,10 @@ next:
       auto e_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(InternalEntry));
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
       bool res = out_of_place_write_leaf(k, v, depth + 1, leaf_addr, get_partial(k, depth), e_ptr, old_e, node_ptr, cas_buffer, cxt, coro_id);
+      auto insert_empty_slot_stop = std::chrono::high_resolution_clock::now();
+      auto insert_empty_slot_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(insert_empty_slot_stop - insert_empty_slot_start);
       // cas success, return
       if (res) {
-
-        auto insert_empty_slot_stop = std::chrono::high_resolution_clock::now();
-        auto insert_empty_slot_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(insert_empty_slot_stop - insert_empty_slot_start);
         insert_empty_slot[dsm->getMyThreadID()] += insert_empty_slot_duration.count();
         insert_type[dsm->getMyThreadID()] =6;
         goto insert_finish;
