@@ -669,7 +669,7 @@ printf("total %lu", all_retry_cnt[0]);
       node_split_time_all += node_split_time_total[i];
       node_extend_time_all += node_extend_time_total[i];
       insert_empty_slot_cas_all += insert_empty_slot_cas_total[i];
-      insert_empty_slot_write_all insert_empty_slot_write_total[i];
+      insert_empty_slot_write_all +=insert_empty_slot_write_total[i];
       leaf_merge_write_all += leaf_merge_write_total[i];
       leaf_merge_cas_old_all += leaf_merge_cas_old_total[i];
       leaf_merge_cas_rev_all += leaf_merge_cas_rev_total[i];
