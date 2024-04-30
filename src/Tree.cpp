@@ -1062,7 +1062,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
 
   auto insert_leaf_merge_write_stop = std::chrono::high_resolution_clock::now();
   auto insert_leaf_merge_write_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(insert_leaf_merge_write_stop - insert_leaf_merge_write_start);
-  insert_leaf_merge_write[dsm->getMyThreadID()] += insert_leaf_merge_write_duration.count();
+  leaf_merge_write[dsm->getMyThreadID()] += insert_leaf_merge_write_duration.count();
   for(i=0;i<new_node_num;++ i)
   {
     MN_iops[dsm->getMyThreadID()][node_addrs[i].nodeID]++;
