@@ -228,6 +228,7 @@ next:
 
   // 1. If we are at a NULL node, inject a leaf
   if (p == InternalEntry::Null()) {
+    insert_empty_slot[dsm->getMyThreadID()] =0;
     auto insert_empty_slot_start = std::chrono::high_resolution_clock::now();
     assert(from_cache == false);
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
@@ -482,6 +483,7 @@ next:
   for (int i = 0; i < max_num; ++ i) {
     auto old_e = p_node->records[i];
     if (old_e == InternalEntry::Null()) {
+          insert_empty_slot[dsm->getMyThreadID()] =0;
       auto insert_empty_slot_start = std::chrono::high_resolution_clock::now();
 
       auto e_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(InternalEntry));
