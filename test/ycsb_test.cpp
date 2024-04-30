@@ -61,6 +61,12 @@ extern uint64_t cache_update_cnt_total[MAX_APP_THREAD];
 extern uint64_t cache_invalid_time_total[MAX_APP_THREAD];
 extern uint64_t cache_invalid_cnt_total[MAX_APP_THREAD];
 extern uint64_t cache_search_time_total[MAX_APP_THREAD];
+extern uint64_t insert_empty_slot_total[MAX_APP_THREAD];
+extern uint64_t read_internal_node_time_total[MAX_APP_THREAD];
+extern uint64_t in_pl_update_time_total[MAX_APP_THREAD];
+extern uint64_t leaf_merge_time_total[MAX_APP_THREAD];
+extern uint64_t node_split_time_total[MAX_APP_THREAD];
+extern uint64_t node_extend_time_total[MAX_APP_THREAD];
 
 
 int kThreadCount;
@@ -626,6 +632,12 @@ printf("total %lu", all_retry_cnt[0]);
     uint64_t cache_invalid_time_all=0;
     uint64_t cache_invalid_cnt_all=0;
     uint64_t cache_search_time_all=0;
+    uint64_t insert_empty_slot_all=0;
+    uint64_t read_internal_node_time_all=0;
+    uint64_t in_pl_update_time_all=0;
+    uint64_t leaf_merge_time_all=0;
+    uint64_t node_split_time_all=0;
+    uint64_t node_extend_time_all =0;
     for(int i=0;i<MAX_APP_THREAD; ++ i)
     {
       cache_update_time_all += cache_update_time_total[i];
@@ -633,8 +645,14 @@ printf("total %lu", all_retry_cnt[0]);
       cache_invalid_time_all += cache_invalid_time_total[i];
       cache_invalid_cnt_all += cache_invalid_cnt_total[i];
       cache_search_time_all += cache_search_time_total[i];
+      insert_empty_slot_all += insert_empty_slot_total[i];
+      read_internal_node_time_all += read_internal_node_time_total[i];
+      in_pl_update_time_all += in_pl_update_time_total[i];
+      leaf_merge_time_all += leaf_merge_time_total[i];
+      node_split_time_all += node_split_time_total[i];
+      node_extend_time_all += node_extend_time_total[i];
     }
-        printf("cache search time: %" PRIu64",cache invalid count %" PRIu64",cache invalid time %" PRIu64" , cache update count %" PRIu64 " ,cache update time %" PRIu64" \n",cache_search_time_all,cache_invalid_cnt_all,cache_invalid_time_all,cache_update_cnt_all,cache_update_time_all );    
+        printf("cache search time: %" PRIu64",internal node read time %" PRIu64",insert empty slot time %" PRIu64",leaf inplace update time%" PRIu64" , leaf merge time %" PRIu64", node split time %" PRIu64", node extend time %" PRIu64",cache invalid time %" PRIu64"  ,cache update time %" PRIu64" \n",cache_search_time_all,read_internal_node_time_all,insert_empty_slot_all,in_pl_update_time_all,leaf_merge_time_all,node_split_time_all,node_extend_time_all,cache_invalid_time_all,cache_update_time_all );    
 
 #ifndef EPOCH_LAT_TEST
 //  save_latency(1);
