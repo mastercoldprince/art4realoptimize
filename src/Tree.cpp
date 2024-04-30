@@ -416,7 +416,7 @@ next:
 
   for (int i = 0; i < hdr.partial_len; ++ i) {
     if (get_partial(k, hdr.depth + i) != hdr.partial[i]) {
-       auto node_split_start = = std::chrono::high_resolution_clock::now();
+       auto node_split_start = std::chrono::high_resolution_clock::now();
       // need split
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
       int partial_len = hdr.depth + i - depth;  // hdr.depth may be outdated, so use partial_len wrt. depth
