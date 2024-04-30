@@ -627,13 +627,21 @@ std::ofstream outFile("/users/Shijia/SMART/updateTime.txt", std::ios::app);
 
 
 
-
+/*
 std::ofstream outFile("/users/Shijia/SMART/insert_break_down.txt", std::ios::app);
  if (!outFile.is_open()) {
         std::cerr << "Failed to open file for writing!" << std::endl;
     }
         outFile<<insert_type[dsm->getMyThreadID()]<<"\t" <<"insertime(us) :"<<"\t"<<duration.count()<<"\t"<<"\t"<<"cache search time(ns):"<<cache_search_time[dsm->getMyThreadID()]<<"\t"<<"read internal node  time:"<<read_internal_node_time[dsm->getMyThreadID()]<<"\t"<<"insert empty slot time:"<<insert_empty_slot[dsm->getMyThreadID()]<<"\t"<<"in place update time:"<<in_pl_update_time[dsm->getMyThreadID()]<<"\t"<<"leaf merge time:"<<leaf_merge_time[dsm->getMyThreadID()]<<"\t"<<"node split time:"<<node_split_time[dsm->getMyThreadID()]<<"\t"<<"node extend tiem:"<<node_extend_time[dsm->getMyThreadID()]<<"\t"<<"cache invalid time(ns):"<<cache_invalid_time[dsm->getMyThreadID()]<< "\t"<<"cache update time(ns) :"<<cache_update_time[dsm->getMyThreadID()]<< std::endl;
-        outFile.close();        
+        outFile.close();     */   
+        
+std::ofstream outFile("/users/Shijia/SMART/empty_slot_and_leaf_merge_break_down.txt", std::ios::app);
+ if (!outFile.is_open()) {
+        std::cerr << "Failed to open file for writing!" << std::endl;
+    }
+        outFile<<insert_type[dsm->getMyThreadID()]<<"\t" <<"insert empty slot time(us) :"<<"\t"<<insert_empty_slot[dsm->getMyThreadID()]<<"\t"<<"insert empty slot cas time(ns):"<<insert_empty_slot_cas[dsm->getMyThreadID()]<<"\t"<<"insert empty slot write time:"<<insert_empty_slot_write[dsm->getMyThreadID()]<<"\t"<<"leaf merge time:"<<leaf_merge_write[dsm->getMyThreadID()]<<"\t"<<"leaf merge cas old time:"<<leaf_merge_cas_old[dsm->getMyThreadID()]<<"\t"<<"leaf merge cas rev time:"<<leaf_merge_cas_rev[dsm->getMyThreadID()]<<"\t"<<"leaf merge cache update time:"<<leaf_merge_cache_update[dsm->getMyThreadID()]<< std::endl;
+        outFile.close();     
+
   return;
 }
 
