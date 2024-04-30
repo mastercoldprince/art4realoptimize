@@ -493,7 +493,7 @@ next:
         auto insert_empty_slot_stop = std::chrono::high_resolution_clock::now();
         auto insert_empty_slot_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(insert_empty_slot_stop - insert_empty_slot_start);
         insert_empty_slot[dsm->getMyThreadID()] += insert_empty_slot_duration.count();
-        insert_type[dsm->getMyThreadID()] =1;
+        insert_type[dsm->getMyThreadID()] =6;
         goto insert_finish;
       }
       // cas fail, check
