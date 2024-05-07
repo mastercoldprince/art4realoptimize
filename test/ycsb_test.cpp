@@ -78,6 +78,8 @@ extern uint64_t leaf_merge_cache_update_total[MAX_APP_THREAD];
 extern uint64_t leaf_merge_other_total[MAX_APP_THREAD];
 extern uint64_t insert_empty_slot_other_total[MAX_APP_THREAD];
 
+extern uint64_t insert_type_cnt[MAX_APP_THREAD][6];
+
 
 int kThreadCount;
 int kNodeCount;
@@ -683,6 +685,17 @@ printf("total %lu", all_retry_cnt[0]);
     }
         printf("cache search time:%" PRIu64",internal node read time:%" PRIu64",insert empty slot time:%" PRIu64",leaf inplace update time:%" PRIu64" , leaf merge time:%" PRIu64", node split time:%" PRIu64", node extend time:%" PRIu64",cache invalid time:%" PRIu64"  ,cache update time:%" PRIu64" \n",cache_search_time_all,read_internal_node_time_all,insert_empty_slot_all,in_pl_update_time_all,leaf_merge_time_all,node_split_time_all,node_extend_time_all,cache_invalid_time_all,cache_update_time_all );    
         printf("insert empty slot cas time:%" PRIu64",insert empty slot write time:%" PRIu64",insert empty slot other time:%" PRIu64",leaf merge write time:%" PRIu64",leaf merge cas old time:%" PRIu64" , leaf merge cas rev time:%" PRIu64",leaf merge cache update time:%" PRIu64",leaf merge other time:%" PRIu64"\n",insert_empty_slot_cas_all,insert_empty_slot_write_all,insert_empty_slot_other_all,leaf_merge_write_all,leaf_merge_cas_old_all,leaf_merge_cas_rev_all,leaf_merge_cache_update_all,leaf_merge_other_all);  
+uint64_t in_type_cnt[6];
+    memset(in_type_cnt,0,sizeof(uint64_t)*5);
+for(int i=0;i<MAX_APP_THREAD; ++i)
+{
+  for(int j=0;j<6; ++j)
+  {
+    in_type_cnt[j] += insert_type_cnt[i][j];
+  }
+}
+
+printf("isnert:%" PRIu64",insert empty slot:%" PRIu64",leaf update:%" PRIu64",leaf merge:%" PRIu64",node split:%" PRIu64",ndoe extend:%" PRIu64"\n",in_type_cnt[0],,in_type_cnt[1],in_type_cnt[2],in_type_cnt[3],in_type_cnt[4],in_type_cnt[5]);
 #ifndef EPOCH_LAT_TEST
 //  save_latency(1);
 #endif

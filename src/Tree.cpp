@@ -81,6 +81,8 @@ uint64_t leaf_merge_cas_rev_total[MAX_APP_THREAD];
 uint64_t leaf_merge_cache_update_total[MAX_APP_THREAD];
 uint64_t leaf_merge_other_total[MAX_APP_THREAD];
 
+uint64_t insert_type_cnt[MAX_APP_THREAD][6];
+
 thread_local CoroCall Tree::worker[MAX_CORO_NUM];
 thread_local CoroCall Tree::master;
 thread_local CoroQueue Tree::busy_waiting_queue;
@@ -161,6 +163,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   leaf_merge_cas_rev[dsm->getMyThreadID()]=0;
   leaf_merge_cache_update[dsm->getMyThreadID()]=0;
     leaf_merge_other[dsm->getMyThreadID()]=0;
+    insert_type_cnt[dsm->getMyThreadID()][0]++;
 
   
   auto start = std::chrono::high_resolution_clock::now();
@@ -276,6 +279,7 @@ next:
     insert_empty_slot[dsm->getMyThreadID()] +=insert_empty_slot_duration.count();
     insert_empty_slot_other[dsm->getMyThreadID()] += insert_empty_slot_other_duration.count();
     insert_type[dsm->getMyThreadID()]=1;
+    insert_type_cnt[dsm->getMyThreadID()][1] ++;
     goto insert_finish;
   }
 
@@ -363,6 +367,7 @@ next:
       auto leaf_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(leaf_stop - leaf_start);
       in_pl_update_time[dsm->getMyThreadID()] += leaf_duration.count();
       insert_type[dsm->getMyThreadID()] =2;
+      insert_type_cnt[dsm->getMyThreadID()][2] ++;
       goto insert_finish;
     }
 
@@ -386,6 +391,7 @@ next:
      leaf_merge_time[dsm->getMyThreadID()] += leaf_duration.count();
      leaf_merge_other[dsm->getMyThreadID()] += leaf_merge_other_duration.count();
      insert_type[dsm->getMyThreadID()] =3;
+     insert_type_cnt[dsm->getMyThreadID()][3] ++;
     goto insert_finish;
   }
 
@@ -488,6 +494,7 @@ next:
        auto node_split_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(node_split_stop - node_split_start);
        node_split_time[dsm->getMyThreadID()] += node_split_duration.count();
        insert_type[dsm->getMyThreadID()]=4;
+       insert_type_cnt[dsm->getMyThreadID()][4] ++;
       goto insert_finish;
     }
   }
@@ -534,7 +541,8 @@ next:
       if (res) {
         insert_empty_slot_other[dsm->getMyThreadID()] += insert_empty_slot_other_duration.count();
         insert_empty_slot[dsm->getMyThreadID()] += insert_empty_slot_duration.count();
-        insert_type[dsm->getMyThreadID()] =6;
+        insert_type[dsm->getMyThreadID()] =1;
+        insert_type_cnt[dsm->getMyThreadID()][1] ++;
         goto insert_finish;
       }
       // cas fail, check
@@ -577,7 +585,8 @@ next:
     auto node_extend_stop = std::chrono::high_resolution_clock::now();
     auto node_extend_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(node_extend_stop - node_extend_start);
     node_extend_time[dsm->getMyThreadID()] += node_extend_duration.count();
-    insert_type[dsm->getMyThreadID()] = 5;
+    insert_type[dsm->getMyThreadID()]= 5;
+    insert_type_cnt[dsm->getMyThreadID()][5] ++;
     goto insert_finish;
   }
   else {  // same partial keys insert to the same empty slot
@@ -958,7 +967,7 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
   }
     auto insert_empty_slot_write_stop = std::chrono::high_resolution_clock::now();
     auto insert_empty_slot_write_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(insert_empty_slot_write_stop - insert_empty_slot_write_start);
-      insert_empty_slot_write[dsm->getMyThreadID()] += insert_empty_slot_write_duration.count();
+    if(insert_type[dsm->getMyThreadID()==1])  insert_empty_slot_write[dsm->getMyThreadID()] += insert_empty_slot_write_duration.count();
   // cas entry
   auto new_e = InternalEntry(partial_key, sizeof(Leaf) < 128 ? sizeof(Leaf) : 0, leaf_addr);
   auto insert_empty_slot_other_stop = std::chrono::high_resolution_clock::now();
@@ -971,7 +980,7 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
 
     auto insert_empty_slot_cas_stop = std::chrono::high_resolution_clock::now();
     auto insert_empty_slot_cas_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(insert_empty_slot_cas_stop - insert_empty_slot_cas_start);
-    if(res)  insert_empty_slot_cas[dsm->getMyThreadID()] += insert_empty_slot_cas_duration.count();
+    if(res&&insert_type[dsm->getMyThreadID()==1])  insert_empty_slot_cas[dsm->getMyThreadID()] += insert_empty_slot_cas_duration.count();
     return res;
 
   };
