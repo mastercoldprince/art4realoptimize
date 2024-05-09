@@ -53,7 +53,7 @@ inline Key remake_prefix(const Key& key, int depth, uint8_t diff_partial) {
 inline int longest_common_prefix(const Key &k1, const Key &k2, int depth) {
   assert((uint32_t)depth <= k1.size() && (uint32_t)depth <= k2.size()  );
 
-  int idx, max_cmp = (sk1.size()>k2.size() ? k2.size():k1.size()) - depth;
+  int idx, max_cmp = (k1.size()>k2.size() ? k2.size():k1.size()) - depth;
  //  int idx, max_cmp = (int)define::keyLen - depth; 
 
   for (idx = 0; idx <= max_cmp; ++ idx) {
