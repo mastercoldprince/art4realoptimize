@@ -10,6 +10,7 @@
 #include <queue>
 #include <bitset>
 #include <limits>
+#include <vector>
 
 #include "Debug.h"
 #include "HugePageAlloc.h"
@@ -104,7 +105,7 @@ constexpr int kIndexCacheSize = 600;
 // KV
 constexpr uint32_t keyLen = 8;
 constexpr uint32_t simulatedValLen = 8;
-constexpr uint32_t allocAlignLeafSize = ROUND_UP(keyLen + simulatedValLen + 8 + 2, ALLOC_ALLIGN_BIT);
+constexpr uint32_t allocAlignLeafSize = ROUND_UP(keyLen + simulatedValLen + 8 + 2, ALLOC_ALLIGN_BIT);  //做对齐
 
 // Tree
 constexpr uint64_t kRootPointerStoreOffest = kChunkSize / 2;
@@ -129,7 +130,7 @@ constexpr uint64_t kOnChipLockNum = kLockChipMemSize * 8;  // 1bit-lock
 }
 
 
-using Key = std::array<uint8_t, define::keyLen>;
+using Key = std::vector<uint8_t>;
 using Value = uint64_t;
 constexpr uint64_t kKeyMin = 1;
 #ifdef KEY_SPACE_LIMIT
