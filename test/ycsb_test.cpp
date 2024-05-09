@@ -208,7 +208,7 @@ void thread_load(int id) {
     uint64_t int_k;
     while (load_in >> op >> int_k) {
       k = int2key(int_k);
-      print("insert k len: %d\n",k.size());
+      printf("insert k len: %d\n",k.size());
       assert(op == "INSERT");
       tree->insert(k, randval(e), nullptr, 0, false, true);
       if (++ cnt % LOAD_HEARTBEAT == 0) {
