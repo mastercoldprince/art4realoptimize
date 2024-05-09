@@ -1,6 +1,6 @@
 import sys
 import os
-import random
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -64,35 +64,14 @@ cmd_ycsb_txn = ycsb_dir + 'bin/ycsb run basic -P ' + workload_dir + workload + '
 os.system(cmd_ycsb_load)
 os.system(cmd_ycsb_txn)
 
-
 #####################################################################################
-add = ""
+
 f_load = open (out_ycsb_load, 'r')
 f_load_out = open (out_load_ycsbkey, 'w')
 for line in f_load :
     cols = line.split()
-#    if len(cols) > 0 and cols[0] == "INSERT":
-#        if cols[2][4]=='1' :
-#            add="64313513"
-#        elif cols[2][4]=='2':
-#            add="458453"
-#        elif cols[2][4]=='3':
-#            add="6589855632326959"
- #       elif cols[2][4]=='4':
- #           add="15153"
- #       elif cols[2][4]=='5':
- #           add="454"
- #       elif cols[2][4]=='6':
- #           add="5"
-  #      elif cols[2][4]=='7':
- #           add="6869852262652659955635"
-  #      elif cols[2][4]=='8':
-  #          add="61"
-  #      else:
-  #          add="2656959595622323565"
-         
-  #      f_load_out.write (cols[0] + " " + cols[2][4:] + add + "\n")
-    f_load_out.write (cols[0] + " " + cols[2][4:]  + "\n")
+    if len(cols) > 0 and cols[0] == "INSERT":
+        f_load_out.write (cols[0] + " " + cols[2][4:] + "\n")
 f_load.close()
 f_load_out.close()
 
@@ -101,34 +80,14 @@ f_txn_out = open (out_txn_ycsbkey, 'w')
 for line in f_txn :
     cols = line.split()
     if (cols[0] == 'SCAN') or (cols[0] == 'INSERT') or (cols[0] == 'READ') or (cols[0] == 'UPDATE'):
-    #    if cols[2][4]=='1' :
-    #        add="64313513"
-    #    elif cols[2][4]=='2':
-    #        add="458453"
-    #    elif cols[2][4]=='3':
-    #        add="6589855632326959"
-    #    elif cols[2][4]=='4':
-    #        add="15153"
-    #    elif cols[2][4]=='5':
-    #        add="454"
-    #    elif cols[2][4]=='6':
-    #        add="5"
-    #    elif cols[2][4]=='7':
-    #        add="6869852262652659955635"
-    #    elif cols[2][4]=='8':
-    #        add="61"
-    #    else:
-    #        add="2656959595622323565"
-    #    startkey = cols[2][4:] + add
         startkey = cols[2][4:]
         if cols[0] == 'SCAN' :
-            numkeys =str(int(cols[3] ) + len(add ) ) 
+            numkeys = cols[3]
             f_txn_out.write (cols[0] + ' ' + startkey + ' ' + numkeys + '\n')
         else :
             f_txn_out.write (cols[0] + ' ' + startkey + '\n')
 f_txn.close()
 f_txn_out.close()
-
 
 cmd = 'rm -f ' + out_ycsb_load
 os.system(cmd)
@@ -147,27 +106,6 @@ if key_type == 'randint' :
     f_txn_out = open (out_txn, 'w')
     for line in f_txn :
         f_txn_out.write (line)
-    # 修改后的randint部分
-#    prefix = '2056258949'
-#    suffix_length = 9
-#    f_load = open(out_load_ycsbkey, 'r')
-#    f_load_out = open(out_load, 'w')
-#    for line in f_load:
-    # 生成具有相同前缀和随机后缀的整数键
-#        random_suffix = ''.join(["{}".format(random.randint(0, 9)) for num in range(0, suffix_length)])
-#        new_key = prefix + random_suffix
-#        f_load_out.write(line.replace(line.split()[1], new_key) + '\n')
-
-#    f_load.close()
-#    f_load_out.close()
-
-#    f_txn = open(out_txn_ycsbkey, 'r')
-#    f_txn_out = open(out_txn, 'w')
-#    for line in f_txn:
-        # 对于事务文件，也执行相同的替换操作
-#        random_suffix = ''.join(["{}".format(random.randint(0, 9)) for num in range(0, suffix_length)])
-#        new_key = prefix + random_suffix
-#        f_txn_out.write(line.replace(line.split()[1], new_key) + '\n')
 
 elif key_type == 'monoint' :
     keymap = {}
@@ -244,4 +182,3 @@ cmd = 'rm -f ' + out_load_ycsbkey
 os.system(cmd)
 cmd = 'rm -f ' + out_txn_ycsbkey
 os.system(cmd)
-
