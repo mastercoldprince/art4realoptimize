@@ -211,6 +211,7 @@ void thread_load(int id) {
       printf("insert k len: %d\n",k.size());
       assert(op == "INSERT");
       tree->insert(k, randval(e), nullptr, 0, false, true);
+      k = int2key(int_k);
       if (++ cnt % LOAD_HEARTBEAT == 0) {
         printf("thread %lu: %d load entries loaded.\n", loader_id, cnt);
       }

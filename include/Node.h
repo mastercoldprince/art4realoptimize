@@ -56,7 +56,7 @@ public:
 public:
   Leaf() {}
 //  Leaf(const Key& key, const Value& value, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), f_padding(0), valid(1), key(key), value(value), lock_byte(0) { set_consistent(); }
-  Leaf(const Key& key, const Value& value, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), f_padding(0), valid(1), key_len(sizeof(key)), val_len(sizeof(value)), key(key), value(value) 
+  Leaf(const Key& key, const Value& value, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), f_padding(0), valid(1), key_len(key.size()), val_len(sizeof(value)), key(key), value(value) 
   { //set_consistent();
    }
   const Key& get_key() const { return key; }
