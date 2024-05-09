@@ -178,7 +178,7 @@ inline Key int2key(uint64_t key) {    //将key每8位存储 从高位到低位
   {  keylen++;
      a= a >> 8;  
   }
-  for (int i = 1; i <= keylen; ++ i) {
+  for (uint32_t i = 1; i <= keylen; ++ i) {
     auto shr = (keylen - i) * 8;
     res.at(i - 1) = (shr >= 64u ? 0 : ((key >> shr) & ((1 << 8) - 1))); // Is equivalent to padding zero for short key
   }
