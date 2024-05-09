@@ -333,7 +333,7 @@ next:
       }
 #ifdef TREE_ENABLE_IN_PLACE_UPDATE
       // in place update leaf
-      in_place_update_leaf(k, v, p.addr(), leaf, cxt, coro_id);
+     // in_place_update_leaf(k, v, p.addr(), leaf, cxt, coro_id);
 #else
       // out of place update leaf
       bool res = out_of_place_update_leaf(k, v, depth, leaf_addr, p_ptr, p, node_ptr, cxt, coro_id, !is_update);
@@ -709,7 +709,7 @@ re_read:
   return true;
 }
 
-
+/*
 void Tree::in_place_update_leaf(const Key &k, Value &v, const GlobalAddress &leaf_addr, Leaf* leaf,
                                CoroContext *cxt, int coro_id) {
 #ifdef TREE_ENABLE_EMBEDDING_LOCK
@@ -725,6 +725,7 @@ void Tree::in_place_update_leaf(const Key &k, Value &v, const GlobalAddress &lea
     bool res=dsm->cas_mask_sync(GADD(unique_leaf_addr, lock_cas_offset), 0UL, ~0UL, cas_buffer, lock_mask, cxt);
     MN_iops[dsm->getMyThreadID()][GADD(unique_leaf_addr, lock_cas_offset).nodeID]++;
     MN_datas[dsm->getMyThreadID()][GADD(unique_leaf_addr, lock_cas_offset).nodeID]+=8;
+    bool res;
     return res;
 #else
     GlobalAddress lock_addr;
@@ -843,7 +844,7 @@ write_leaf:
 #endif
   return;
 }
-
+*/
 
 bool Tree::out_of_place_update_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, const GlobalAddress &e_ptr, InternalEntry &old_e, const GlobalAddress& node_addr,
                                     CoroContext *cxt, int coro_id, bool disable_handover) {
@@ -1679,10 +1680,10 @@ next_level:
         survivors.push_back(si[i]);
         continue;
       }
-      if (!leaf->is_consistent()) {  // re-read leaf is unconsistent
+/*      if (!leaf->is_consistent()) {  // re-read leaf is unconsistent
         survivors.push_back(si[i]);
       }
-
+*/
       if (k >= from && k < to) {  // [from, to)
         ret[k] = leaf->get_value();
         // TODO: cache hit ratio
