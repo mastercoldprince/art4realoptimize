@@ -74,7 +74,7 @@ public:
   }
     char *get_leaf_buffer(uint8_t len) {
     leaf_buffer_cur = (leaf_buffer_cur + 1)  % kLeafBufferCnt;
-    return leaf_buffer + leaf_buffer_cur * define::ROUND_UP(len + 8 + 3 + define::simulatedValLen, ALLOC_ALLIGN_BIT);
+    return leaf_buffer + leaf_buffer_cur * define::ROUND_UP(len + 8 + 3 + define::simulatedValLen, define::ALLOC_ALLIGN_BIT);
   }
 
   uint64_t *get_header_buffer() {

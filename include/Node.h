@@ -56,7 +56,7 @@ public:
 public:
   Leaf() {}
 //  Leaf(const Key& key, const Value& value, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), f_padding(0), valid(1), key(key), value(value), lock_byte(0) { set_consistent(); }
-  Leaf(const Key& key, const Value& value, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), f_padding(0), valid(1), key_len(sizeof(key)), val_len(sizeof(value)), key(key), value(value) { set_consistent(); }
+  Leaf(const Key& key, const Value& value, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), f_padding(0), valid(1), key_len(sizeof(key)), val_len(sizeof(value)), key(key), value(value) { //set_consistent(); }
   const Key& get_key() const { return key; }
   Value get_value() const { return value; }
   bool is_valid(const GlobalAddress& p_ptr, bool from_cache) const { return valid && (!from_cache || p_ptr == rev_ptr); }
@@ -74,8 +74,8 @@ public:
     checksum = crc_processor.checksum();
   }
   */
-  void unlock() { w_lock = 0; };
-  void lock() { w_lock = 1; };
+  //void unlock() { w_lock = 0; };
+  //void lock() { w_lock = 1; };
 
   static uint8_t get_partial(const Key& key, int depth);
   static Key get_leftmost(const Key& key, int depth);

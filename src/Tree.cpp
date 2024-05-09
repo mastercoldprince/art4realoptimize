@@ -713,8 +713,8 @@ re_read:
 void Tree::in_place_update_leaf(const Key &k, Value &v, const GlobalAddress &leaf_addr, Leaf* leaf,
                                CoroContext *cxt, int coro_id) {
 #ifdef TREE_ENABLE_EMBEDDING_LOCK
-  static const uint64_t lock_cas_offset = ROUND_DOWN(STRUCT_OFFSET(Leaf, lock_byte), 3);
-  static const uint64_t lock_mask       = 1UL << ((STRUCT_OFFSET(Leaf, lock_byte) - lock_cas_offset) * 8);
+//  static const uint64_t lock_cas_offset = ROUND_DOWN(STRUCT_OFFSET(Leaf, lock_byte), 3);
+//  static const uint64_t lock_mask       = 1UL << ((STRUCT_OFFSET(Leaf, lock_byte) - lock_cas_offset) * 8);
 #endif
 
   auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
@@ -765,7 +765,7 @@ void Tree::in_place_update_leaf(const Key &k, Value &v, const GlobalAddress &lea
   };
   // write and unlock
   auto write_and_unlock = [=](const GlobalAddress &unique_leaf_addr){
-    leaf->unlock();
+//    leaf->unlock();
     dsm->write_sync((const char*)leaf, unique_leaf_addr, sizeof(Leaf), cxt);
     MN_iops[dsm->getMyThreadID()][unique_leaf_addr.nodeID]++;
     MN_datas[dsm->getMyThreadID()][unique_leaf_addr.nodeID]+=sizeof(Leaf);
@@ -814,10 +814,10 @@ write_leaf:
   local_lock_table->get_combining_value(k, v);
 #endif
   leaf->set_value(v);
-  leaf->set_consistent();
+//  leaf->set_consistent();
 #ifdef TREE_ENABLE_EMBEDDING_LOCK
   // write back the lock at the same time
-  leaf->unlock();
+//  leaf->unlock();
   dsm->write_sync((const char*)leaf, leaf_addr, sizeof(Leaf), cxt);
   MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
   MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=sizeof(Leaf);

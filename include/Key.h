@@ -117,7 +117,7 @@ inline Key operator+(const Key& a, uint8_t b) {
       partial = tmp % (1 << 8);
       b = tmp / (1 << 8);
     }
-    if(i == keylen-1 && b !=0 ) res.insert(0,((uint8_t)b));
+    if(i == keylen-1 && b !=0 ) res.insert(res.begin(), static_cast<uint8_t>(b));
   }
   
   return res;
@@ -172,7 +172,7 @@ inline Key int2key(uint64_t key) {    //将key每8位存储 从高位到低位
     auto shr = (define::keyLen - i) * 8;
     res.at(i - 1) = (shr >= 64u ? 0 : ((key >> shr) & ((1 << 8) - 1))); // Is equivalent to padding zero for short key
   }*/
-  int keylen =0;
+  uint32_t keylen =0;
   uint64_t a=key;
   while(a != 0 )
   {  keylen++;
