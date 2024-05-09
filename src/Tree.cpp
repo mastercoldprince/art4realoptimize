@@ -289,7 +289,7 @@ next:
     auto leaf_start = std::chrono::high_resolution_clock::now();  //不知key大小
     int k_len=p.kv_len-8-3-define::simulatedValLen;
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer(k_len);
-    is_valid = read_leaf(p.addr(), leaf_buffer, std::max((unsigned long)p.kv_len, sizeof(Leaf)), p_ptr, from_cache, cxt, coro_id);
+    is_valid = read_leaf(p.addr(), leaf_buffer, (unsigned long)p.kv_len, p_ptr, from_cache, cxt, coro_id);
 
     if (!is_valid) {
       update_retry_flag[dsm->getMyThreadID()]=1;
@@ -957,8 +957,8 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
   if (unwrite) {  // !ONLY allocate once
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer(sizeof(k));
     new (leaf_buffer) Leaf(k, v, e_ptr);
-    leaf_addr = dsm->alloc(sizeof(Leaf));
-    dsm->write_sync(leaf_buffer, leaf_addr, sizeof(Leaf), cxt);
+    leaf_addr = dsm->alloc(k.size()+8+8+3);
+    dsm->write_sync(leaf_buffer, leaf_addr, k.size()+8+8+3, cxt);
     MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
     MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=sizeof(Leaf);
   }
@@ -973,7 +973,7 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
     auto insert_empty_slot_write_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(insert_empty_slot_write_stop - insert_empty_slot_write_start);
     if(insert_type[dsm->getMyThreadID()==1])  insert_empty_slot_write[dsm->getMyThreadID()] += insert_empty_slot_write_duration.count();
   // cas entry
-  auto new_e = InternalEntry(partial_key, sizeof(Leaf) < 128 ? sizeof(Leaf) : 0, leaf_addr);
+  auto new_e = InternalEntry(partial_key, k.size()+8+8+3, leaf_addr);
   auto insert_empty_slot_other_stop = std::chrono::high_resolution_clock::now();
   auto insert_empty_slot_other_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(insert_empty_slot_other_stop - insert_empty_slot_write_stop);
   auto remote_cas = [=](){
@@ -1084,7 +1084,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   node_pages[new_node_num - 1] = new (node_buffer) InternalPage(k, partial_len, depth, nodes_type, rev_ptr);
   node_pages[new_node_num - 1]->records[0] = InternalEntry(diff_partial, old_e);
   node_pages[new_node_num - 1]->records[1] = InternalEntry(get_partial(k, depth + partial_len),
-                                                           sizeof(Leaf) < 128 ? sizeof(Leaf) : 0, leaf_addr);
+                                                           k.size()+8+8+3, leaf_addr); 
 
   // init the parent entry
   auto new_e = InternalEntry(old_e.partial, nodes_type, node_addrs[0]);
@@ -1640,7 +1640,7 @@ next_level:
       RdmaOpRegion r;
       r.source     = (uint64_t)range_buffer + cnt * define::allocationPageSize;
       r.dest       = p.addr();
-      r.size       = p.is_leaf ? std::max((unsigned long)p.kv_len, sizeof(Leaf)) : (
+      r.size       = p.is_leaf ? (unsigned long)p.kv_len : (
                               s.from_cache ?  // TODO: art
                               (sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(NODE_256) * sizeof(InternalEntry)) :
                               (sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(p.type()) * sizeof(InternalEntry))
