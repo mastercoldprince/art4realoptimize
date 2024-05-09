@@ -956,7 +956,7 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
 #endif
   // allocate & write
   if (unwrite) {  // !ONLY allocate once
-    auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer(sizeof(k));
+    auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer(k.size());
     new (leaf_buffer) Leaf(k, v, e_ptr);
     leaf_addr = dsm->alloc(k.size()+8+8+5);
     dsm->write_sync(leaf_buffer, leaf_addr, k.size()+8+8+5, cxt);
