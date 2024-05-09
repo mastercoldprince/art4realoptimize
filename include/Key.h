@@ -172,18 +172,17 @@ inline Key int2key(uint64_t key) {    //将key每8位存储 从高位到低位
     auto shr = (define::keyLen - i) * 8;
     res.at(i - 1) = (shr >= 64u ? 0 : ((key >> shr) & ((1 << 8) - 1))); // Is equivalent to padding zero for short key
   }*/
-  uint32_t maxkeylen =64;
+  int keylen =0;
+  uint64_t a=key;
+  while(a != 0 )
+  {  keylen++;
+     a= a >> 8;  
+  }
+  for (uint32_t i = 1; i <= keylen; ++ i) {
+    auto shr = (keylen - i) * 8;
+    res.push_back( (shr >= 64u ? 0 : ((key >> shr) & ((1 << 8) - 1)))); // Is equivalent to padding zero for short key
+  }
 
-  for (uint32_t i = 1; i <= maxkeylen; ++ i) {
-    auto shr = (maxkeylen - i) * 8;
-    res.at(i - 1) = (shr >= 64u ? 0 : ((key >> shr) & ((1 << 8) - 1))); // Is equivalent to padding zero for short key
-  }
-  std::vector<uint8_t>::iterator it;
-  for(it = res.begin();it != res.end();it ++)
-  {
-    if(* it == 0) res.erase(it);
-    else break;
-  }
   return res;
 }
 
