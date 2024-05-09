@@ -1055,7 +1055,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
 #endif
   if (leaf_unwrite) {  // !ONLY allocate once
     new (leaf_buffer) Leaf(k, v, leaf_e_ptr);
-    leaf_addr = dsm->alloc(sizeof(Leaf));
+    leaf_addr = dsm->alloc(k.size()+8+8+3);
   }
   else {  // write the changed e_ptr inside new leaf  TODO: batch
     auto ptr_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
@@ -1102,7 +1102,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   if (leaf_unwrite) {
     rs[new_node_num].source     = (uint64_t)leaf_buffer;
     rs[new_node_num].dest       = leaf_addr;
-    rs[new_node_num].size       = sizeof(Leaf);
+    rs[new_node_num].size       = k.size()+8+8+3;
     rs[new_node_num].is_on_chip = false;
   }
   dsm->write_batches_sync(rs, (leaf_unwrite ? new_node_num + 1 : new_node_num), cxt, coro_id);
@@ -1118,7 +1118,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   if(leaf_unwrite) 
   {
     MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
-    MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=sizeof(Leaf);
+    MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=k.size()+8+8+3;
   }
   // cas
   auto remote_cas = [=](){
