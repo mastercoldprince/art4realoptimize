@@ -76,7 +76,7 @@ inline void add_one(Key& a) {
     }
   }
   */
-  int keylen=sizeof(a);
+  int keylen=a.size();
   for (int i = 0; i < keylen; ++ i) {
     auto& partial = a.at(keylen - 1 - i);
     if ((int)partial + 1 < (1 << 8)) {
@@ -105,7 +105,7 @@ inline Key operator+(const Key& a, uint8_t b) {
     }
   }
 */
-  int keylen=sizeof(a);
+  int keylen=a.size();
   for (int i = 0; i < keylen; ++ i) {
     auto& partial = res.at(keylen - 1 - i);
     if ((int)partial + b < (1 << 8)) {
@@ -139,7 +139,7 @@ inline Key operator-(const Key& a, uint8_t b) {
     }
   }
   */
-  int  keylen=sizeof(a);
+  int  keylen=a.size();
   for (int i = 0; i < keylen; ++ i) {
     auto& partial = res.at(keylen - 1 - i);
     if (partial >= b) {
@@ -172,17 +172,18 @@ inline Key int2key(uint64_t key) {    //将key每8位存储 从高位到低位
     auto shr = (define::keyLen - i) * 8;
     res.at(i - 1) = (shr >= 64u ? 0 : ((key >> shr) & ((1 << 8) - 1))); // Is equivalent to padding zero for short key
   }*/
-  uint32_t keylen =0;
-  uint64_t a=key;
-  while(a != 0 )
-  {  keylen++;
-     a= a >> 8;  
-  }
-  for (uint32_t i = 1; i <= keylen; ++ i) {
-    auto shr = (keylen - i) * 8;
+  uint32_t maxkeylen =64;
+
+  for (uint32_t i = 1; i <= maxkeylen; ++ i) {
+    auto shr = (maxkeylen - i) * 8;
     res.at(i - 1) = (shr >= 64u ? 0 : ((key >> shr) & ((1 << 8) - 1))); // Is equivalent to padding zero for short key
   }
-
+  std::vector<uint8_t>::iterator it;
+  for(it = res.begin();it != res.end();it ++)
+  {
+    if(* it == 0) res.erase(it);
+    else break;
+  }
   return res;
 }
 
