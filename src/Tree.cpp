@@ -287,7 +287,7 @@ next:
   if (p.is_leaf) {
     // 2.1 read the leaf
     auto leaf_start = std::chrono::high_resolution_clock::now();  //不知key大小
-    int k_len=p.kv_len-8-3-define::simulatedValLen;
+    int k_len=p.kv_len-8-5-define::simulatedValLen;
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer(k_len);
     is_valid = read_leaf(p.addr(), leaf_buffer, (unsigned long)p.kv_len, p_ptr, from_cache, cxt, coro_id);
 
@@ -957,8 +957,8 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
   if (unwrite) {  // !ONLY allocate once
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer(sizeof(k));
     new (leaf_buffer) Leaf(k, v, e_ptr);
-    leaf_addr = dsm->alloc(k.size()+8+8+3);
-    dsm->write_sync(leaf_buffer, leaf_addr, k.size()+8+8+3, cxt);
+    leaf_addr = dsm->alloc(k.size()+8+8+5);
+    dsm->write_sync(leaf_buffer, leaf_addr, k.size()+8+8+5, cxt);
     MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
     MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=sizeof(Leaf);
   }
@@ -973,7 +973,7 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
     auto insert_empty_slot_write_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(insert_empty_slot_write_stop - insert_empty_slot_write_start);
     if(insert_type[dsm->getMyThreadID()==1])  insert_empty_slot_write[dsm->getMyThreadID()] += insert_empty_slot_write_duration.count();
   // cas entry
-  auto new_e = InternalEntry(partial_key, k.size()+8+8+3, leaf_addr);
+  auto new_e = InternalEntry(partial_key, k.size()+8+8+5, leaf_addr);
   auto insert_empty_slot_other_stop = std::chrono::high_resolution_clock::now();
   auto insert_empty_slot_other_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(insert_empty_slot_other_stop - insert_empty_slot_write_stop);
   auto remote_cas = [=](){
@@ -1048,14 +1048,14 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   dsm->alloc_nodes(new_node_num, node_addrs);
 
   // allocate & write new leaf
-  auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer(sizeof(k));
+  auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer(k.size());
   auto leaf_e_ptr = GADD(node_addrs[new_node_num - 1], sizeof(GlobalAddress) + sizeof(Header) + sizeof(InternalEntry) * 1);
 #ifdef TREE_ENABLE_WRITE_COMBINING
   if (local_lock_table->get_combining_value(k, v)) leaf_unwrite = true;
 #endif
   if (leaf_unwrite) {  // !ONLY allocate once
     new (leaf_buffer) Leaf(k, v, leaf_e_ptr);
-    leaf_addr = dsm->alloc(k.size()+8+8+3);
+    leaf_addr = dsm->alloc(k.size()+8+8+5);
   }
   else {  // write the changed e_ptr inside new leaf  TODO: batch
     auto ptr_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
@@ -1084,7 +1084,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   node_pages[new_node_num - 1] = new (node_buffer) InternalPage(k, partial_len, depth, nodes_type, rev_ptr);
   node_pages[new_node_num - 1]->records[0] = InternalEntry(diff_partial, old_e);
   node_pages[new_node_num - 1]->records[1] = InternalEntry(get_partial(k, depth + partial_len),
-                                                           k.size()+8+8+3, leaf_addr); 
+                                                           k.size()+8+8+5, leaf_addr); 
 
   // init the parent entry
   auto new_e = InternalEntry(old_e.partial, nodes_type, node_addrs[0]);
@@ -1102,7 +1102,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   if (leaf_unwrite) {
     rs[new_node_num].source     = (uint64_t)leaf_buffer;
     rs[new_node_num].dest       = leaf_addr;
-    rs[new_node_num].size       = k.size()+8+8+3;
+    rs[new_node_num].size       = k.size()+8+8+5;
     rs[new_node_num].is_on_chip = false;
   }
   dsm->write_batches_sync(rs, (leaf_unwrite ? new_node_num + 1 : new_node_num), cxt, coro_id);
@@ -1118,7 +1118,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   if(leaf_unwrite) 
   {
     MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
-    MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=k.size()+8+8+3;
+    MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=k.size()+8+8+5;
   }
   // cas
   auto remote_cas = [=](){

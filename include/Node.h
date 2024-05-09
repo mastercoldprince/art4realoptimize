@@ -36,8 +36,8 @@ public:
   };
 
 //  uint64_t checksum;  // checksum(kv)
-  uint8_t key_len;
-  uint8_t val_len; 
+  uint16_t key_len;
+  uint16_t val_len; 
   // kv
   Key key;
   union {

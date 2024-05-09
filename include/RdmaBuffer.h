@@ -72,9 +72,9 @@ public:
     leaf_buffer_cur = (leaf_buffer_cur + 1)  % kLeafBufferCnt;
     return leaf_buffer + leaf_buffer_cur * define::allocAlignLeafSize;
   }
-    char *get_leaf_buffer(uint8_t len) {
+    char *get_leaf_buffer(uint16_t len) {
     leaf_buffer_cur = (leaf_buffer_cur + 1)  % kLeafBufferCnt;
-    return leaf_buffer + leaf_buffer_cur *(((len + 3 + 8 ) + (1<<(8)) - 1) & ~((1<<(8)) - 1));
+    return leaf_buffer + leaf_buffer_cur *(((len + 5 + 8 +8) + (1<<(8)) - 1) & ~((1<<(8)) - 1));
   }
 
   uint64_t *get_header_buffer() {
