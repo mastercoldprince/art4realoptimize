@@ -331,10 +331,10 @@ next:
       if (leaf->get_value() == v) {
         goto insert_finish;
       }
-#ifdef TREE_ENABLE_IN_PLACE_UPDATE
+//#ifdef TREE_ENABLE_IN_PLACE_UPDATE
       // in place update leaf
      // in_place_update_leaf(k, v, p.addr(), leaf, cxt, coro_id);
-#else
+//#else
       // out of place update leaf
       bool res = out_of_place_update_leaf(k, v, depth, leaf_addr, p_ptr, p, node_ptr, cxt, coro_id, !is_update);
 #ifdef TREE_ENABLE_CACHE
@@ -363,7 +363,7 @@ next:
         retry_flag = CAS_LEAF;
         goto next;
       }
-#endif 
+//#endif 
       auto leaf_stop = std::chrono::high_resolution_clock::now();
       auto leaf_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(leaf_stop - leaf_start);
       in_pl_update_time[dsm->getMyThreadID()] += leaf_duration.count();
