@@ -157,7 +157,8 @@ next:
 
 bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
 
-  CacheKey byte_array(k.begin(), k.begin() + define::keyLen - 1);
+//  CacheKey byte_array(k.begin(), k.begin() + define::keyLen - 1);
+    CacheKey byte_array(k.begin(), k.end());
 
   SearchRetStk ret;
   if(_search(byte_array, ret)) {

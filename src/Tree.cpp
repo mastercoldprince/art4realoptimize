@@ -286,8 +286,9 @@ next:
   // 2. If we are at a leaf, we need to update it / replace it with a node
   if (p.is_leaf) {
     // 2.1 read the leaf
-    auto leaf_start = std::chrono::high_resolution_clock::now();
-    auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer();
+    auto leaf_start = std::chrono::high_resolution_clock::now();  //不知key大小
+    int k_len=p.kv_len-8-3-define::simulatedValLen;
+    auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer(k_len);
     is_valid = read_leaf(p.addr(), leaf_buffer, std::max((unsigned long)p.kv_len, sizeof(Leaf)), p_ptr, from_cache, cxt, coro_id);
 
     if (!is_valid) {
@@ -698,11 +699,13 @@ re_read:
     leaf_cache_invalid[dsm->getMyThreadID()] ++;
     return false;
   }
+/*
   if (!leaf->is_consistent()) {
     read_leaf_retry[dsm->getMyThreadID()] ++;
     update_retry_flag[dsm->getMyThreadID()]=1;
     goto re_read;
   }
+  */
   return true;
 }
 
@@ -951,7 +954,7 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
 #endif
   // allocate & write
   if (unwrite) {  // !ONLY allocate once
-    auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer();
+    auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer(sizeof(k));
     new (leaf_buffer) Leaf(k, v, e_ptr);
     leaf_addr = dsm->alloc(sizeof(Leaf));
     dsm->write_sync(leaf_buffer, leaf_addr, sizeof(Leaf), cxt);
@@ -1044,7 +1047,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   dsm->alloc_nodes(new_node_num, node_addrs);
 
   // allocate & write new leaf
-  auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer();
+  auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer(sizeof(k));
   auto leaf_e_ptr = GADD(node_addrs[new_node_num - 1], sizeof(GlobalAddress) + sizeof(Header) + sizeof(InternalEntry) * 1);
 #ifdef TREE_ENABLE_WRITE_COMBINING
   if (local_lock_table->get_combining_value(k, v)) leaf_unwrite = true;

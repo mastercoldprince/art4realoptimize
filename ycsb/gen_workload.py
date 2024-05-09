@@ -64,14 +64,34 @@ cmd_ycsb_txn = ycsb_dir + 'bin/ycsb run basic -P ' + workload_dir + workload + '
 os.system(cmd_ycsb_load)
 os.system(cmd_ycsb_txn)
 
-#####################################################################################
 
+#####################################################################################
+add = ""
 f_load = open (out_ycsb_load, 'r')
 f_load_out = open (out_load_ycsbkey, 'w')
 for line in f_load :
     cols = line.split()
     if len(cols) > 0 and cols[0] == "INSERT":
-        f_load_out.write (cols[0] + " " + cols[2][4:] + "\n")
+        if cols[2][4]=='1' :
+            add="64313513"
+        elif cols[2][4]=='2':
+            add="458453"
+        elif cols[2][4]=='3':
+            add="6589855632326959"
+        elif cols[2][4]=='4':
+            add="15153"
+        elif cols[2][4]=='5':
+            add="454"
+        elif cols[2][4]=='6':
+            add="5"
+        elif cols[2][4]=='7':
+            add="6869852262652659955635"
+        elif cols[2][4]=='8':
+            add="61"
+        else:
+            add="2656959595622323565"
+         
+        f_load_out.write (cols[0] + " " + cols[2][4:] + add + "\n")
 f_load.close()
 f_load_out.close()
 
@@ -80,14 +100,33 @@ f_txn_out = open (out_txn_ycsbkey, 'w')
 for line in f_txn :
     cols = line.split()
     if (cols[0] == 'SCAN') or (cols[0] == 'INSERT') or (cols[0] == 'READ') or (cols[0] == 'UPDATE'):
-        startkey = cols[2][4:]
+        if cols[2][4]=='1' :
+            add="64313513"
+        elif cols[2][4]=='2':
+            add="458453"
+        elif cols[2][4]=='3':
+            add="6589855632326959"
+        elif cols[2][4]=='4':
+            add="15153"
+        elif cols[2][4]=='5':
+            add="454"
+        elif cols[2][4]=='6':
+            add="5"
+        elif cols[2][4]=='7':
+            add="6869852262652659955635"
+        elif cols[2][4]=='8':
+            add="61"
+        else:
+            add="2656959595622323565"
+        startkey = cols[2][4:] + add
         if cols[0] == 'SCAN' :
-            numkeys = cols[3]
+            numkeys =str(int(cols[3] ) + len(add ) ) 
             f_txn_out.write (cols[0] + ' ' + startkey + ' ' + numkeys + '\n')
         else :
             f_txn_out.write (cols[0] + ' ' + startkey + '\n')
 f_txn.close()
 f_txn_out.close()
+
 
 cmd = 'rm -f ' + out_ycsb_load
 os.system(cmd)
@@ -203,3 +242,4 @@ cmd = 'rm -f ' + out_load_ycsbkey
 os.system(cmd)
 cmd = 'rm -f ' + out_txn_ycsbkey
 os.system(cmd)
+
