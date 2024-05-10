@@ -32,7 +32,7 @@ void RadixCache::add_to_cache(const Key& k, const InternalPage* p_node, const Gl
   auto new_entry = new CacheEntry(p_node, node_addr);
   _insert(byte_array, new_entry);
 #ifndef CACHE_ENABLE_ART
-  free_manager->consume(sizeof(Key));  // emulate hash-based cache
+  free_manager->consume(8+5+8+k.size());  // emulate hash-based cache
 #endif
   if (free_manager->remain_size() < 0) {
     _evict();

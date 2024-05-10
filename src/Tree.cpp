@@ -1355,7 +1355,7 @@ next:
   if (p.is_leaf) {
     // 2.1 read the leaf
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer();
-    is_valid = read_leaf(p.addr(), leaf_buffer, std::max((unsigned long)p.kv_len, sizeof(Leaf)), p_ptr, from_cache, cxt, coro_id);
+    is_valid = read_leaf(p.addr(), leaf_buffer, (unsigned long)p.kv_len, p_ptr, from_cache, cxt, coro_id);
 
     if (!is_valid) {
 #ifdef TREE_ENABLE_CACHE
