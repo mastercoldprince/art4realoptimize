@@ -21,14 +21,14 @@ void NormalCache::add_to_cache(const Key& k, const InternalPage* p_node, const G
   for (int i = 0; i < (int)p_node->hdr.partial_len; ++ i) byte_array.push_back(p_node->hdr.partial[i]);
 
   auto new_entry = new CacheEntry(p_node, node_addr);
-  _insert(byte_array, new_entry);
+  _insert(byte_array, new_entry ,k.size());
   if (free_size < 0) {
     _evict();
   }
   return;
 }
 
-void NormalCache::_insert(const CacheKey& byte_array, CacheEntry* new_entry) {
+void NormalCache::_insert(const CacheKey& byte_array, CacheEntry* new_entry,int k_size) {
   if (cache_map.find(byte_array) == cache_map.end()) {
     keys.push(byte_array);
   }
@@ -41,7 +41,7 @@ void NormalCache::_insert(const CacheKey& byte_array, CacheEntry* new_entry) {
       _safely_delete(old_entry);
     }
     else {
-      free_size.fetch_add(-sizeof(Key));
+      free_size.fetch_add(-k_size);
     }
     eviction_list.push(std::make_pair(&(cache_map[byte_array]), new_entry));
 // retry:

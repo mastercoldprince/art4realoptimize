@@ -114,7 +114,7 @@ DSM *dsm;
 
 
 inline uint64_t key_hash(const Key &k) {
-  return CityHash64((char *)&k, sizeof(k));
+  return CityHash64((char *)&k, k.size());
 }
 
 
