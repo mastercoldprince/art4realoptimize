@@ -59,7 +59,7 @@ public:
   void statistics();
 
 private:
-  void _insert(const CacheKey& byte_array, CacheEntry* new_entry);
+  void _insert(const CacheKey& byte_array, CacheEntry* new_entry ,int k_size);
 
   bool _search(CacheKey& byte_prefix, uint8_t last_byte, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx);
 
