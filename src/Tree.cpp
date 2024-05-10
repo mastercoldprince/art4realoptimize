@@ -296,7 +296,7 @@ next:
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer(k_len);
     printf("leaf_buffer %s, key len %d \n",leaf_buffer,k_len);
     is_valid = read_leaf(p.addr(), leaf_buffer, (unsigned long)p.kv_len, p_ptr, from_cache, cxt, coro_id);
-    printf("leaf key size:%d \n",((*Leaf)leaf_buffer)->key.size());
+    printf("leaf key size:%d \n",(*Leaf)leaf_buffer->key.size());
     if(is_valid) printf("valid \n ");
     if (!is_valid) {
       update_retry_flag[dsm->getMyThreadID()]=1;
