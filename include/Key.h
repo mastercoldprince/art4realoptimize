@@ -132,7 +132,7 @@ inline Key int2key(uint64_t key) {
   key = key % (kKeyMax - kKeyMin) + kKeyMin;
 #endif
   Key res{};
-  int keylen=0;
+  uint16_t keylen=0;
   uint64_t a=key;
   while(a!=0)
   {
