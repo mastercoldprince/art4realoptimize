@@ -693,12 +693,13 @@ re_read:
   MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=leaf_size;
   auto leaf = (Leaf *)leaf_buffer;
   printf("leaf key: %d \n",leaf->key.size());
-  for(int i=0;i<leaf->key.size() ;i++)
+  /*
+  for(int i=0;i < leaf->key.size() ;i++)
   {
     printf("%c",leaf->key.at(i));
   }
   printf("\n");
-
+*/
   // udpate reverse pointer if needed
   if (!from_cache && leaf->rev_ptr != p_ptr) {
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();

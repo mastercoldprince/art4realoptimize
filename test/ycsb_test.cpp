@@ -267,7 +267,7 @@ void thread_run(int id) {
     int range_size = 0;
     uint64_t int_k;
     while(trans_in >> op >> int_k) {
-        printf(" require num : %d \n",req_num);
+//        printf(" require num : %d \n",req_num);
       if (op == "SCAN") trans_in >> range_size;
       else range_size = 0;
       Request r;
