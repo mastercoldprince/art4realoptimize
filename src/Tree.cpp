@@ -698,11 +698,12 @@ re_read:
     leaf_cache_invalid[dsm->getMyThreadID()] ++;
     return false;
   }
+  /*
   if (!leaf->is_consistent()) {
     read_leaf_retry[dsm->getMyThreadID()] ++;
     update_retry_flag[dsm->getMyThreadID()]=1;
     goto re_read;
-  }
+  }*/
   return true;
 }
 
@@ -1676,10 +1677,11 @@ next_level:
         survivors.push_back(si[i]);
         continue;
       }
+      /*
       if (!leaf->is_consistent()) {  // re-read leaf is unconsistent
         survivors.push_back(si[i]);
       }
-
+*/
       if (k >= from && k < to) {  // [from, to)
         ret[k] = leaf->get_value();
         // TODO: cache hit ratio

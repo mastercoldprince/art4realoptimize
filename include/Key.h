@@ -115,14 +115,14 @@ inline Key operator-(const Key& a, uint8_t b) {
   int zero_cnt=0;
   for(int i=0;i<(int)a.at(64);i++)
   {
-    if(a.at(i)== 0) zero_cnt ++;
+    if(res.at(i)== 0) zero_cnt ++;
     else break;
   }
-  for(int i=zero_cnt; i<a.at(64); i++)
+  for(int i=zero_cnt; i<res.at(64); i++)
   {
-    a.at(i-zero_cnt) = a.at(i);
+    res.at(i-zero_cnt) = res.at(i);
   }
-  a.at(64) -= zero_cnt;
+  res.at(64) -= zero_cnt;
 
   return res;
 }
@@ -136,7 +136,7 @@ inline Key int2key(uint64_t key) {
   uint64_t a=key;
   while(a!=0)
   {
-    a>>8;
+    a= a>>8;
     keylen++;
   }
   for (int i = 1; i <= keylen; ++ i) {
@@ -158,7 +158,7 @@ inline Key str2key(const std::string &key) {
 inline uint64_t key2int(const Key& key) {
   uint64_t res = 0;
 //  for (auto a : key) res = (res << 8) + a;
-  for(int i=0;i<key.at(64);i++) res = (res << 8) + a.at(i);
+  for(int i=0;i<key.at(64);i++) res = (res << 8) + key.at(i);
   return res;
 }
 
