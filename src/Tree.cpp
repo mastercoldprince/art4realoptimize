@@ -296,6 +296,7 @@ next:
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer(k_len);
     printf("leaf_buffer %s, key len %d \n",leaf_buffer,k_len);
     is_valid = read_leaf(p.addr(), leaf_buffer, (unsigned long)p.kv_len, p_ptr, from_cache, cxt, coro_id);
+    printf("leaf key size:%d \n",leaf_buffer->key.size());
     if(is_valid) printf("valid \n ");
     if (!is_valid) {
       update_retry_flag[dsm->getMyThreadID()]=1;
@@ -321,7 +322,7 @@ next:
       retry_flag = INVALID_LEAF;
       goto next;
     }
-
+    
     auto leaf = (Leaf *)leaf_buffer;
     auto _k = leaf->get_key();
 
@@ -692,6 +693,12 @@ re_read:
   MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=leaf_size;
   auto leaf = (Leaf *)leaf_buffer;
   printf("leaf key: %d \n",leaf->key.size());
+  for(int i=0;i<leaf->key.size() ;i++)
+  {
+    printf("%c",leaf->key.at(i));
+  }
+  printf("\n");
+
   // udpate reverse pointer if needed
   if (!from_cache && leaf->rev_ptr != p_ptr) {
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
