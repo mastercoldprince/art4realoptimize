@@ -162,8 +162,8 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   leaf_merge_cas_old[dsm->getMyThreadID()]=0;
   leaf_merge_cas_rev[dsm->getMyThreadID()]=0;
   leaf_merge_cache_update[dsm->getMyThreadID()]=0;
-    leaf_merge_other[dsm->getMyThreadID()]=0;
-    insert_type_cnt[dsm->getMyThreadID()][0]++;
+  leaf_merge_other[dsm->getMyThreadID()]=0;
+  insert_type_cnt[dsm->getMyThreadID()][0]++;
 
   
   auto start = std::chrono::high_resolution_clock::now();
@@ -227,6 +227,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   search_cache_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(search_cache_stop - search_cache_start);
   cache_search_time[dsm->getMyThreadID()]+=search_cache_duration.count();
   if (from_cache) { // cache hit
+    printf("from cache !!!\n");
     assert(entry_idx >= 0);
     p_ptr = GADD(entry_ptr->addr, sizeof(InternalEntry) * entry_idx);
     p = entry_ptr->records[entry_idx];
@@ -246,6 +247,10 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
 #endif
   depth ++;  // partial key in entry is matched
   cache_depth = depth;
+
+if(!p_ptr) printf("root is null 1\n");
+if(!p) printf("root is null 2\n");
+
 
 #ifdef TREE_TEST_ROWEX_ART
   if (!is_update) lock_node(node_ptr, cxt, coro_id);
@@ -289,7 +294,7 @@ next:
     auto leaf_start = std::chrono::high_resolution_clock::now();  //不知key大小
     int k_len=p.kv_len-8-5-define::simulatedValLen;
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer(k_len);
-    printf("leaf_buffer %s key len %d \n",leaf_buffer,k_len);
+    printf("leaf_buffer %s, key len %d \n",leaf_buffer,k_len);
     is_valid = read_leaf(p.addr(), leaf_buffer, (unsigned long)p.kv_len, p_ptr, from_cache, cxt, coro_id);
     if(is_valid) printf("valid \n ");
     if (!is_valid) {
@@ -686,6 +691,7 @@ re_read:
   MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
   MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=leaf_size;
   auto leaf = (Leaf *)leaf_buffer;
+  printf("leaf key: %d \n",leaf->key.size());
   // udpate reverse pointer if needed
   if (!from_cache && leaf->rev_ptr != p_ptr) {
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
