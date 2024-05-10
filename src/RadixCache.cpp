@@ -32,7 +32,7 @@ void RadixCache::add_to_cache(const Key& k, const InternalPage* p_node, const Gl
   auto new_entry = new CacheEntry(p_node, node_addr);
   _insert(byte_array, new_entry);
 #ifndef CACHE_ENABLE_ART
-  free_manager->consume(k.size());  // emulate hash-based cache
+  free_manager->consume(sizeof(Key));  // emulate hash-based cache
 #endif
   if (free_manager->remain_size() < 0) {
     _evict();
@@ -157,8 +157,7 @@ next:
 
 bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
 
-//  CacheKey byte_array(k.begin(), k.begin() + define::keyLen - 1);
-    CacheKey byte_array(k.begin(), k.end());
+  CacheKey byte_array(k.begin(), k.begin() + define::maxkeyLen - 1);
 
   SearchRetStk ret;
   if(_search(byte_array, ret)) {

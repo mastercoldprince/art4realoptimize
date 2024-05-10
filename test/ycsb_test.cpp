@@ -114,7 +114,7 @@ DSM *dsm;
 
 
 inline uint64_t key_hash(const Key &k) {
-  return CityHash64((char *)&k, k.size());
+  return CityHash64((char *)&k, sizeof(k));
 }
 
 
@@ -208,10 +208,8 @@ void thread_load(int id) {
     uint64_t int_k;
     while (load_in >> op >> int_k) {
       k = int2key(int_k);
-      printf("insert k len: %d\n",k.size());
       assert(op == "INSERT");
       tree->insert(k, randval(e), nullptr, 0, false, true);
-      k = int2key(int_k);
       if (++ cnt % LOAD_HEARTBEAT == 0) {
         printf("thread %lu: %d load entries loaded.\n", loader_id, cnt);
       }
@@ -267,7 +265,6 @@ void thread_run(int id) {
     int range_size = 0;
     uint64_t int_k;
     while(trans_in >> op >> int_k) {
-//        printf(" require num : %d \n",req_num);
       if (op == "SCAN") trans_in >> range_size;
       else range_size = 0;
       Request r;
@@ -317,7 +314,7 @@ void thread_run(int id) {
   }
 
   warmup_cnt.fetch_add(1);
-  printf(" require num : %d \n",req_num);
+
   if (id == 0) {
     while (warmup_cnt.load() != kThreadCount)
       ;

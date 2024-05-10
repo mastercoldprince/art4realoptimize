@@ -17,10 +17,7 @@ public:
 
 
 inline uint64_t Hash::get_hashed_lock_index(const Key& k) {
-  char * key;
-  key= new char[k.size()];
-  for(int i=0;i<k.size() ; ++i) key[i] = k.at(i);
-  return CityHash64(key, k.size()) % define::kLocalLockNum;
+  return CityHash64((char *)&k, sizeof(k)) % define::kLocalLockNum;
 }
 
 

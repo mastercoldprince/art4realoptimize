@@ -34,10 +34,10 @@ public:
   };
   uint8_t valid_byte;
   };
-
+  uint8_t keylen;
+  uint8_t vallen;
 //  uint64_t checksum;  // checksum(kv)
-  uint16_t key_len;
-  uint16_t val_len; 
+
   // kv
   Key key;
   union {
@@ -56,18 +56,16 @@ public:
 public:
   Leaf() {}
 //  Leaf(const Key& key, const Value& value, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), f_padding(0), valid(1), key(key), value(value), lock_byte(0) { set_consistent(); }
-  Leaf(const Key& key, const Value& value, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), f_padding(0), valid(1), key_len(key.size()), val_len(sizeof(value)), key(key), value(value) 
-  { //set_consistent();
-   }
+ Leaf(const Key& key, const Value& value, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), f_padding(0), valid(1), keylen(key.at(0)), vallen(sizeof(value)),key(key), value(value) {  }
   const Key& get_key() const { return key; }
   Value get_value() const { return value; }
   bool is_valid(const GlobalAddress& p_ptr, bool from_cache) const { return valid && (!from_cache || p_ptr == rev_ptr); }
-/*  bool is_consistent() const {  //采用异地更新无需进行校验和验证
+/*  bool is_consistent() const {
     crc_processor.reset();
     crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
     return crc_processor.checksum() == checksum;
-  }*/
-  
+  }
+*/
   void set_value(const Value& val) { value = val; }
   /*
   void set_consistent() {
@@ -75,15 +73,15 @@ public:
     crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
     checksum = crc_processor.checksum();
   }
-  */
-  //void unlock() { w_lock = 0; };
-  //void lock() { w_lock = 1; };
-
+  void unlock() { w_lock = 0; };
+  void lock() { w_lock = 1; };
+*/
   static uint8_t get_partial(const Key& key, int depth);
   static Key get_leftmost(const Key& key, int depth);
   static Key get_rightmost(const Key& key, int depth);
   static Key remake_prefix(const Key& key, int depth, uint8_t diff_partial);
   static int longest_common_prefix(const Key &k1, const Key &k2, int depth);
+
 } __attribute__((packed));
 
 

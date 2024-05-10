@@ -21,14 +21,14 @@ void NormalCache::add_to_cache(const Key& k, const InternalPage* p_node, const G
   for (int i = 0; i < (int)p_node->hdr.partial_len; ++ i) byte_array.push_back(p_node->hdr.partial[i]);
 
   auto new_entry = new CacheEntry(p_node, node_addr);
-  _insert(byte_array, new_entry ,k.size());
+  _insert(byte_array, new_entry);
   if (free_size < 0) {
     _evict();
   }
   return;
 }
 
-void NormalCache::_insert(const CacheKey& byte_array, CacheEntry* new_entry,int k_size) {
+void NormalCache::_insert(const CacheKey& byte_array, CacheEntry* new_entry) {
   if (cache_map.find(byte_array) == cache_map.end()) {
     keys.push(byte_array);
   }
@@ -41,7 +41,7 @@ void NormalCache::_insert(const CacheKey& byte_array, CacheEntry* new_entry,int 
       _safely_delete(old_entry);
     }
     else {
-      free_size.fetch_add(-k_size);
+      free_size.fetch_add(-sizeof(Key));
     }
     eviction_list.push(std::make_pair(&(cache_map[byte_array]), new_entry));
 // retry:
@@ -64,10 +64,9 @@ void NormalCache::_insert(const CacheKey& byte_array, CacheEntry* new_entry,int 
 
 
 bool NormalCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
-//  CacheKey byte_array(k.begin(), k.begin() + define::keyLen - 1);
-    CacheKey byte_array(k.begin(), k.end());
+  CacheKey byte_array(k.begin(), k.begin() + define::maxkeyLen - 1);
 
-  return _search(byte_array, k.back(), entry_ptr_ptr, entry_ptr, entry_idx);
+  return _search(byte_array, k.back()-1, entry_ptr_ptr, entry_ptr, entry_idx);
 }
 
 bool NormalCache::_search(CacheKey& byte_prefix, uint8_t last_byte, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
