@@ -100,7 +100,7 @@ bool rm_write_conflict = false;
 
 
 std::thread th[MAX_APP_THREAD];
-uint64_t tp[MAX_APP_THREAD][MAX_CORO_NUM];
+uint64_t tp[MAX_APP_THREAD][MAX_CORO_NUM];   //全局变量 统计tp
 
 extern volatile bool need_stop;
 extern uint64_t latency[MAX_APP_THREAD][MAX_CORO_NUM][LATENCY_WINDOWS];
@@ -340,7 +340,7 @@ void thread_run(int id) {
     auto gen = new RequsetGenBench(dsm, req, req_num, 0, 0);
     auto thread_id = dsm->getMyThreadID();
 
-    while (!need_stop) {
+    while (!need_stop) {     //在这里产生的就很慢？？？
       auto r = gen->next();
 
       timer.begin();
