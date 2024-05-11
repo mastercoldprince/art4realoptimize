@@ -66,13 +66,25 @@ os.system(cmd_ycsb_txn)
 
 
 #####################################################################################
-add = ""
+
 f_load = open (out_ycsb_load, 'r')
 f_load_out = open (out_load_ycsbkey, 'w')
 for line in f_load :
     cols = line.split()
     if len(cols) > 0 and cols[0] == "INSERT":
-        f_load_out.write (cols[0] + " " + cols[2][4:]  + "\n")
+        if(cols[2][4] == '1') :
+            f_load_out.write (cols[0] + " " + cols[2][19:]  + "\n")
+        elif(cols[2][4] == '3') : 
+            f_load_out.write (cols[0] + " " + cols[2][7:]  + "\n")
+        elif(cols[2][4] == '5') : 
+            f_load_out.write (cols[0] + " " + cols[2][10:]  + "\n")
+        elif(cols[2][4] == '7') : 
+            f_load_out.write (cols[0] + " " + cols[2][13:]  + "\n")
+        elif(cols[2][4] == '9') : 
+            f_load_out.write (cols[0] + " " + cols[2][16:]  + "\n")
+        else :
+            f_load_out.write (cols[0] + " " + cols[2][4:]  + "\n")
+
 f_load.close()
 f_load_out.close()
 
@@ -81,9 +93,20 @@ f_txn_out = open (out_txn_ycsbkey, 'w')
 for line in f_txn :
     cols = line.split()
     if (cols[0] == 'SCAN') or (cols[0] == 'INSERT') or (cols[0] == 'READ') or (cols[0] == 'UPDATE'):
-        startkey = cols[2][4:]
+        if(cols[2][4] == '1') :
+            startkey = cols[2][19:]
+        elif(cols[2][4] == '3') : 
+            startkey = cols[2][7:] 
+        elif(cols[2][4] == '5') : 
+            startkey = cols[2][10:] 
+        elif(cols[2][4] == '7') : 
+            startkey = cols[2][13:] 
+        elif(cols[2][4] == '9') : 
+            startkey = cols[2][16:]  
+        else :
+            startkey = cols[2][4:] 
         if cols[0] == 'SCAN' :
-            numkeys =str(int(cols[3] ) + len(add ) ) 
+            numkeys =str(int(cols[3] ) ) 
             f_txn_out.write (cols[0] + ' ' + startkey + ' ' + numkeys + '\n')
         else :
             f_txn_out.write (cols[0] + ' ' + startkey + '\n')
