@@ -208,12 +208,12 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
 
   
 
-/*
+
 #ifdef TREE_ENABLE_WRITE_COMBINING
   lock_res = local_lock_table->acquire_local_write_lock(k, v, &busy_waiting_queue, cxt, coro_id);
   write_handover = (lock_res.first && !lock_res.second);
 #endif
-*/
+
   try_write_op[dsm->getMyThreadID()]++;
   if (write_handover) {
     write_handover_num[dsm->getMyThreadID()]++;
@@ -373,7 +373,7 @@ next:
     }
 
     // 2.3 New key, we must merge the two leaves into a node (leaf split)
-//    if(k.at(64) < depth || _k.at(64) < depth) return ;
+    if(k.at(64) < depth || _k.at(64) < depth) return ;
     int partial_len = longest_common_prefix(_k, k, depth);
     uint8_t diff_partial = get_partial(_k, depth + partial_len);
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
