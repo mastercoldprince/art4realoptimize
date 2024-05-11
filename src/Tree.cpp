@@ -372,6 +372,7 @@ next:
     }
 
     // 2.3 New key, we must merge the two leaves into a node (leaf split)
+    if(k.size() < depth ) return ;
     int partial_len = longest_common_prefix(_k, k, depth);
     uint8_t diff_partial = get_partial(_k, depth + partial_len);
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
