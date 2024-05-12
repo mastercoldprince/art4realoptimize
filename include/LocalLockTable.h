@@ -199,7 +199,7 @@ inline void LocalLockTable::release_local_read_lock(const Key& k, std::pair<bool
 // write-combining
 inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key& k, const Value& v, CoroQueue *waiting_queue, CoroContext *cxt, int coro_id) {
   auto &node = local_locks[hasher.get_hashed_lock_index(k)];
-  char* s;
+  std::string s;
   for(int i=0;i<k[define::maxkeyLen -1];i++)
   {
     s[i]=k[i];
