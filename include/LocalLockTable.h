@@ -217,10 +217,14 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
       return std::make_pair(false, true);
     }
   }
-  for(int i=0;i<(*unique_key)[define::maxkeyLen -1];i++)
+if(!unique_key)
+{
+    for(int i=0;i<(*unique_key)[define::maxkeyLen -1];i++)
   {
     s_u[i]=(*unique_key)[i];
   }
+
+}  
 
   node.wc_lock.lock();
   node.wc_buffer = v;     // local overwrite (combining)
@@ -231,7 +235,7 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
   uint8_t count=0;
   
   while (ticket != current) { // lock failed
-    printf("key :%s ,uniq key: %s\n ",s.c_str(),s_u.c_str());
+
     if (cxt != nullptr) {
       waiting_queue->push(std::make_pair(coro_id, [=, &node](){
         return ticket == node.write_current.load(std::memory_order_relaxed);
@@ -240,7 +244,7 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
     }
     current = node.write_current.load(std::memory_order_relaxed);
     count ++;
-    if(count == 10) return std::make_pair(false, true);
+    if(count == 10)     printf("key :%s ,uniq key: %s\n ",s.c_str(),s_u.c_str());
   }
   unique_key = node.unique_write_key.load();
   if (!unique_key || *unique_key != k) {  // conflict keys
