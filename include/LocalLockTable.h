@@ -219,7 +219,7 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
   }
   for(int i=0;i<unique_key[define::maxkeyLen -1];i++)
   {
-    s_u[i]=unique_key[i];
+    s_u[i]=(*unique_key)[i];
   }
 
   node.wc_lock.lock();
