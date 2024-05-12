@@ -205,12 +205,14 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
   {
     s[i]=k[i];
   }
+
 /*
   printf("key :%s ,hash index: %" PRIu64"\n ",s.c_str(),hasher.get_hashed_lock_index(k));
 */
   Key* unique_key = nullptr;
   Key* new_key = new Key(k);
   bool res = node.unique_write_key.compare_exchange_strong(unique_key, new_key);
+  volatile Key u_k = *(unique_key);
   if (!res) {   
     delete new_key;
     if (*unique_key != k) {  // conflict keys  已经有别的key先当unique了
@@ -225,6 +227,7 @@ if(unique_key)
   }
 
 }  
+
 
   node.wc_lock.lock();
   node.wc_buffer = v;     // local overwrite (combining)
@@ -244,7 +247,7 @@ if(unique_key)
     }
     current = node.write_current.load(std::memory_order_relaxed);
     count ++;
-    if(count == 10)     printf("key :%s ,uniq key: %s\n ",s.c_str(),s_u.c_str());
+    if(count == 10)     printf("key :%s,len:%d ,uniq key: %s  len: %d\n ",s.c_str(),(int)k[define::maxkeyLen -1],s_u.c_str(),(int)(*unique_key)[define::maxkeyLen -1]);
   }
   unique_key = node.unique_write_key.load();
   if (!unique_key || *unique_key != k) {  // conflict keys
