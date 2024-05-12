@@ -233,7 +233,7 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
     }
     current = node.write_current.load(std::memory_order_relaxed);
     count ++;
-    if(count == 100) return std::make_pair(false, true);
+    if(count == 10) return std::make_pair(false, true);
   }
   unique_key = node.unique_write_key.load();
   if (!unique_key || *unique_key != k) {  // conflict keys
