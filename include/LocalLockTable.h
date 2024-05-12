@@ -199,11 +199,13 @@ inline void LocalLockTable::release_local_read_lock(const Key& k, std::pair<bool
 // write-combining
 inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key& k, const Value& v, CoroQueue *waiting_queue, CoroContext *cxt, int coro_id) {
   auto &node = local_locks[hasher.get_hashed_lock_index(k)];
-/*  std::string s;
+  std::string s;
+  std::string s_u;
   for(int i=0;i<k[define::maxkeyLen -1];i++)
   {
     s[i]=k[i];
   }
+/*
   printf("key :%s ,hash index: %" PRIu64"\n ",s.c_str(),hasher.get_hashed_lock_index(k));
 */
   Key* unique_key = nullptr;
@@ -215,6 +217,10 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
       return std::make_pair(false, true);
     }
   }
+  for(int i=0;i<unique_key[define::maxkeyLen -1];i++)
+  {
+    s_u[i]=unique_key[i];
+  }
 
   node.wc_lock.lock();
   node.wc_buffer = v;     // local overwrite (combining)
@@ -225,6 +231,7 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
   uint8_t count=0;
   
   while (ticket != current) { // lock failed
+    printf("key :%s ,uniq key: %s\n ",s.c_str(),s_u.c_str());
     if (cxt != nullptr) {
       waiting_queue->push(std::make_pair(coro_id, [=, &node](){
         return ticket == node.write_current.load(std::memory_order_relaxed);
