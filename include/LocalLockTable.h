@@ -203,9 +203,9 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
   Key* unique_key = nullptr;
   Key* new_key = new Key(k);
   bool res = node.unique_write_key.compare_exchange_strong(unique_key, new_key);
-  if (!res) {
+  if (!res) {   
     delete new_key;
-    if (*unique_key != k) {  // conflict keys
+    if (*unique_key != k) {  // conflict keys  已经有别的key先当unique了
       return std::make_pair(false, true);
     }
   }
@@ -216,7 +216,7 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
 
   uint8_t ticket = node.write_ticket.fetch_add(1);  // acquire local lock
   uint8_t current = node.write_current.load(std::memory_order_relaxed);
-
+  
   while (ticket != current) { // lock failed
     if (cxt != nullptr) {
       waiting_queue->push(std::make_pair(coro_id, [=, &node](){
