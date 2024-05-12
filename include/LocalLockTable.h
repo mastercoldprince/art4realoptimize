@@ -211,7 +211,7 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
 */
   Key* unique_key = nullptr;
   Key* new_key = new Key(k);
-  volatile Key u_k;
+   Key u_k;
   bool res = node.unique_write_key.compare_exchange_strong(unique_key, new_key);
 
   if (!res) {   
