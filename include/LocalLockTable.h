@@ -217,7 +217,7 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
       return std::make_pair(false, true);
     }
   }
-  for(int i=0;i<unique_key[define::maxkeyLen -1];i++)
+  for(int i=0;i<(*unique_key)[define::maxkeyLen -1];i++)
   {
     s_u[i]=(*unique_key)[i];
   }
