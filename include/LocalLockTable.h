@@ -204,7 +204,7 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
   {
     s[i]=k[i];
   }
-  printf("key :%s ,hash index: %" PRIu64"\n ",s,hasher.get_hashed_lock_index(k));
+  printf("key :%s ,hash index: %" PRIu64"\n ",s.c_str(),hasher.get_hashed_lock_index(k));
 
   Key* unique_key = nullptr;
   Key* new_key = new Key(k);
