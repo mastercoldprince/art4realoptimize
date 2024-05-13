@@ -331,7 +331,7 @@ void thread_run(int id) {
     ;
 
   // 3. start ycsb test
-  if (!kIsScan && kUseCoro) {
+  if (!kIsScan && kUseCoro) {   //在这里产生的就很慢？？？
     tree->run_coroutine(gen_func, work_func, kCoroCnt, req, req_num);
   }
   else {
@@ -340,7 +340,7 @@ void thread_run(int id) {
     auto gen = new RequsetGenBench(dsm, req, req_num, 0, 0);
     auto thread_id = dsm->getMyThreadID();
 
-    while (!need_stop) {     //在这里产生的就很慢？？？
+    while (!need_stop) {     
       auto r = gen->next();
 
       timer.begin();

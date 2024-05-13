@@ -872,7 +872,9 @@ bool Tree::out_of_place_update_leaf(const Key &k, Value &v, int depth, GlobalAdd
 update_finish:
 #ifdef TREE_TEST_HOCL_HANDOVER
   if (!disable_handover) {
+    printf("before releas 1\n");
     local_lock_table->release_local_lock(k, res, old_e);
+    printf("after releas 1\n");
   }
 #endif
   return res;
@@ -933,7 +935,9 @@ void Tree::unlock_node(const GlobalAddress &node_addr, CoroContext *cxt, int cor
   };
 
 #ifdef TREE_TEST_HOCL_HANDOVER
+    printf("before releas 2\n");
   local_lock_table->release_local_lock(node_addr, unlock);
+      printf("after releas 2\n");
 #else
   unlock(node_addr);
 #endif

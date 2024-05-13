@@ -201,11 +201,11 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
   auto &node = local_locks[hasher.get_hashed_lock_index(k)];  //同一个键映射出来的node是同一个  
   std::string s;
   std::string s_u;
-  for(int i=0;i<k[define::maxkeyLen -1];i++)
+/*  for(int i=0;i<k[define::maxkeyLen -1];i++)
   {
     s[i]=k[i];
   }
-
+*/
 /*
   printf("key :%s ,hash index: %" PRIu64"\n ",s.c_str(),hasher.get_hashed_lock_index(k));
 */
@@ -220,7 +220,7 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
       return std::make_pair(false, true);
     }
   }
-  if(res) printf("now k is uk\n");
+//  if(res) printf("now k is uk\n");
   /*
 if(unique_key)
 {  
@@ -241,7 +241,7 @@ if(unique_key)
   uint8_t current = node.write_current.load(std::memory_order_relaxed);
   uint8_t count=0;
 
-  while (ticket != current && waiting_queue->size() != 0) { // lock failed
+  while (ticket != current ) { // lock failed
 
     if (cxt != nullptr) {
       waiting_queue->push(std::make_pair(coro_id, [=, &node](){
@@ -250,10 +250,10 @@ if(unique_key)
       (*cxt->yield)(*cxt->master);
     }
     current = node.write_current.load(std::memory_order_relaxed);
-    count ++;
+   // count ++;
 //    if(count == 10)     printf("key :%s,len:%d ,uniq key: %s  len: %d\n ",s.c_str(),(int)k[define::maxkeyLen -1],s_u.c_str(),(int)(*unique_key)[define::maxkeyLen -1]);
   }
-  if(ticket != current)printf("%d \n",sizeof(u_k));
+//  if(ticket != current)printf("%d \n",sizeof(u_k));
   unique_key = node.unique_write_key.load();
   if (!unique_key || *unique_key != k) {  // conflict keys
     if (node.write_window) {
