@@ -198,7 +198,7 @@ inline void LocalLockTable::release_local_read_lock(const Key& k, std::pair<bool
 
 // write-combining
 inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key& k, const Value& v, CoroQueue *waiting_queue, CoroContext *cxt, int coro_id) {
-  auto &node = local_locks[hasher.get_hashed_lock_index(k)];
+  auto &node = local_locks[hasher.get_hashed_lock_index(k)];  //同一个键映射出来的node是同一个  
   std::string s;
   std::string s_u;
   for(int i=0;i<k[define::maxkeyLen -1];i++)
@@ -220,6 +220,8 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
       return std::make_pair(false, true);
     }
   }
+  if(res) printf("now k is uk\n");
+  /*
 if(unique_key)
 {  
     u_k = *(unique_key);
@@ -227,10 +229,16 @@ if(unique_key)
   {
     s_u[i]=(*unique_key)[i];
   }
-
-
 }  
-
+*/
+if(unique_key)
+{
+    for(int i= define::maxkeyLen -1; i>=0; i--)
+  {
+    if(k[i] != *unique_key[i]) break;
+    if(i ==0) return make_pair(false, true);
+  }
+}
 
   node.wc_lock.lock();
   node.wc_buffer = v;     // local overwrite (combining)
@@ -239,8 +247,8 @@ if(unique_key)
   uint8_t ticket = node.write_ticket.fetch_add(1);  // acquire local lock
   uint8_t current = node.write_current.load(std::memory_order_relaxed);
   uint8_t count=0;
-  
-  while (ticket != current) { // lock failed
+
+  while (ticket != current && waiting_queue->size() != 0) { // lock failed
 
     if (cxt != nullptr) {
       waiting_queue->push(std::make_pair(coro_id, [=, &node](){
@@ -250,7 +258,7 @@ if(unique_key)
     }
     current = node.write_current.load(std::memory_order_relaxed);
     count ++;
-    if(count == 10)     printf("key :%s,len:%d ,uniq key: %s  len: %d\n ",s.c_str(),(int)k[define::maxkeyLen -1],s_u.c_str(),(int)(*unique_key)[define::maxkeyLen -1]);
+//    if(count == 10)     printf("key :%s,len:%d ,uniq key: %s  len: %d\n ",s.c_str(),(int)k[define::maxkeyLen -1],s_u.c_str(),(int)(*unique_key)[define::maxkeyLen -1]);
   }
   if(ticket != current)printf("%d \n",sizeof(u_k));
   unique_key = node.unique_write_key.load();
