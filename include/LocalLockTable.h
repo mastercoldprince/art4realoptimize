@@ -353,6 +353,7 @@ inline bool LocalLockTable::acquire_local_lock(const GlobalAddress& addr, CoroQu
 
 // lock-handover
 inline void LocalLockTable::release_local_lock(const GlobalAddress& addr, RemoteFunc unlock_func) {
+  printf("res 1\n");
   auto &node = local_locks[hasher.get_hashed_lock_index(addr)];
 
   uint8_t ticket = node.write_ticket.load(std::memory_order_relaxed);
@@ -380,6 +381,7 @@ inline void LocalLockTable::release_local_lock(const GlobalAddress& addr, Remote
 // lock-handover + embedding lock
 inline void LocalLockTable::release_local_lock(const GlobalAddress& addr, RemoteFunc unlock_func, RemoteFunc write_without_unlock, RemoteFunc write_and_unlock) {
   auto &node = local_locks[hasher.get_hashed_lock_index(addr)];
+    printf("res 2\n");
 
   uint8_t ticket = node.write_ticket.load(std::memory_order_relaxed);
   uint8_t current = node.write_current.load(std::memory_order_relaxed);
@@ -446,6 +448,7 @@ inline bool LocalLockTable::acquire_local_lock(const Key& k, CoroQueue *waiting_
 // cas-handover
 inline void LocalLockTable::release_local_lock(const Key& k, bool& res, InternalEntry& ret_p) {
   auto &node = local_locks[hasher.get_hashed_lock_index(k)];
+    printf("res 3\n");
 
   auto unique_key = node.unique_write_key.load(std::memory_order_relaxed);
   if (unique_key && *unique_key == k) {
