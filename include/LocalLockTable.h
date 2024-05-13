@@ -201,11 +201,11 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
   auto &node = local_locks[hasher.get_hashed_lock_index(k)];  //同一个键映射出来的node是同一个  
   std::string s;
   std::string s_u;
-/*  for(int i=0;i<k[define::maxkeyLen -1];i++)
+  for(int i=0;i<k[define::maxkeyLen -1];i++)
   {
     s[i]=k[i];
   }
-*/
+
 /*
   printf("key :%s ,hash index: %" PRIu64"\n ",s.c_str(),hasher.get_hashed_lock_index(k));
 */
@@ -221,7 +221,7 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
     }
   }
 //  if(res) printf("now k is uk\n");
-  /*
+  
 if(unique_key)
 {  
     u_k = *(unique_key);
@@ -230,7 +230,7 @@ if(unique_key)
     s_u[i]=(*unique_key)[i];
   }
 }  
-*/
+
 
 
   node.wc_lock.lock();
