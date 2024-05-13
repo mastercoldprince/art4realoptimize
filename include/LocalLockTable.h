@@ -320,7 +320,7 @@ inline void LocalLockTable::release_local_write_lock(const Key& k, std::pair<boo
       node.window_start = false;
     }
   }
-      printf("current 2\n");
+     // printf("current 2\n");
   node.write_current.fetch_add(1);
   node.w_lock.unlock();
 
