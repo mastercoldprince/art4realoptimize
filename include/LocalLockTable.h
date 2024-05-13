@@ -252,6 +252,7 @@ if(unique_key)
     count ++;
     if(count == 10)     printf("key :%s,len:%d ,uniq key: %s  len: %d\n ",s.c_str(),(int)k[define::maxkeyLen -1],s_u.c_str(),(int)(*unique_key)[define::maxkeyLen -1]);
   }
+  if(ticket != current)print("%d \n",sizeof(u_k));
   unique_key = node.unique_write_key.load();
   if (!unique_key || *unique_key != k) {  // conflict keys
     if (node.write_window) {
