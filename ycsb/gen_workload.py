@@ -73,15 +73,15 @@ for line in f_load :
     cols = line.split()
     if len(cols) > 0 and cols[0] == "INSERT":
         if(cols[2][4] == '1') :
-            f_load_out.write (cols[0] + " " + cols[2][19:]  + "\n")
+            f_load_out.write (cols[0] + " " + cols[2][5:]  + "\n")
         elif(cols[2][4] == '3') : 
-            f_load_out.write (cols[0] + " " + cols[2][7:]  + "\n")
+            f_load_out.write (cols[0] + " " + cols[2][6:]  + "\n")
         elif(cols[2][4] == '5') : 
-            f_load_out.write (cols[0] + " " + cols[2][10:]  + "\n")
+            f_load_out.write (cols[0] + " " + cols[2][7:]  + "\n")
         elif(cols[2][4] == '7') : 
-            f_load_out.write (cols[0] + " " + cols[2][13:]  + "\n")
+            f_load_out.write (cols[0] + " " + cols[2][8:]  + "\n")
         elif(cols[2][4] == '9') : 
-            f_load_out.write (cols[0] + " " + cols[2][16:]  + "\n")
+            f_load_out.write (cols[0] + " " + cols[2][9:]  + "\n")
         else :
             f_load_out.write (cols[0] + " " + cols[2][4:]  + "\n")
 
@@ -94,15 +94,15 @@ for line in f_txn :
     cols = line.split()
     if (cols[0] == 'SCAN') or (cols[0] == 'INSERT') or (cols[0] == 'READ') or (cols[0] == 'UPDATE'):
         if(cols[2][4] == '1') :
-            startkey = cols[2][19:]
+            startkey = cols[2][5:]
         elif(cols[2][4] == '3') : 
-            startkey = cols[2][7:] 
+            startkey = cols[2][6:] 
         elif(cols[2][4] == '5') : 
-            startkey = cols[2][10:] 
+            startkey = cols[2][7:] 
         elif(cols[2][4] == '7') : 
-            startkey = cols[2][13:] 
+            startkey = cols[2][8:] 
         elif(cols[2][4] == '9') : 
-            startkey = cols[2][16:]  
+            startkey = cols[2][9:]  
         else :
             startkey = cols[2][4:] 
         if cols[0] == 'SCAN' :
