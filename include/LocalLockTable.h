@@ -231,14 +231,7 @@ if(unique_key)
   }
 }  
 */
-if(unique_key)
-{
-    for(int i= define::maxkeyLen -1; i>=0; i--)
-  {
-    if(k[i] != *unique_key[i]) break;
-    if(i ==0) return make_pair(false, true);
-  }
-}
+
 
   node.wc_lock.lock();
   node.wc_buffer = v;     // local overwrite (combining)
