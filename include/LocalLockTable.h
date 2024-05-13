@@ -288,8 +288,8 @@ inline bool LocalLockTable::get_combining_value(const Key& k, Value& v) {
 }
 
 // write-combining
-inline void LocalLockTable::release_local_write_lock(const Key& k, std::pair<bool, bool> acquire_ret) {
-  if (acquire_ret.second) return;
+inline void LocalLockTable::release_local_write_lock(const Key& k, std::pair<bool, bool> acquire_ret) {  //有的键没有释放成功？？？
+  if (acquire_ret.second) return;  //是有冲突的键 不能使用WC  无需操作
 
   auto &node = local_locks[hasher.get_hashed_lock_index(k)];
 
