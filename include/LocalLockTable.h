@@ -263,6 +263,7 @@ if(unique_key)
       }
     }
     // node.write_handover = false;
+    printf("current 1\n");
     node.write_current.fetch_add(1);
     return std::make_pair(false, true);
   }
@@ -319,6 +320,7 @@ inline void LocalLockTable::release_local_write_lock(const Key& k, std::pair<boo
       node.window_start = false;
     }
   }
+      printf("current 2\n");
   node.write_current.fetch_add(1);
   node.w_lock.unlock();
 
@@ -525,7 +527,7 @@ inline void LocalLockTable::release_local_write_lock(const GlobalAddress& addr, 
   uint8_t current = node.write_current.load(std::memory_order_relaxed);
 
   node.write_handover = ticket != (uint8_t)(current + 1);
-
+      printf("current 3\n");
   node.write_current.fetch_add(1);
   return;
 }
