@@ -263,7 +263,7 @@ if(unique_key)
       }
     }
     // node.write_handover = false;
-    printf("current 1\n");
+   // printf("current 1\n");
     node.write_current.fetch_add(1);
     return std::make_pair(false, true);
   }
