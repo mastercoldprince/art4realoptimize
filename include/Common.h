@@ -103,7 +103,7 @@ constexpr int kIndexCacheSize = 600;
 
 // KV
 constexpr uint32_t maxkeyLen = 65;   //在array[64]存长度
-constexpr uint32_t simulatedValLen = 8;
+constexpr uint32_t simulatedValLen = 65;//value 用array存，在第一个位置记录value长度
 constexpr uint32_t allocAlignLeafSize = ROUND_UP(maxkeyLen + simulatedValLen + 8 + 2, ALLOC_ALLIGN_BIT);
 
 // Tree
@@ -130,7 +130,7 @@ constexpr uint64_t kOnChipLockNum = kLockChipMemSize * 8;  // 1bit-lock
 
 
 using Key = std::array<uint8_t, define::maxkeyLen>; 
-using Value = uint64_t;
+using Value = std::array<uint8_t, define::simulatedValLen>; 
 constexpr uint64_t kKeyMin = 1;
 #ifdef KEY_SPACE_LIMIT
 constexpr uint64_t kKeyMax = 60000000;  // only for int workloads

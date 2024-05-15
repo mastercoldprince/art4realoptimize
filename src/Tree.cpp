@@ -289,7 +289,7 @@ next:
     // 2.1 read the leaf
     auto leaf_start = std::chrono::high_resolution_clock::now();
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer();
-    is_valid = read_leaf(p.addr(), leaf_buffer, std::max((unsigned long)p.kv_len, sizeof(Leaf)), p_ptr, from_cache, cxt, coro_id);
+    is_valid = read_leaf(p.addr(), leaf_buffer, (unsigned long)p.kv_len, p_ptr, from_cache, cxt, coro_id);
 
     if (!is_valid) {
       update_retry_flag[dsm->getMyThreadID()]=1;
@@ -373,7 +373,7 @@ next:
     }
 
     // 2.3 New key, we must merge the two leaves into a node (leaf split)
-    if(k.at(64) < depth || _k.at(64) < depth) return ;
+//    if(k.at(64) < depth || _k.at(64) < depth) return ;
     int partial_len = longest_common_prefix(_k, k, depth);
     uint8_t diff_partial = get_partial(_k, depth + partial_len);
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
@@ -682,6 +682,7 @@ std::ofstream outFile("/users/Shijia/art4real/empty_slot_and_leaf_merge_break_do
 bool Tree::read_leaf(const GlobalAddress &leaf_addr, char *leaf_buffer, int leaf_size, const GlobalAddress &p_ptr, bool from_cache, CoroContext *cxt, int coro_id) {
   try_read_leaf[dsm->getMyThreadID()] ++;
 re_read:
+  std::memset(leaf_buffer, 0, sizeof(Leaf));
   dsm->read_sync(leaf_buffer, leaf_addr, leaf_size, cxt);
   MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
   MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=leaf_size;
@@ -961,7 +962,7 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer();
     new (leaf_buffer) Leaf(k, v, e_ptr);
     leaf_addr = dsm->alloc(sizeof(Leaf));
-    dsm->write_sync(leaf_buffer, leaf_addr, sizeof(Leaf), cxt);
+    dsm->write_sync(leaf_buffer, leaf_addr, sizeof(Leaf)- (define::simulatedValLen - v.at(0) -1), cxt);
     MN_iops[dsm->getMyThreadID()][leaf_addr.nodeID]++;
     MN_datas[dsm->getMyThreadID()][leaf_addr.nodeID]+=sizeof(Leaf);
   }
@@ -976,7 +977,7 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
     auto insert_empty_slot_write_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(insert_empty_slot_write_stop - insert_empty_slot_write_start);
     if(insert_type[dsm->getMyThreadID()==1])  insert_empty_slot_write[dsm->getMyThreadID()] += insert_empty_slot_write_duration.count();
   // cas entry
-  auto new_e = InternalEntry(partial_key, sizeof(Leaf) < 128 ? sizeof(Leaf) : 0, leaf_addr);
+  auto new_e = InternalEntry(partial_key, sizeof(Leaf)- (define::simulatedValLen - v.at(0) -1) < 128 ? sizeof(Leaf) - (define::simulatedValLen - v.at(0) -1) : 0, leaf_addr);
   auto insert_empty_slot_other_stop = std::chrono::high_resolution_clock::now();
   auto insert_empty_slot_other_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(insert_empty_slot_other_stop - insert_empty_slot_write_stop);
   auto remote_cas = [=](){

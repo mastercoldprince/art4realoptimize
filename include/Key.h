@@ -163,4 +163,24 @@ inline uint64_t key2int(const Key& key) {
   return res;
 }
 
+inline Key int2value(uint64_t value) {
+  Value res{};
+  uint16_t vlen=0;
+  uint64_t a=value;
+  while(a!=0)
+  {
+    a= a>>8;
+    vlen++;
+  }
+  res.at(0) = vlen;
+  for (int i = 1; i <=(int) vlen; ++ i) {
+    auto shr = (vlen - i) * 8;
+    res.at(i) = ((uint64_t)shr >= 64u ? 0 : ((key >> (uint64_t)shr) & ((1 << 8) - 1))); // Is equivalent to padding zero for short key
+  }
+  std::fill(res.begin() + vlen + 1, res.end() , 0);
+
+  return res;
+}
+
+
 #endif // _KEY_H_

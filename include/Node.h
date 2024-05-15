@@ -40,10 +40,8 @@ public:
 
   // kv
   Key key;
-  union {
   Value value;
-  uint8_t _padding[define::simulatedValLen];
-  };
+
 /*
   union {
   struct {
@@ -56,7 +54,7 @@ public:
 public:
   Leaf() {}
 //  Leaf(const Key& key, const Value& value, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), f_padding(0), valid(1), key(key), value(value), lock_byte(0) { set_consistent(); }
- Leaf(const Key& key, const Value& value, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), f_padding(0), valid(1), keylen(key.at(0)), vallen(sizeof(value)),key(key), value(value) {  }
+ Leaf(const Key& key, const Value& value, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), f_padding(0), valid(1), keylen(key.at(define::maxkeyLen - 1)), vallen(value.at(0)),key(key), value(value) {  }
   const Key& get_key() const { return key; }
   Value get_value() const { return value; }
   bool is_valid(const GlobalAddress& p_ptr, bool from_cache) const { return valid && (!from_cache || p_ptr == rev_ptr); }
