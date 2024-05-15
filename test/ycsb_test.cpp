@@ -146,7 +146,7 @@ public:
       }
     }
     tp[local_thread_id][coro_id]++;
-    req[cur].v = randval(e);  // make value different per-epoch
+    req[cur].v = int2value((e));  // make value different per-epoch
     return req[cur];
   }
 
@@ -212,6 +212,7 @@ void thread_load(int id) {
 
     while (load_in >> op >> int_k) {
       k = int2key(int_k);
+
       assert(op == "INSERT");
       tree->insert(k,v, nullptr, 0, false, true);
       if (++ cnt % LOAD_HEARTBEAT == 0) {

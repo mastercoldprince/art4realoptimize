@@ -79,7 +79,7 @@ private:
 
 
 void do_read(DSM *dsm, const GlobalAddress& addr, timespec& s, timespec& e) {
-  Value v = 0;
+  Value v;
   auto read_buffer = (dsm->get_rbuf(0)).get_page_buffer();
   clock_gettime(CLOCK_REALTIME, &s);
   dsm->read_sync(read_buffer, addr, msgSize);
@@ -92,7 +92,7 @@ void do_read(DSM *dsm, const GlobalAddress& addr, timespec& s, timespec& e) {
 
 int do_write(DSM *dsm, const GlobalAddress& addr, timespec& s, timespec& e) {
   unsigned int seed = rdtsc();
-  Value v = rand_r(&seed);
+  Value v =int2value(rand_r(&seed));
   auto cas_buffer = (dsm->get_rbuf(0)).get_cas_buffer();
   auto write_buffer = (dsm->get_rbuf(0)).get_page_buffer();
   bool res;
