@@ -146,7 +146,7 @@ public:
       }
     }
     tp[local_thread_id][coro_id]++;
-    req[cur].v = int2value((e));  // make value different per-epoch
+    req[cur].v = int2value(randval(e));  // make value different per-epoch
     return req[cur];
   }
 
