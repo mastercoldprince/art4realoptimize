@@ -163,7 +163,7 @@ inline uint64_t key2int(const Key& key) {
   return res;
 }
 
-inline Key int2value(uint64_t value) {
+inline Value int2value(uint64_t value) {
   Value res{};
   uint16_t vlen=0;
   uint64_t a=value;

@@ -135,9 +135,9 @@ constexpr uint64_t kKeyMin = 1;
 #ifdef KEY_SPACE_LIMIT
 constexpr uint64_t kKeyMax = 60000000;  // only for int workloads
 #endif
-constexpr Value kValueNull = std::numeric_limits<Value>::min();
-constexpr Value kValueMin = 1;
-constexpr Value kValueMax = std::numeric_limits<Value>::max();
+constexpr uint64_t kValueNull = std::numeric_limits<uint64_t>::min();
+constexpr uint64_t kValueMin = 1;
+constexpr uint64_t kValueMax = std::numeric_limits<uint64_t>::max();
 
 static inline unsigned long long asm_rdtsc(void) {
   unsigned hi, lo;
