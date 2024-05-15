@@ -107,7 +107,7 @@ extern uint64_t latency[MAX_APP_THREAD][MAX_CORO_NUM][LATENCY_WINDOWS];
 uint64_t latency_th_all[LATENCY_WINDOWS];
 
 std::default_random_engine e;
-std::uniform_int_distribution<Value> randval(kValueMin, kValueMax);
+std::uniform_int_distribution<uint64_t> randval(kValueMin, kValueMax);
 
 Tree *tree;
 DSM *dsm;

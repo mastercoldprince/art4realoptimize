@@ -110,7 +110,7 @@ public:
     r.k = to_key(dis);
 #endif
 //#endif
-    r.v = v_add_one(val);
+    r.v = v_add_one(int2value(val));
 
     tp[id][coro_id]++;
     return r;
