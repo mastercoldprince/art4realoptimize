@@ -79,7 +79,8 @@ inline void add_one(Key& a) {
     }
   }
 }
-inline void v_add_one(Value& a) {
+inline Value v_add_one(Value a) {
+  Value res={};
   for (int i = 1; i < (int)a.at(0); ++ i) {
     auto& partial = a.at(a.at(64) - 1 - i);
     if ((int)partial + 1 < (1 << 8)) {
@@ -90,6 +91,9 @@ inline void v_add_one(Value& a) {
       partial = 0;
     }
   }
+  res=a;
+  return res;
+
 }
 
 inline Key operator+(const Key& a, uint8_t b) {
