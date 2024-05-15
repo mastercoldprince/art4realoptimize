@@ -103,7 +103,7 @@ constexpr int kIndexCacheSize = 600;
 
 // KV
 constexpr uint32_t maxkeyLen = 65;   //在array[64]存长度
-constexpr uint32_t simulatedValLen = 65;//value 用array存，在第一个位置记录value长度
+constexpr uint32_t simulatedValLen = 33;//value 用array存，在第一个位置记录value长度
 constexpr uint32_t allocAlignLeafSize = ROUND_UP(maxkeyLen + simulatedValLen + 8 + 2, ALLOC_ALLIGN_BIT);
 
 // Tree
