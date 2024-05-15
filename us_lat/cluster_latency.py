@@ -27,9 +27,9 @@ epoch_num = int(sys.argv[3])
 # epoch_num = 10
 cluster_ips = [
   '10.10.1.1',
+  '10.10.1.2',
   '10.10.1.3',
   '10.10.1.4',
-  '10.10.1.5',
 ][:node_num]
 
 lat_cnt = dict()

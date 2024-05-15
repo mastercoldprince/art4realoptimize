@@ -213,6 +213,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   lock_res = local_lock_table->acquire_local_write_lock(k, v, &busy_waiting_queue, cxt, coro_id);
   write_handover = (lock_res.first && !lock_res.second);
 #endif
+
   try_write_op[dsm->getMyThreadID()]++;
   if (write_handover) {
     write_handover_num[dsm->getMyThreadID()]++;
@@ -330,10 +331,10 @@ next:
       if (leaf->get_value() == v) {
         goto insert_finish;
       }
-#ifdef TREE_ENABLE_IN_PLACE_UPDATE
+//#ifdef TREE_ENABLE_IN_PLACE_UPDATE
       // in place update leaf
-      in_place_update_leaf(k, v, p.addr(), leaf, cxt, coro_id);
-#else
+//      in_place_update_leaf(k, v, p.addr(), leaf, cxt, coro_id);
+//#else
       // out of place update leaf
       bool res = out_of_place_update_leaf(k, v, depth, leaf_addr, p_ptr, p, node_ptr, cxt, coro_id, !is_update);
 #ifdef TREE_ENABLE_CACHE
@@ -362,7 +363,7 @@ next:
         retry_flag = CAS_LEAF;
         goto next;
       }
-#endif 
+//#endif 
       auto leaf_stop = std::chrono::high_resolution_clock::now();
       auto leaf_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(leaf_stop - leaf_start);
       in_pl_update_time[dsm->getMyThreadID()] += leaf_duration.count();
@@ -372,6 +373,7 @@ next:
     }
 
     // 2.3 New key, we must merge the two leaves into a node (leaf split)
+    if(k.at(64) < depth || _k.at(64) < depth) return ;
     int partial_len = longest_common_prefix(_k, k, depth);
     uint8_t diff_partial = get_partial(_k, depth + partial_len);
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
@@ -698,15 +700,16 @@ re_read:
     leaf_cache_invalid[dsm->getMyThreadID()] ++;
     return false;
   }
+  /*
   if (!leaf->is_consistent()) {
     read_leaf_retry[dsm->getMyThreadID()] ++;
     update_retry_flag[dsm->getMyThreadID()]=1;
     goto re_read;
-  }
+  }*/
   return true;
 }
 
-
+/*
 void Tree::in_place_update_leaf(const Key &k, Value &v, const GlobalAddress &leaf_addr, Leaf* leaf,
                                CoroContext *cxt, int coro_id) {
 #ifdef TREE_ENABLE_EMBEDDING_LOCK
@@ -840,7 +843,7 @@ write_leaf:
 #endif
   return;
 }
-
+*/
 
 bool Tree::out_of_place_update_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, const GlobalAddress &e_ptr, InternalEntry &old_e, const GlobalAddress& node_addr,
                                     CoroContext *cxt, int coro_id, bool disable_handover) {
@@ -869,7 +872,9 @@ bool Tree::out_of_place_update_leaf(const Key &k, Value &v, int depth, GlobalAdd
 update_finish:
 #ifdef TREE_TEST_HOCL_HANDOVER
   if (!disable_handover) {
+    printf("before releas 1\n");
     local_lock_table->release_local_lock(k, res, old_e);
+    printf("after releas 1\n");
   }
 #endif
   return res;
@@ -930,7 +935,9 @@ void Tree::unlock_node(const GlobalAddress &node_addr, CoroContext *cxt, int cor
   };
 
 #ifdef TREE_TEST_HOCL_HANDOVER
+    printf("before releas 2\n");
   local_lock_table->release_local_lock(node_addr, unlock);
+      printf("after releas 2\n");
 #else
   unlock(node_addr);
 #endif
@@ -1676,10 +1683,11 @@ next_level:
         survivors.push_back(si[i]);
         continue;
       }
+      /*
       if (!leaf->is_consistent()) {  // re-read leaf is unconsistent
         survivors.push_back(si[i]);
       }
-
+*/
       if (k >= from && k < to) {  // [from, to)
         ret[k] = leaf->get_value();
         // TODO: cache hit ratio
