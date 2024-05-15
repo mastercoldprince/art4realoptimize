@@ -80,9 +80,9 @@ inline void add_one(Key& a) {
   }
 }
 inline Value v_add_one(Value a) {
-  Value res={};
-  for (int i = 1; i < (int)a.at(0); ++ i) {
-    auto& partial = a.at(a.at(64) - 1 - i);
+  Value res=a;
+  for (int i = 1; i < (int)res.at(0); ++ i) {
+    auto& partial = res.at(a.at(64) - 1 - i);
     if ((int)partial + 1 < (1 << 8)) {
       partial ++;
       return;
@@ -91,7 +91,6 @@ inline Value v_add_one(Value a) {
       partial = 0;
     }
   }
-  res=a;
   return res;
 
 }
