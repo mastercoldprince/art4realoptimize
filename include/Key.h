@@ -85,7 +85,7 @@ inline Value v_add_one(Value a) {
     auto& partial = res.at(a.at(64) - 1 - i);
     if ((int)partial + 1 < (1 << 8)) {
       partial ++;
-      return;
+      return res;
     }
     else {
       partial = 0;
