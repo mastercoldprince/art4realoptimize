@@ -175,7 +175,7 @@ inline Value int2value(uint64_t value) {
   res.at(0) = vlen;
   for (int i = 1; i <=(int) vlen; ++ i) {
     auto shr = (vlen - i) * 8;
-    res.at(i) = ((uint64_t)shr >= 64u ? 0 : ((key >> (uint64_t)shr) & ((1 << 8) - 1))); // Is equivalent to padding zero for short key
+    res.at(i) = ((uint64_t)shr >= 64u ? 0 : ((value >> (uint64_t)shr) & ((1 << 8) - 1))); // Is equivalent to padding zero for short key
   }
   std::fill(res.begin() + vlen + 1, res.end() , 0);
 
