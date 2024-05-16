@@ -34,16 +34,15 @@ public:
   };
   uint8_t valid_byte;
   };
-
-  uint64_t checksum;  // checksum(kv)
+  uint8_t keylen;
+  uint8_t vallen;
+//  uint64_t checksum;  // checksum(kv)
 
   // kv
   Key key;
-  union {
   Value value;
-  uint8_t _padding[define::simulatedValLen];
-  };
 
+/*
   union {
   struct {
     uint8_t w_lock    : 1;
@@ -51,21 +50,22 @@ public:
   };
   uint8_t lock_byte;
   };
-
+*/
 public:
   Leaf() {}
-  Leaf(const Key& key, const Value& value, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), f_padding(0), valid(1), key(key), value(value), lock_byte(0) { set_consistent(); }
-
+//  Leaf(const Key& key, const Value& value, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), f_padding(0), valid(1), key(key), value(value), lock_byte(0) { set_consistent(); }
+ Leaf(const Key& key, const Value& value, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), f_padding(0), valid(1), keylen(key.at(define::maxkeyLen - 1)), vallen(value.at(0)),key(key), value(value) {  }
   const Key& get_key() const { return key; }
   Value get_value() const { return value; }
   bool is_valid(const GlobalAddress& p_ptr, bool from_cache) const { return valid && (!from_cache || p_ptr == rev_ptr); }
-  bool is_consistent() const {
+/*  bool is_consistent() const {
     crc_processor.reset();
     crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
     return crc_processor.checksum() == checksum;
   }
-
+*/
   void set_value(const Value& val) { value = val; }
+  /*
   void set_consistent() {
     crc_processor.reset();
     crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
@@ -73,7 +73,7 @@ public:
   }
   void unlock() { w_lock = 0; };
   void lock() { w_lock = 1; };
-
+*/
   static uint8_t get_partial(const Key& key, int depth);
   static Key get_leftmost(const Key& key, int depth);
   static Key get_rightmost(const Key& key, int depth);

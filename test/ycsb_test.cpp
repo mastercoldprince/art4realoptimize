@@ -100,14 +100,14 @@ bool rm_write_conflict = false;
 
 
 std::thread th[MAX_APP_THREAD];
-uint64_t tp[MAX_APP_THREAD][MAX_CORO_NUM];
+uint64_t tp[MAX_APP_THREAD][MAX_CORO_NUM];   //全局变量 统计tp
 
 extern volatile bool need_stop;
 extern uint64_t latency[MAX_APP_THREAD][MAX_CORO_NUM][LATENCY_WINDOWS];
 uint64_t latency_th_all[LATENCY_WINDOWS];
 
 std::default_random_engine e;
-std::uniform_int_distribution<Value> randval(kValueMin, kValueMax);
+std::uniform_int_distribution<uint64_t> randval(kValueMin, kValueMax);
 
 Tree *tree;
 DSM *dsm;
@@ -146,7 +146,7 @@ public:
       }
     }
     tp[local_thread_id][coro_id]++;
-    req[cur].v = randval(e);  // make value different per-epoch
+    req[cur].v = int2value(randval(e));  // make value different per-epoch
     return req[cur];
   }
 
@@ -203,13 +203,18 @@ void thread_load(int id) {
     assert(false);
   }
   Key k;
+  Value v;
+  uint64_t int_v = randval(e);
+  v = int2value(int_v);
   int cnt = 0;
   if (!kIsStr) {  // int workloads
     uint64_t int_k;
+
     while (load_in >> op >> int_k) {
       k = int2key(int_k);
+
       assert(op == "INSERT");
-      tree->insert(k, randval(e), nullptr, 0, false, true);
+      tree->insert(k,v, nullptr, 0, false, true);
       if (++ cnt % LOAD_HEARTBEAT == 0) {
         printf("thread %lu: %d load entries loaded.\n", loader_id, cnt);
       }
@@ -224,7 +229,7 @@ void thread_load(int id) {
       tmp >> op >> str_k;
       k = str2key(str_k);
       assert(op == "INSERT");
-      tree->insert(k, randval(e), nullptr, 0, false, true);
+      tree->insert(k, v, nullptr, 0, false, true);
       if (++ cnt % LOAD_HEARTBEAT == 0) {
         printf("thread %lu: %d load entries loaded.\n", loader_id, cnt);
       }
@@ -331,7 +336,7 @@ void thread_run(int id) {
     ;
 
   // 3. start ycsb test
-  if (!kIsScan && kUseCoro) {
+  if (!kIsScan && kUseCoro) {   //在这里产生的就很慢？？？
     tree->run_coroutine(gen_func, work_func, kCoroCnt, req, req_num);
   }
   else {
@@ -340,7 +345,7 @@ void thread_run(int id) {
     auto gen = new RequsetGenBench(dsm, req, req_num, 0, 0);
     auto thread_id = dsm->getMyThreadID();
 
-    while (!need_stop) {
+    while (!need_stop) {     
       auto r = gen->next();
 
       timer.begin();

@@ -110,7 +110,7 @@ public:
     r.k = to_key(dis);
 #endif
 //#endif
-    r.v = ++ val;
+    r.v = v_add_one(int2value(val));
 
     tp[id][coro_id]++;
     return r;
@@ -158,7 +158,7 @@ void thread_load(int id) {
   uint64_t end_warm_key = kWarmRatio * kKeySpace;
   for (uint64_t i = 1; i < end_warm_key; ++i) {
     if (i % all_loader_thread == loader_id) {
-      tree->insert(to_key(i), i * 2, nullptr, 0, false, true);
+      tree->insert(to_key(i),int2value( i * 2 ), nullptr, 0, false, true);
     }
   }
   printf("loader %lu load finish\n", loader_id);

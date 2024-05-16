@@ -64,9 +64,9 @@ void NormalCache::_insert(const CacheKey& byte_array, CacheEntry* new_entry) {
 
 
 bool NormalCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
-  CacheKey byte_array(k.begin(), k.begin() + define::keyLen - 1);
+  CacheKey byte_array(k.begin(), k.begin() + define::maxkeyLen - 1);
 
-  return _search(byte_array, k.back(), entry_ptr_ptr, entry_ptr, entry_idx);
+  return _search(byte_array, k.back()-1, entry_ptr_ptr, entry_ptr, entry_idx);
 }
 
 bool NormalCache::_search(CacheKey& byte_prefix, uint8_t last_byte, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
