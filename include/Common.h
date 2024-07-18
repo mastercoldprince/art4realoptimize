@@ -14,6 +14,10 @@
 #include "Debug.h"
 #include "HugePageAlloc.h"
 #include "Rdma.h"
+#include <string>
+#include <functional>
+#include <array>
+#include <iostream>
 
 #include "WRLock.h"
 
@@ -115,11 +119,25 @@ constexpr uint32_t allocationPageSize = 8 + 8 + 256 * 8;
 constexpr uint32_t allocAlignPageSize = ROUND_UP(allocationPageSize, ALLOC_ALLIGN_BIT);
 
 // Internal Entry
-constexpr uint32_t kvLenBit        = 7;
+constexpr uint32_t LeafCntBit      = 7;
 constexpr uint32_t nodeTypeNumBit  = 5;
 constexpr uint32_t mnIdBit         = 8;
 constexpr uint32_t offsetBit       = 48 - ALLOC_ALLIGN_BIT;
 constexpr uint32_t hPartialLenMax  = 6;
+
+//Buffer ndoe
+constexpr uint32_t partial_len  = 5;
+constexpr uint32_t bPartialLenMax  = 5;
+constexpr uint32_t count_1  = 6;
+constexpr uint32_t count_2  = 6;
+constexpr uint32_t leaf_type  = 5;
+constexpr uint32_t fp  = 11;
+constexpr uint32_t allocationBufferSize = 8 + 8 +  ((1UL << count_1) + (1UL << count_2) - 2)* 8;
+constexpr uint32_t allocAlignBufferSize = ROUND_UP(allocationBufferSize, ALLOC_ALLIGN_BIT);
+
+
+
+
 
 // On-chip memory
 constexpr uint64_t kLockStartAddr = 0;
