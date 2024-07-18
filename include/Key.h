@@ -197,5 +197,22 @@ inline Value int2value(uint64_t value) {
   return res;
 }
 
+inline unsigned int generateFingerprint(const Key& key) {
+    // Convert array to string
+    std::string input(key.begin(), key.end());
+    
+    // Generate hash value
+    std::hash<std::string> hasher;
+    size_t hashValue = hasher(input);
+    
+    // Mask to get the lowest 11 bits
+    size_t mask = (1 << 11) - 1;
+    
+    // Apply mask to get the 11-bit fingerprint
+    unsigned int fingerprint = hashValue & mask;
+    
+    return fingerprint;
+}
+
 
 #endif // _KEY_H_

@@ -93,7 +93,7 @@ f_txn_out = open (out_txn_ycsbkey, 'w')
 for line in f_txn :
     cols = line.split()
     if (cols[0] == 'SCAN') or (cols[0] == 'INSERT') or (cols[0] == 'READ') or (cols[0] == 'UPDATE'):
-        if(cols[2][4] == '1') :
+        if(cols[2][4] == '1'):
             startkey = cols[2][5:]
         elif(cols[2][4] == '3') : 
             startkey = cols[2][6:] 
