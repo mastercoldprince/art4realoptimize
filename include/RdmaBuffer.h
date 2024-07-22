@@ -99,7 +99,11 @@ public:
 
   char *get_kvleaf_buffer( ) {
     kvleaf_buffer_cur = (kvleaf_buffer_cur + 1)  % ( kKVLeafBufferCnt * define::allocAlignKVLeafSize);
-    return kvleaf_buffer + kvleaf_buffer_cur ;
+    return kvleaf_buffer + kvleaf_buffer_cur * define::allocAlignKVLeafSize;
+  }
+  char *get_kvleaves_buffer(int k ) {
+    kvleaf_buffer_cur = (kvleaf_buffer_cur + k)  % ( kKVLeafBufferCnt * define::allocAlignKVLeafSize);
+    return kvleaf_buffer + kvleaf_buffer_cur * define::allocAlignKVLeafSize ;
   }
   char *get_ptrleaf_buffer( ) {
     ptrleaf_buffer_cur = (ptrleaf_buffer_cur + 1)  % ( kPTRLeafBufferCnt * define::allocAlignPTRLeafSize);

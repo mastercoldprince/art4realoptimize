@@ -264,6 +264,11 @@ inline void DSM::alloc_nodes(int node_num, GlobalAddress *addrs, bool align) {
     addrs[i] = alloc(define::allocationPageSize, align);
   }
 }
+inline void DSM::alloc_bnodes(int node_num, GlobalAddress *addrs, bool align) {
+  for (int i = 0; i < node_num; ++ i) {
+    addrs[i] = alloc(define::allocationBufferSize, align);
+  }
+}
 
 inline void DSM::free(const GlobalAddress& addr, int size) {
   local_allocators[addr.nodeID][0].free(addr, size);
