@@ -764,7 +764,7 @@ class Header {
 public:
   union {
   struct {
-    uint8_t depth;
+    uint8_t depth : 7;
     uint8_t node_type   : define::nodeTypeNumBit;
     uint8_t partial_len : 8 - define::nodeTypeNumBit;
     uint8_t partial[define::hPartialLenMax];
@@ -780,6 +780,10 @@ public:
   Header(const Key &k, int partial_len, int depth, NodeType node_type) : depth(depth), node_type(node_type), partial_len(partial_len) {
     assert((uint32_t)partial_len <= define::hPartialLenMax);
     for (int i = 0; i < partial_len; ++ i) partial[i] = get_partial(k, depth + i);
+  }
+   Header(char* partial, int partial_len, int depth, NodeType node_type) : depth(depth), node_type(node_type), partial_len(partial_len) {
+    assert((uint32_t)partial_len <= define::hPartialLenMax);
+    for (int i = 0; i < partial_len; ++ i) this->partial[i] = partial[i];
   }
 
   operator uint64_t() { return val; }
@@ -900,11 +904,12 @@ class BufferHeader {
 public:
   union {
   struct {
-    uint8_t depth;
+    uint8_t depth : 8;
     uint8_t partial_len  : define::partial_len;
     uint8_t partial[define::bPartialLenMax];
     uint8_t count_1  : define::count_1;
     uint8_t count_2  : define::count_2;
+    uint32_t bn_padding : 64 - define::count_1 - define::count_2 - partial_len - 8*define::bPartialLenMax -8;
   };
 
   uint64_t val;
@@ -952,7 +957,11 @@ public:
   union {
     struct {
       uint8_t  leaf_type : define::leaf_type;
-      uint16_t  fp : define::fp;
+      uint8_t  partial;
+//      uint8_t  fp :define::fp;
+      uint8_t be_padding : 1;
+      uint8_t node_type : 2;   // 0 -> leaf  1->buffer  2->internal node
+      uint8_t  prefix_type : 1;
       PackedGAddr packed_addr;
     }__attribute__((packed));
   };
@@ -962,10 +971,10 @@ public:
 
 public:
   BufferEntry() : val(0) {}
-  BufferEntry(uint8_t leaf_type, uint16_t fp, const GlobalAddress &addr) :
-                leaf_type(leaf_type), fp(fp), packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
+  BufferEntry(uint8_t leaf_type, uint8_t partial, uint8_t buffer_node,uint8_t prefix_type,const GlobalAddress &addr) :
+                leaf_type(leaf_type), partial(partial), buffer_node(buffer_node),prefix_type(prefix_type),packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
   BufferEntry(const BufferEntry& e) :
-                leaf_type(e.leaf_type), fp(e.fp), packed_addr(e.packed_addr) {}
+                leaf_type(e.leaf_type), partial(e.partial), packed_addr(e.packed_addr) {}
 
   operator uint64_t() const { return val; }
 
@@ -987,10 +996,19 @@ public:
   GlobalAddress rev_ptr;
 
   BufferHeader hdr;
-  BufferEntry records[1UL << (define::count_1 + define::count_2) -2];
+  BufferEntry records[256];
 
 public:
   InternalBuffer() { std::fill(records, records + (define::count_1 + define::count_2) -2, BufferEntry::Null()); }
+  InternalBuffer(const InternalBuffer &bnode)
+   {  rev_ptr = bnode.rev_ptr;
+      hdr = bnode.hdr;
+      for(int i=0;i<256;i++)
+      {
+        records[i] = bnode.records[i];
+      }
+    }
+
   InternalBuffer(const Key &k, int partial_len, int depth, int count_1,int count_2, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), hdr(k, partial_len, depth, count_1,count_2) {
     std::fill(records, records + (define::count_1 + define::count_2) -2, BufferEntry::Null());
   }
@@ -1000,9 +1018,6 @@ public:
 
 
 static_assert(sizeof(InternalBuffer) == 8 + 8 + ((define::count_1 + define::count_2) -2) * 8);
-
-
-
 
 
 

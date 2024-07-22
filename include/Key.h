@@ -8,6 +8,26 @@ inline uint8_t get_partial(const Key& key, int depth) {
   return depth == 0 ? 0 : key.at(depth - 1);
 }
 
+inline int get_2B_partial(const std::vector<Key> key, int depth) {
+
+  if (keys.empty() || depth >= keys[0].size()) {
+      return 0;
+  }
+  // Initialize the common prefix length to the maximum possible length
+  int common_prefix_length = keys[0].size() - depth;
+
+  // Compare each character starting from depth
+  for (int i = depth; i < keys[0].size(); ++i) {
+      char current_char = keys[0][i];
+      for (const auto& key : keys) {
+          if (key[i] != current_char) {
+              common_prefix_length = i - depth;
+              return common_prefix_length;
+          }
+      }
+  }
+  return common_prefix_length;
+}
 
 inline Key get_leftmost(const Key& key, int depth) {
   Key res{};

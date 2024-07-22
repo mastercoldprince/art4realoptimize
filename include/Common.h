@@ -126,12 +126,12 @@ constexpr uint32_t offsetBit       = 48 - ALLOC_ALLIGN_BIT;
 constexpr uint32_t hPartialLenMax  = 6;
 
 //Buffer ndoe
-constexpr uint32_t partial_len  = 5;
-constexpr uint32_t bPartialLenMax  = 5;
-constexpr uint32_t count_1  = 6;
-constexpr uint32_t count_2  = 6;
+constexpr uint32_t partial_len  = 2;
+constexpr uint32_t bPartialLenMax  = 2;
+constexpr uint32_t count_1  = 9;
+constexpr uint32_t count_2  = 9;
 constexpr uint32_t leaf_type  = 5;
-constexpr uint32_t fp  = 11;
+//constexpr uint32_t fp  = 2;
 constexpr uint32_t allocationBufferSize = 8 + 8 +  ((1UL << count_1) + (1UL << count_2) - 2)* 8;
 constexpr uint32_t allocAlignBufferSize = ROUND_UP(allocationBufferSize, ALLOC_ALLIGN_BIT);
 
