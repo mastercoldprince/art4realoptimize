@@ -824,21 +824,15 @@ public:
     // is_buffer = 0
     struct {
       uint8_t  partial;
-
+      uint8_t  child_type   : 2;  // 0 -> leaf  1->buffer  2->internal node
       uint8_t  empty     : define::kvLenBit - define::nodeTypeNumBit;
       uint8_t  node_type : define::nodeTypeNumBit;
 
-      uint8_t  is_buffer   : 1;
+
       PackedGAddr packed_addr;
     }__attribute__((packed));
 
-    // is_leaf = 1
-    struct {
-      uint8_t  _partial;
-      uint8_t  leaf_count    : define::LeafCntBit;
-      uint8_t  _is_buffer   : 1;
-      PackedGAddr _packed_addr;
-    }__attribute__((packed));
+
   };
 
   uint64_t val;
@@ -846,14 +840,13 @@ public:
 
 public:
   InternalEntry() : val(0) {}
-  InternalEntry(uint8_t partial, uint8_t leaf_count, const GlobalAddress &addr) :
-                _partial(partial), leaf_count(leaf_count), _is_buffer(1), _packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
+  InternalEntry(uint8_t partial, uint8_t child_type,,const GlobalAddress &addr) :
+                partial(partial), child_type(child_type), _packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
   InternalEntry(uint8_t partial, NodeType node_type, const GlobalAddress &addr) :
-                partial(partial), empty(0), node_type(static_cast<uint8_t>(node_type)), is_buffer(0), packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
-  InternalEntry(uint8_t partial, const InternalEntry& e) :
-                _partial(partial), leaf_count(e.leaf_count), _is_buffer(e._is_buffer), _packed_addr(e._packed_addr) {}
+                partial(partial), empty(0), node_type(static_cast<uint8_t>(node_type)), child_type(0), packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
+
   InternalEntry(NodeType node_type, const InternalEntry& e) :
-                partial(e.partial), empty(0), node_type(static_cast<uint8_t>(node_type)), is_buffer(e.is_buffer), packed_addr(e.packed_addr) {}
+                partial(e.partial), empty(0), node_type(static_cast<uint8_t>(node_type)), child_type(e.child_type), packed_addr(e.packed_addr) {}
 
   operator uint64_t() const { return val; }
 
@@ -956,12 +949,12 @@ public:
   union {
   union {
     struct {
-      uint8_t  leaf_type : define::leaf_type;
       uint8_t  partial;
+
 //      uint8_t  fp :define::fp;
-      uint8_t be_padding : 1;
       uint8_t node_type : 2;   // 0 -> leaf  1->buffer  2->internal node
       uint8_t  prefix_type : 1;
+      uint8_t  leaf_type : define::leaf_type;  //指向内部节点的时候是内部节点的节点类型
       PackedGAddr packed_addr;
     }__attribute__((packed));
   };
@@ -971,16 +964,19 @@ public:
 
 public:
   BufferEntry() : val(0) {}
-  BufferEntry(uint8_t leaf_type, uint8_t partial, uint8_t buffer_node,uint8_t prefix_type,const GlobalAddress &addr) :
-                leaf_type(leaf_type), partial(partial), buffer_node(buffer_node),prefix_type(prefix_type),packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
+  BufferEntry(uint8_t node_type, uint8_t partial, uint8_t buffer_node,uint8_t prefix_type,const GlobalAddress &addr) :
+                node_type(node_type), partial(partial), buffer_node(buffer_node),prefix_type(prefix_type),packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
   BufferEntry(const BufferEntry& e) :
-                leaf_type(e.leaf_type), partial(e.partial), packed_addr(e.packed_addr) {}
+                node_type(e.node_type), partial(e.partial), packed_addr(e.packed_addr) {}
 
   operator uint64_t() const { return val; }
 
   static BufferEntry Null() {
     static BufferEntry zero;
     return zero;
+  }
+  NodeType type() const {
+    return static_cast<NodeType>(leaf_type);
   }
 
   GlobalAddress addr() const {
@@ -997,6 +993,14 @@ public:
 
   BufferHeader hdr;
   BufferEntry records[256];
+  union {
+  struct {
+    uint8_t w_lock    : 1;
+    uint8_t r_padding : 7;
+  };
+  uint8_t lock_byte;
+  };
+
 
 public:
   InternalBuffer() { std::fill(records, records + (define::count_1 + define::count_2) -2, BufferEntry::Null()); }
@@ -1014,6 +1018,9 @@ public:
   }
 
   bool is_valid(const GlobalAddress& p_ptr, int depth) const { return hdr.type() != NODE_DELETED && hdr.depth <= depth && (p_ptr == rev_ptr); }
+  void unlock() { w_lock = 0; };
+  void lock() { w_lock = 1; };
+
 } __attribute__((packed));
 
 
