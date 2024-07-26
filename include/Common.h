@@ -135,7 +135,7 @@ constexpr uint32_t count_1  = 9;
 constexpr uint32_t count_2  = 9;
 constexpr uint32_t leaf_type  = 5;
 //constexpr uint32_t fp  = 2;
-constexpr uint32_t allocationBufferSize = 8 + 8 +  ((1UL << count_1) + (1UL << count_2) - 2)* 8;
+constexpr uint32_t allocationBufferSize = 8 + 8 +  256* 8 + 1;
 constexpr uint32_t allocAlignBufferSize = ROUND_UP(allocationBufferSize, ALLOC_ALLIGN_BIT);
 
 
