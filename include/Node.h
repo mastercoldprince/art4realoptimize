@@ -951,7 +951,6 @@ public:
   union {
     struct {
       uint8_t  partial;
-
 //      uint8_t  fp :define::fp;
       uint8_t node_type : 2;   // 0 -> leaf  1->buffer  2->internal node
       uint8_t  prefix_type : 1;
@@ -1025,7 +1024,7 @@ public:
 } __attribute__((packed));
 
 
-static_assert(sizeof(InternalBuffer) == 8 + 8 + 256 * 8);
+static_assert(sizeof(InternalBuffer) == 8 + 8 + 256 * 8 + 1);
 
 
 
