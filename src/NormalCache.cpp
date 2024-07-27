@@ -14,13 +14,13 @@ NormalCache::NormalCache(int cache_size, DSM *dsm) : cache_size(cache_size), dsm
   // map_size = 0;
 }
 
-void NormalCache::add_to_cache(const Key& k, const InternalPage* p_node, const GlobalAddress &node_addr) {
+void NormalCache::add_to_cache(const Key& k, int node_type,const InternalPage* p_node, const GlobalAddress &node_addr) {
   auto depth = p_node->hdr.depth - 1;
 
   std::vector<uint8_t> byte_array(k.begin(), k.begin() + depth);
   for (int i = 0; i < (int)p_node->hdr.partial_len; ++ i) byte_array.push_back(p_node->hdr.partial[i]);
 
-  auto new_entry = new CacheEntry(p_node, node_addr);
+  auto new_entry = new CacheEntry(p_node,node_type ,node_addr);
   _insert(byte_array, new_entry);
   if (free_size < 0) {
     _evict();
@@ -93,7 +93,7 @@ try_upper:
 
 
 void NormalCache::search_range_from_cache(const Key &from, const Key &to, std::vector<RangeCache> &result) {
-  GlobalAddress p_ptr;
+/*  GlobalAddress p_ptr;
   InternalEntry p;
   int depth;
   volatile CacheEntry** entry_ptr_ptr = nullptr;
@@ -112,7 +112,7 @@ void NormalCache::search_range_from_cache(const Key &from, const Key &to, std::v
       auto rightmost = p.is_leaf ? k : get_rightmost(k, depth);
       result.push_back(RangeCache(leftmost, rightmost, p_ptr, p, depth, entry_ptr_ptr, entry_ptr));
     }
-  }
+  }*/
   return;
 }
 
