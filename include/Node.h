@@ -897,12 +897,12 @@ class BufferHeader {
 public:
   union {
   struct {
-    uint8_t depth : 8;
+    uint8_t depth;
     uint8_t partial_len  : define::partial_len;
     uint8_t partial[define::bPartialLenMax];
     uint8_t count_1  : define::count_1;
     uint8_t count_2  : define::count_2;
-    uint8_t bn_padding : 64 - define::count_1 - define::count_2 - define::partial_len - 8*define::bPartialLenMax -8;
+    uint32_t bn_padding : 20;
   };
 
   uint64_t val;
