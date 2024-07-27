@@ -15,14 +15,15 @@
 struct CacheEntry {
   // fixed
   uint8_t depth;
+  uint8_t node_type;   // 标识本身是一个什么节点  0 internal 1 buffer
   GlobalAddress addr;
   std::vector<InternalEntry> records;
   // faa
   // volatile mutable uint64_t counter;
 
-  CacheEntry() {}
-  CacheEntry(const InternalPage* p_node, const GlobalAddress& addr) :
-             depth(p_node->hdr.depth + p_node->hdr.partial_len), addr(addr) {
+  CacheInternalEntry() {}
+  CacheInternalEntry(const InternalPage* p_node, int node_type, const GlobalAddress& addr) :
+             depth(p_node->hdr.depth + p_node->hdr.partial_len), addr(addr), node_type(node_type){
     for (int i = 0; i < node_type_to_num(p_node->hdr.type()); ++ i) {
       const auto& e = p_node->records[i];
       records.push_back(e);
@@ -31,6 +32,29 @@ struct CacheEntry {
 
   uint64_t content_size() const {
     return sizeof(uint8_t) + sizeof(GlobalAddress) + sizeof(InternalEntry) * records.size();  // + sizeof(uint64_t)
+  }
+};
+
+struct CacheBufferEntry {
+  // fixed
+  uint8_t depth;
+  uint8_t node_type; 
+  GlobalAddress addr;
+  std::vector<BufferEntry> records;
+  // faa
+  // volatile mutable uint64_t counter;
+
+  CacheBufferEntry() {}
+  CacheBufferEntry(const InternalBuffer* bp_node, const GlobalAddress& addr) :
+             depth(bp_node->hdr.depth + bp_node->hdr.partial_len), addr(addr) {
+    for (int i = 0; i < node_type_to_num(bp_node->hdr.type()); ++ i) {
+      const auto& e = bp_node->records[i];
+      records.push_back(e);
+    }
+  }
+
+  uint64_t content_size() const {
+    return sizeof(uint8_t) + sizeof(GlobalAddress) + sizeof(BufferEntry) * records.size();  // + sizeof(uint64_t)
   }
 };
 

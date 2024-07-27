@@ -13,10 +13,16 @@
 #include <queue>
 #include <atomic>
 #include <stack>
+#include <variant>
+
+
 
 
 struct CacheNodeValue {
-  volatile CacheEntry* cache_entry;
+
+  volatile CacheEntry* cache_entry;   //一定要作区分吗？
+
+      /* data */
   volatile void * next;
 
   CacheNodeValue() :  cache_entry(nullptr), next(nullptr) {}
@@ -76,10 +82,32 @@ public:
     header = new CacheHeader(byte_array, start, byte_array.size() - start - 1);
     records[byte_array.back()] = CacheNodeValue(new_entry, nullptr);
   }
+  CacheNode(const std::vector<uint8_t>& byte_array, int start, CacheBufferEntry* new_entry) {
+    header = new CacheHeader(byte_array, start, byte_array.size() - start - 1);
+    records[byte_array.back()] = CacheNodeValue(new_entry, nullptr);
+  }
 
   // split internal node
   CacheNode(const std::vector<uint8_t>& byte_array, int start, int partial_len,
             uint8_t partial_1, CacheNode* next_node, uint8_t partial_2, CacheEntry* new_entry, CacheNode* &nested_node) {
+    header = new CacheHeader(byte_array, start, partial_len);
+    if (partial_1 == partial_2) {  // split for insert new_entry at old header
+      records[partial_1] = CacheNodeValue(new_entry, next_node);
+    }
+    else {
+      records[partial_1] = CacheNodeValue(nullptr, next_node);
+      if (start + partial_len >= (int)byte_array.size() - 1) {  // insert entry directly
+        nested_node = nullptr;
+        records[partial_2] = CacheNodeValue(new_entry, nullptr);
+      }
+      else {  // insert leaf node
+        nested_node = new CacheNode(byte_array, start + partial_len + 1, new_entry);
+        records[partial_2] = CacheNodeValue(nullptr, nested_node);
+      }
+    }
+  }
+  CacheNode(const std::vector<uint8_t>& byte_array, int start, int partial_len,
+            uint8_t partial_1, CacheNode* next_node, uint8_t partial_2, CacheBufferEntry* new_entry, CacheNode* &nested_node) {
     header = new CacheHeader(byte_array, start, partial_len);
     if (partial_1 == partial_2) {  // split for insert new_entry at old header
       records[partial_1] = CacheNodeValue(new_entry, next_node);
@@ -166,7 +194,9 @@ class RadixCache {
 public:
   RadixCache(int cache_size, DSM *dsm);
 
-  void add_to_cache(const Key& k, const InternalPage* p_node, const GlobalAddress &node_addr);
+  void add_to_cache(const Key& k,int node_type, const InternalPage* p_node, const GlobalAddress &node_addr);
+//  void add_buffer_to_cache(const Key& k, const InternalBuffer* p_node, const GlobalAddress &node_addr);
+  void change_node_type(CacheEntry*& entry_ptr);
 
   bool search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx);
   void search_range_from_cache(const Key &from, const Key &to, std::vector<RangeCache> &result);

@@ -21,7 +21,7 @@ void RadixCache::clear() {
   node_queue->push(cache_root);
 }
 
-void RadixCache::add_to_cache(const Key& k, const InternalPage* p_node, const GlobalAddress &node_addr) {
+void RadixCache::add_to_cache(const Key& k, int node_type, const InternalPage* p_node, const GlobalAddress &node_addr) {
 
   auto depth = p_node->hdr.depth - 1;
   if (depth == 0) return;
@@ -29,7 +29,7 @@ void RadixCache::add_to_cache(const Key& k, const InternalPage* p_node, const Gl
   std::vector<uint8_t> byte_array(k.begin(), k.begin() + depth);
   for (int i = 0; i < (int)p_node->hdr.partial_len; ++ i) byte_array.push_back(p_node->hdr.partial[i]);
 
-  auto new_entry = new CacheEntry(p_node, node_addr);
+  auto new_entry = new CacheEntry(p_node,node_type,node_addr);
   _insert(byte_array, new_entry);
 #ifndef CACHE_ENABLE_ART
   free_manager->consume(sizeof(Key));  // emulate hash-based cache
@@ -40,7 +40,6 @@ void RadixCache::add_to_cache(const Key& k, const InternalPage* p_node, const Gl
 
   return;
 }
-
 
 void RadixCache::_insert(const std::vector<uint8_t>& byte_array, CacheEntry* new_entry) {
   CacheNode* parent_node = nullptr;
@@ -154,6 +153,11 @@ next:
   }
 }
 
+void change_node_type(CacheEntry*& entry_ptr)
+{
+  entry_ptr ->node_type = 0;
+}
+
 
 bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
 
@@ -162,20 +166,37 @@ bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_pt
   SearchRetStk ret;
   if(_search(byte_array, ret)) {
     while(!ret.empty()) {
-      const auto& item = ret.top();
+      const auto& item = ret.top();    //已经是最接近叶节点的一个缓冲节点了    一定是一个缓冲节点？   不一定 可能失效 
       auto cache_entry = item.entry_ptr;
       auto next_partial = k.at(item.next_idx);
       if (cache_entry) {
-        for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {
-          const auto& e = cache_entry->records[i];
-          if (e != InternalEntry::Null() && e.partial == next_partial) {
-            entry_ptr = cache_entry;
-            // __sync_fetch_and_add(&(entry_ptr->counter), 1UL);
-            entry_ptr_ptr = item.entry_ptr_ptr;
-            entry_idx = i;
-            return true;
+        if(cache_entry->node_type == 0)
+        {
+            for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {  //一个个查看slot
+            const auto& e = cache_entry->records[i];
+            if (e != InternalEntry::Null() && e.partial == next_partial) {       //找到部分键匹配的了
+              entry_ptr = cache_entry;
+              // __sync_fetch_and_add(&(entry_ptr->counter), 1UL);
+              entry_ptr_ptr = item.entry_ptr_ptr;
+              entry_idx = i;
+              return true;
+            }
+          }
+
+        }
+        else{
+            for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {  //一个个查看slot
+            const auto& e = cache_entry->records[i];
+            if (e != BufferEntry::Null() && e.partial == next_partial) {       //找到部分键匹配的了
+              entry_ptr = cache_entry;
+              // __sync_fetch_and_add(&(entry_ptr->counter), 1UL);
+              entry_ptr_ptr = item.entry_ptr_ptr;
+              entry_idx = i;
+              return true;
+            }
           }
         }
+
       }
       ret.pop();
     }
@@ -210,8 +231,8 @@ next:
   if (r_entry != cache_map.end()) {
     auto cache_entry = (CacheEntry *)r_entry->second.cache_entry;
     // ret.push(std::make_pair(std::make_pair(&(r_entry->second.cache_entry), cache_entry), idx + 1));
-    ret.push(SearchRet(&(r_entry->second.cache_entry), cache_entry, idx + 1));
-    node = (CacheNode *)(r_entry->second.next);
+    ret.push(SearchRet(&(r_entry->second.cache_entry), cache_entry, idx + 1));//存下来的是CacheEntry  相当于存下来了一整个内部节点或者缓冲节点
+    node = (CacheNode *)(r_entry->second.next);  //看下一层还能不能继续往下 应该是在插入函数修改的  
     if (node) {
       idx ++;
       goto next;

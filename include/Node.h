@@ -57,7 +57,7 @@ public:
  
   const Key& get_key() const { return key; }
   Value get_value() const { return value; }
-  bool is_valid(const GlobalAddress& p_ptr) { return valid && ( p_ptr == rev_ptr); }
+  bool is_valid(const GlobalAddress& p_ptr, bool from_cache) { return valid && (!from_cache || p_ptr == rev_ptr); }
   virtual bool is_consistent() const 
     {
     crc_processor.reset();
@@ -1023,7 +1023,7 @@ public:
     std::fill(records, records + (define::count_1 + define::count_2) -2, BufferEntry::Null());
   }
 
-  bool is_valid(const GlobalAddress& p_ptr, int depth) const { return hdr.type() != NODE_DELETED && hdr.depth <= depth && (p_ptr == rev_ptr); }
+  bool is_valid(const GlobalAddress& p_ptr, int depth, bool from_cache) const { return hdr.type() != NODE_DELETED && hdr.depth <= depth && (!from_cache || p_ptr == rev_ptr); }
   void unlock() { w_lock = 0; };
   void lock() { w_lock = 1; };
 
