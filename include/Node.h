@@ -72,11 +72,6 @@ public:
     checksum = crc_processor.checksum();
   }
   void set_value(const Value& val) { value = val; }
-  void set_consistent() {
-    crc_processor.reset();
-    crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
-    checksum = crc_processor.checksum();
-  }
 
   void unlock() { w_lock = 0; };
   void lock() { w_lock = 1; };
@@ -845,7 +840,7 @@ public:
 
 public:
   InternalEntry() : val(0) {}
-  InternalEntry(uint8_t partial, uint8_t child_type,,const GlobalAddress &addr) :
+  InternalEntry(uint8_t partial, uint8_t child_type,const GlobalAddress &addr) :
                 partial(partial), child_type(child_type), packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
   InternalEntry(uint8_t partial, NodeType node_type, const GlobalAddress &addr) :
                 partial(partial), empty(0), node_type(static_cast<uint8_t>(node_type)), child_type(0), packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
@@ -919,9 +914,6 @@ public:
   BufferHeader(const Key &k, int partial_len, int depth, int count_1,int count_2) : depth(depth),partial_len(partial_len),count_1(count_1),count_2(count_2) {
     assert((uint32_t)partial_len <= define::bPartialLenMax);
     for (int i = 0; i < partial_len; ++ i) partial[i] = get_partial(k, depth + i);
-  }
-  NodeType type() const {
-    return static_cast<NodeType>(node_type);
   }
 
   static BufferHeader split_header(const BufferHeader& old_hdr, int diff_idx) {
@@ -1025,7 +1017,7 @@ public:
     std::fill(records, records + (define::count_1 + define::count_2) -2, BufferEntry::Null());
   }
 
-  bool is_valid(const GlobalAddress& p_ptr, int depth, bool from_cache) const { return hdr.type() != NODE_DELETED && hdr.depth <= depth && (!from_cache || p_ptr == rev_ptr); }
+  bool is_valid(const GlobalAddress& p_ptr, int depth, bool from_cache) const { return hdr.depth <= depth && (!from_cache || p_ptr == rev_ptr); }
   void unlock() { w_lock = 0; };
   void lock() { w_lock = 1; };
 

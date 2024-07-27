@@ -21,8 +21,8 @@ struct CacheEntry {
   // faa
   // volatile mutable uint64_t counter;
 
-  CacheInternalEntry() {}
-  CacheInternalEntry(const InternalPage* p_node, int node_type, const GlobalAddress& addr) :
+  CacheEntry() {}
+  CacheEntry(const InternalPage* p_node, int node_type, const GlobalAddress& addr) :
              depth(p_node->hdr.depth + p_node->hdr.partial_len), addr(addr), node_type(node_type){
     for (int i = 0; i < node_type_to_num(p_node->hdr.type()); ++ i) {
       const auto& e = p_node->records[i];
