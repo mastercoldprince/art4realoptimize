@@ -786,7 +786,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
     bool is_match;
     auto buffer_buffer =  (dsm->get_rbuf(coro_id)).get_buffer_buffer();
-    is_valid = read_buffer_node(p.addr(), buffer_buffer, p_ptr, depth, cxt, coro_id);
+    is_valid = read_buffer_node(p.addr(), buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);
     bp_node = (InternalBuffer *)buffer_buffer;
     //3.1 check partial key
     if (!is_valid) {  // node deleted || outdated cache entry in cached node
@@ -803,7 +803,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     }
     bhdr=bp_node->hdr;
     if (depth == bhdr.depth) {
-      index_cache->add_to_cache(k, 1,bp_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
+      index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂 
@@ -843,15 +843,6 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
           p_ptr = GADD(p.addr(), sizeof(GlobalAddress)+sizeof(BufferHeader) + i*sizeof(BufferEntry));
           depth ++;
           parent_type = 1;
-          from_cache = false;
-          goto next;
-        }
-        else if(bp_node->records[i].node_type == 2)
-        {
-          p = bp_node->records[i];
-          p_ptr = GADD(p.addr(), sizeof(GlobalAddress)+sizeof(BufferHeader) + i*sizeof(BufferEntry));
-          depth ++;
-          parent_type = 0;
           from_cache = false;
           goto next;
         }

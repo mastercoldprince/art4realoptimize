@@ -89,7 +89,7 @@ private:
 
   bool read_node(InternalEntry &p, bool& type_correct, char *node_buffer, const GlobalAddress& p_ptr, int depth, bool from_cache,
                  CoroContext *cxt, int coro_id);
-  bool read_buffer_node(GlobalAddress &node_addr, char *node_buffer, const GlobalAddress& p_ptr, int depth, bool from_cache,
+  bool read_buffer_node(GlobalAddress &node_addr, char *node_buffer, const GlobalAddress& p_ptr, int depth, bool from_cache,   //只需要判断反向指针对不对就可以了 （有没有分裂）
                      CoroContext *cxt, int coro_id);
   bool read_node_from_buffer(BufferEntry &p, bool& type_correct, char *node_buffer, const GlobalAddress& p_ptr, int depth, 
                      CoroContext *cxt, int coro_id);

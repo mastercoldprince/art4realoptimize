@@ -243,7 +243,7 @@ next:
 
 
 void RadixCache::search_range_from_cache(const Key &from, const Key &to, std::vector<RangeCache> &result) {
-  GlobalAddress p_ptr;
+/*  GlobalAddress p_ptr;
   InternalEntry p;
   int depth;
   volatile CacheEntry** entry_ptr_ptr = nullptr;
@@ -263,6 +263,7 @@ void RadixCache::search_range_from_cache(const Key &from, const Key &to, std::ve
       result.push_back(RangeCache(leftmost, rightmost, p_ptr, p, depth, entry_ptr_ptr, entry_ptr));
     }
   }
+  */
   return;
 }
 
