@@ -1017,7 +1017,7 @@ public:
     std::fill(records, records + (define::count_1 + define::count_2) -2, BufferEntry::Null());
   }
 
-  bool is_valid(const GlobalAddress& p_ptr, int depth) const { return hdr.type() != NODE_DELETED && hdr.depth <= depth && (p_ptr == rev_ptr); }
+  bool is_valid(const GlobalAddress& p_ptr, int depth, bool from_cache) const { return hdr.type() != NODE_DELETED && hdr.depth <= depth && (!from_cache || p_ptr == rev_ptr); }
   void unlock() { w_lock = 0; };
   void lock() { w_lock = 1; };
 
