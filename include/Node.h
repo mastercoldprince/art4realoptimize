@@ -968,8 +968,8 @@ public:
 
 public:
   BufferEntry() : val(0) {}
-  BufferEntry(uint8_t node_type, uint8_t partial,uint8_t prefix_type,const GlobalAddress &addr) :
-                node_type(node_type), partial(partial),prefix_type(prefix_type),packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
+  BufferEntry(uint8_t node_type, uint8_t partial,uint8_t prefix_type,uint8_t leaf_type,const GlobalAddress &addr) :
+                node_type(node_type), partial(partial),prefix_type(prefix_type),leaf_type(leaf_type),packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
   BufferEntry(const BufferEntry& e) :
                 node_type(e.node_type), partial(e.partial), packed_addr(e.packed_addr) {}
 

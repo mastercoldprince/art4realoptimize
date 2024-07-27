@@ -812,7 +812,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       //3.2 partial key not match, need split
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
       int partial_len = bhdr.depth + i - depth;  // hdr.depth may be outdated, so use partial_len wrt. depth
-      bool res = out_of_place_write_node(k, v, depth, leaf_addr, leaf_type,  klen,vlen,partial_len, get_partial(k, bhdr.depth + i),bhdr.partial[i], p_ptr, p, node_ptr, cas_buffer, cxt, coro_id);
+      bool res = out_of_place_write_node(k, v, depth, leaf_addr, leaf_type,  klen,vlen,partial_len,bhdr.partial[i], p_ptr, p, node_ptr, cas_buffer, cxt, coro_id);
       if (!res) {
         p = *(InternalEntry*) cas_buffer;
         goto next;
@@ -969,7 +969,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
             goto next;
           }
           else{  //有重复的 需要将重复的拿下来到下一级缓冲节点
-          bool res=out_of_place_write_buffer_node(k, v,depth,bp_node,leaf_type,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p.addr(), cxt,coro_id);
+          bool res=out_of_place_write_buffer_node(k, v,depth,*bp_node,leaf_type,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p.addr(), cxt,coro_id);
           if (!res) {
             p = *(InternalEntry*) cas_buffer;
             retry_flag = SPLIT_HEADER;
@@ -1019,7 +1019,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       // need split
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
       int partial_len = hdr.depth + i - depth;  // hdr.depth may be outdated, so use partial_len wrt. depth
-      bool res = out_of_place_write_node(k, v,depth,leaf_addr,leaf_type,klen,vlen,partial_len, partial,hdr.partial[i], p_ptr, p, node_ptr, cas_buffer, cxt, coro_id);   //内部节点分裂  分裂后往新的内部节点下申请一个新的缓冲节点和叶节点
+      bool res = out_of_place_write_node(k, v,depth,leaf_addr,leaf_type,klen,vlen,partial_len,hdr.partial[i], p_ptr, p, node_ptr, cas_buffer, cxt, coro_id);   //内部节点分裂  分裂后往新的内部节点下申请一个新的缓冲节点和叶节点
 
       // cas fail, retry
       if (!res) {
@@ -1106,7 +1106,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       new (leaf_buffer) Leaf_kv(p_ptr,leaf_type,klen,vlen,k, v);
       leaf_addr = dsm->alloc(sizeof(Leaf_kv));
 
-      auto new_be = BufferEntry(get_partial(k,depth +1), 1,leaf_addr);
+      auto new_be = BufferEntry(0,get_partial(k,depth +1), 1,leaf_type,leaf_addr);
 
       dsm->write_sync(leaf_buffer, leaf_addr, sizeof(Leaf_kv), cxt);
       bool res = dsm->cas_sync(bp.addr(), (uint64_t)bp, (uint64_t)new_be, cas_buffer, cxt);
@@ -1114,19 +1114,19 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       // cas fail, retry
       if (!res) {
         update_retry_flag[dsm->getMyThreadID()]=1;
-        bp = *(InternalEntry*) cas_buffer;
+        bp = *(BufferEntry*) cas_buffer;
         retry_flag = CAS_NULL;
         goto next;
       }
 
       goto insert_finish;
     }
-    if(bp.child_type == 1)   //找buffer node 看有没有空的
+    if(bp.ndoe_type == 1)   //找buffer node 看有没有空的
   {
 
     bool is_match;
     auto buffer_buffer =  (dsm->get_rbuf(coro_id)).get_buffer_buffer();
-    is_valid = read_buffer_node(bp, type_correct, buffer_buffer, p_ptr, depth, cxt, coro_id);
+    is_valid = read_buffer_node(bp.addr(), type_correct, buffer_buffer, p_ptr, depth, cxt, coro_id);
     bp_node = (InternalBuffer *)buffer_buffer;
     //3.1 check partial key
     if (!is_valid) {  // node deleted || outdated cache entry in cached node
@@ -1134,7 +1134,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
         index_cache->invalidate(entry_ptr_ptr, entry_ptr);
       }
       // re-read node entry
-      auto entry_buffer = (dsm->get_rbuf(coro_id)).get_Buffer_entry_buffer();
+      auto entry_buffer = (dsm->get_rbuf(coro_id)).get_buffer_entry_buffer();
       dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
       bp = *(BufferEntry *)entry_buffer;
       from_cache = false;
@@ -1143,7 +1143,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     }
     bhdr=bp_node->hdr;
     if (depth == hdr.depth) {
-    index_cache->add_to_cache(k, bp_node, GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
+    index_cache->add_to_cache(k, (InternalPage *)bp_node, GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂 
@@ -1151,7 +1151,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       //3.2 partial key not match, need split
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
       int partial_len = bhdr.depth + i - depth;  // hdr.depth may be outdated, so use partial_len wrt. depth
-      bool res = out_of_place_write_node(k, v, depth, leaf_addr, leaf_type,  klen,vlen,partial_len, get_partial(k, bhdr.depth + i),bhdr.partial[i], p_ptr, bp, node_ptr, cas_buffer, cxt, coro_id);
+      bool res = out_of_place_write_node(k, v, depth, leaf_addr, leaf_type,  klen,vlen,partial_len,bhdr.partial[i], p_ptr, bp, node_ptr, cas_buffer, cxt, coro_id);
       if (!res) {
         bp = *(BufferEntry*) cas_buffer;
         goto next;
@@ -1183,15 +1183,6 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
           p_ptr = GADD(bp.addr(), sizeof(GlobalAddress)+sizeof(BufferHeader) + i*sizeof(BufferEntry));
           depth ++;
           parent_type = 1;
-          from_cache = false;
-          goto next;
-        }
-        else if(bp_node->records[i].node_type == 2)
-        {
-          p = bp_node->records[i];
-          p_ptr = GADD(bp.addr(), sizeof(GlobalAddress)+sizeof(BufferHeader) + i*sizeof(BufferEntry));
-          depth ++;
-          parent_type = 0;
           from_cache = false;
           goto next;
         }
@@ -1271,7 +1262,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
             auto cas_node_type_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
             BufferEntry new_entry(bp);            
             new_entry.node_type = 2;
-            new (hdr_buffer) Header(bhdr.partial,bhdr.partial_len,bhdr.depth,bhdr.node_type);
+            new (hdr_buffer) Header(bhdr);
             new (cas_node_type_buffer) BufferEntry(new_entry);
             
             RdmaOpRegion *rs =  new RdmaOpRegion[2];
@@ -1291,7 +1282,8 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
             goto next;
           }
           else{  //有重复的 需要将重复的拿下来到下一级缓冲节点
-          bool res=out_of_place_write_buffer_node(k, v,depth,(InternalBuffer*)bp_node,leaf_type,leaf_addr,entry_ptr_ptr, entry_ptr,bp.addr(), cxt,coro_id);
+          bool res=out_of_place_write_buffer_node(k, v,depth,*bp_node,leaf_type,leaf_addr,entry_ptr_ptr, entry_ptr,from_cache,bp.addr(), cxt,coro_id);
+
           if (!res) {
             bp = *(BufferEntry*) cas_buffer;
             retry_flag = SPLIT_HEADER;
@@ -1306,7 +1298,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
   // 3. Find out a node
   // 3.1 read the node
   page_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
-  is_valid = read_node_from_buffer(bp, page_buffer,p_ptr,depth, cxt,coro_id);
+  is_valid = read_node_from_buffer(bp, type_correct,page_buffer,p_ptr,depth, cxt,coro_id);
   p_node = (InternalPage *)page_buffer;
 
   if (!is_valid) {  // node deleted || outdated cache entry in cached node
@@ -1343,7 +1335,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       // cas fail, retry
       if (!res) {
         update_retry_flag[dsm->getMyThreadID()]=1;
-        bp = *(InternalEntry*) cas_buffer;
+        bp = *(BufferEntry*) cas_buffer;
         retry_flag = SPLIT_HEADER;
         goto next;
       }
@@ -1424,6 +1416,7 @@ insert_finish:
 #ifdef TREE_TEST_ROWEX_ART
   if (!is_update) unlock_node(node_ptr, cxt, coro_id);
 #endif
+/*
 #ifdef TREE_ENABLE_CACHE
   if (!write_handover) {
     auto hit = (cache_depth == 1 ? 0 : (double)cache_depth / depth);
@@ -1431,6 +1424,7 @@ insert_finish:
     cache_miss[dsm->getMyThreadID()] += (1 - hit);
   }
 #endif
+*/
 #ifdef TREE_ENABLE_WRITE_COMBINING
   local_lock_table->release_local_write_lock(k, lock_res);
 #endif
