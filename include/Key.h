@@ -10,14 +10,14 @@ inline uint8_t get_partial(const Key& key, int depth) {
 
 inline int get_2B_partial(const std::vector<Key> keys, int depth) {
 
-  if (keys.empty() || depth >= keys[0].size()) {
+  if (keys.empty() || depth >=(int) keys[0].size()) {
       return 0;
   }
   // Initialize the common prefix length to the maximum possible length
   int common_prefix_length = keys[0].size() - depth;
 
   // Compare each character starting from depth
-  for (int i = depth; i < keys[0].size(); ++i) {
+  for (int i = depth; i <(int) keys[0].size(); ++i) {
       char current_char = keys[0][i];
       for (const auto& key : keys) {
           if (key[i] != current_char) {
