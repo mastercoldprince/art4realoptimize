@@ -751,9 +751,9 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     new (leaf_buffer) Leaf_kv(b_addr,leaf_type,klen,vlen,k, v);
     leaf_addr = dsm->alloc(sizeof(Leaf_kv));
     auto b_buffer=(dsm->get_rbuf(coro_id)).get_buffer_buffer();
-    InternalBuffer* buffer = new (b_buffer) InternalBuffer(k,2,depth +1 ,1,0,p.addr());  // 暂时定初始2B作为partial key
-    buffer->records[0] = BufferEntry(leaf_type,get_partial(k,3),1,leaf_addr);
-    auto new_e = InternalEntry(old_e.partial, 1, b_addr);
+    InternalBuffer* buffer = new (b_buffer) InternalBuffer(k,2,depth +2 ,1,0,p.addr());  // 暂时定初始2B作为partial key
+    buffer->records[0] = BufferEntry(leaf_type,get_partial(k,depth+3),1,leaf_addr);
+    auto new_e = InternalEntry(get_partial(k,depth+1), 1, b_addr);
     RdmaOpRegion *rs =  new RdmaOpRegion[2];
     {
       rs[0].source     = (uint64_t)b_buffer;
