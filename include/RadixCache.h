@@ -102,24 +102,6 @@ public:
       }
     }
   }
-  CacheNode(const std::vector<uint8_t>& byte_array, int start, int partial_len,
-            uint8_t partial_1, CacheNode* next_node, uint8_t partial_2, CacheBufferEntry* new_entry, CacheNode* &nested_node) {
-    header = new CacheHeader(byte_array, start, partial_len);
-    if (partial_1 == partial_2) {  // split for insert new_entry at old header
-      records[partial_1] = CacheNodeValue(new_entry, next_node);
-    }
-    else {
-      records[partial_1] = CacheNodeValue(nullptr, next_node);
-      if (start + partial_len >= (int)byte_array.size() - 1) {  // insert entry directly
-        nested_node = nullptr;
-        records[partial_2] = CacheNodeValue(new_entry, nullptr);
-      }
-      else {  // insert leaf node
-        nested_node = new CacheNode(byte_array, start + partial_len + 1, new_entry);
-        records[partial_2] = CacheNodeValue(nullptr, nested_node);
-      }
-    }
-  }
 
   uint64_t content_size() const {
     return ((CacheHeader *)header)->content_size() + (sizeof(uint8_t) + sizeof(CacheEntry *) + sizeof(CacheNode *)) * records.size();
