@@ -24,7 +24,7 @@
 // Environment Config
 #define MAX_MACHINE 20
 #define MEMORY_NODE_NUM 2
-#define CPU_PHYSICAL_CORE_NUM 72  // [CONFIG]
+#define CPU_PHYSICAL_CORE_NUM 28  // [CONFIG]
 #define MAX_CORO_NUM 8
 
 #define LATENCY_WINDOWS 100000
@@ -51,7 +51,7 @@
 
 
 // app thread
-#define MAX_APP_THREAD 65    // one additional thread for data statistics(main thread)  [config]
+#define MAX_APP_THREAD 12    // one additional thread for data statistics(main thread)  [config]
 #define APP_MESSAGE_NR 96
 #define POLL_CQ_MAX_CNT_ONCE 8
 
