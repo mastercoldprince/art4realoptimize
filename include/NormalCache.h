@@ -35,29 +35,6 @@ struct CacheEntry {
   }
 };
 
-struct CacheBufferEntry {
-  // fixed
-  uint8_t depth;
-  uint8_t node_type; 
-  GlobalAddress addr;
-  std::vector<BufferEntry> records;
-  // faa
-  // volatile mutable uint64_t counter;
-
-  CacheBufferEntry() {}
-  CacheBufferEntry(const InternalBuffer* bp_node, const GlobalAddress& addr) :
-             depth(bp_node->hdr.depth + bp_node->hdr.partial_len), addr(addr) {
-    for (int i = 0; i < node_type_to_num(bp_node->hdr.type()); ++ i) {
-      const auto& e = bp_node->records[i];
-      records.push_back(e);
-    }
-  }
-
-  uint64_t content_size() const {
-    return sizeof(uint8_t) + sizeof(GlobalAddress) + sizeof(BufferEntry) * records.size();  // + sizeof(uint64_t)
-  }
-};
-
 
 using CacheKey = std::vector<uint8_t>;
 class cache_key_hash {

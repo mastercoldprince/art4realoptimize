@@ -902,7 +902,7 @@ public:
     uint8_t partial[define::bPartialLenMax];
     uint8_t count_1  : define::count_1;
     uint8_t count_2  : define::count_2;
-    uint32_t bn_padding : 64 - define::count_1 - define::count_2 - define::partial_len - 8*define::bPartialLenMax -8;
+    uint8_t bn_padding : 64 - define::count_1 - define::count_2 - define::partial_len - 8*define::bPartialLenMax -8;
   };
 
   uint64_t val;
@@ -1024,7 +1024,7 @@ public:
 } __attribute__((packed));
 
 
-static_assert(sizeof(InternalBuffer) == 8 + 8 + ((define::count_1 + define::count_2) -2) * 8);
+static_assert(sizeof(InternalBuffer) == 8 + 8 + 256 * 8);
 
 
 
