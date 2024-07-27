@@ -946,7 +946,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
             auto cas_node_type_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
             InternalEntry new_entry(p);
             new_entry.node_type = 2;
-            new (hdr_buffer) Header(bhdr.partial,bhdr.partial_len,bhdr.depth,bhdr.node_type);
+            new (hdr_buffer) Header(bhdr.partial,bhdr.partial_len,bhdr.depth,4); 
             new (cas_node_type_buffer) InternalEntry(p);
 
             
@@ -968,7 +968,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
             goto next;
           }
           else{  //有重复的 需要将重复的拿下来到下一级缓冲节点
-          bool res=out_of_place_write_buffer_node(k, v,depth,(InternalBuffer*)bp_node,leaf_type,leaf_addr,p.addr(), cxt,coro_id);
+          bool res=out_of_place_write_buffer_node(k, v,depth,(InternalBuffer*)bp_node,leaf_type,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p.addr(), cxt,coro_id);
           if (!res) {
             p = *(InternalEntry*) cas_buffer;
             retry_flag = SPLIT_HEADER;
@@ -1103,16 +1103,11 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaf_buffer();
       new (leaf_buffer) Leaf_kv(p_ptr,leaf_type,klen,vlen,k, v);
       leaf_addr = dsm->alloc(sizeof(Leaf_kv));
-      auto b_buffer=(dsm->get_rbuf(coro_id)).get_buffer_buffer();
-      InternalBuffer buffer = new (b_buffer) InternalBuffer(k,2,depth +1 ,1,0,p);  // 暂时定初始2B作为partial key
-      buffer.records[0].leaf_type= leaf_type;
-      buffer.records[0].partial= get_partial(k,3);  
-      buffer.records[0].prefix_type = 1;  
-      buffer.records[0].addr=leaf_addr;
-      auto new_be = BufferEntry(old_e.partial, 1,leaf_addr);
+
+      auto new_be = BufferEntry(get_partial(k,depth +1), 1,leaf_addr);
 
       dsm->write_sync(leaf_buffer, leaf_addr, sizeof(Leaf_kv), cxt);
-      bool res = dsm->cas_sync(p_ptr, (uint64_t)bp, (uint64_t)new_be, cas_buffer, cxt);
+      bool res = dsm->cas_sync(bp.addr(), (uint64_t)bp, (uint64_t)new_be, cas_buffer, cxt);
 
       // cas fail, retry
       if (!res) {
@@ -1468,7 +1463,7 @@ re_read:
 
 
 
-bool Tree::read_leaves(const GlobalAddress* &leaf_addr, char *leaf_buffer,int leaf_cnt, const GlobalAddress* &p_ptr, bool from_cache,CoroContext *cxt, int coro_id) {  //read_batch
+bool Tree::read_leaves(GlobalAddress* &leaf_addr, char *leaf_buffer,int leaf_cnt, const GlobalAddress* &p_ptr, bool from_cache,CoroContext *cxt, int coro_id) {  //read_batch
   try_read_leaf[dsm->getMyThreadID()] ++;
 re_read:
   std::memset(leaf_buffer, 0, leaf_cnt*sizeof(Leaf_kv));
@@ -2033,7 +2028,7 @@ bool Tree::read_node_from_buffer(BufferEntry &p, bool& type_correct, char *node_
   return p_node->is_valid(p_ptr, depth);
 }
 //读出一个buffer node并且验证其正确性
-bool Tree::read_buffer_node(GlobalAddress &node_addr, char *node_buffer, const GlobalAddress& p_ptr, int depth, bool from_cache,   //只需要判断反向指针对不对就可以了 （有没有分裂）
+bool Tree::read_buffer_node(const GlobalAddress &node_addr, char *node_buffer, const GlobalAddress& p_ptr, int depth, bool from_cache,   //只需要判断反向指针对不对就可以了 （有没有分裂）
                      CoroContext *cxt, int coro_id) {
   auto read_size = sizeof(GlobalAddress) + sizeof(BufferHeader) + ((1UL << define :: count_1) + (1UL << define :: count_2 ) -2) * sizeof(BufferEntry);
   dsm->read_sync(node_buffer, node_addr, read_size, cxt);
