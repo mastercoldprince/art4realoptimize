@@ -786,6 +786,10 @@ public:
     assert((uint32_t)partial_len <= define::hPartialLenMax);
     for (int i = 0; i < partial_len; ++ i) this->partial[i] = partial[i];
   }
+  Header(BufferHeader bhdr):depth(bhdr.depth),node_type(4),partial_len(bhdr.partial_len)
+  {
+    for(int i =0;i<partial_len;i++) partial[i] = bhdr.partial[i];
+  }
 
   operator uint64_t() { return val; }
 

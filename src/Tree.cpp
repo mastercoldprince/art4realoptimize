@@ -786,7 +786,8 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
     bool is_match;
     auto buffer_buffer =  (dsm->get_rbuf(coro_id)).get_buffer_buffer();
-    is_valid = read_buffer_node(p.addr(), buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);
+    GlobalAddress addr = p.addr();
+    is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);
     bp_node = (InternalBuffer *)buffer_buffer;
     //3.1 check partial key
     if (!is_valid) {  // node deleted || outdated cache entry in cached node
@@ -945,8 +946,8 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
           { auto hdr_buffer = (dsm->get_rbuf(coro_id)).get_header_buffer();
             auto cas_node_type_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
             InternalEntry new_entry(p);
-            new_entry.node_type = 2;
-            new (hdr_buffer) Header(bhdr.partial,bhdr.partial_len,bhdr.depth,4); 
+            new_entry.child_type = 2;
+            new (hdr_buffer) Header(bhdr); 
             new (cas_node_type_buffer) InternalEntry(p);
 
             
@@ -968,7 +969,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
             goto next;
           }
           else{  //有重复的 需要将重复的拿下来到下一级缓冲节点
-          bool res=out_of_place_write_buffer_node(k, v,depth,(InternalBuffer*)bp_node,leaf_type,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p.addr(), cxt,coro_id);
+          bool res=out_of_place_write_buffer_node(k, v,depth,bp_node,leaf_type,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p.addr(), cxt,coro_id);
           if (!res) {
             p = *(InternalEntry*) cas_buffer;
             retry_flag = SPLIT_HEADER;
@@ -983,7 +984,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   // 3. Find out a node
   // 3.1 read the node
   page_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
-  is_valid = read_node(p, type_correct, page_buffer, p_ptr, depth,cxt, coro_id);
+  is_valid = read_node(p, type_correct, page_buffer, p_ptr, depth,from_cache,cxt, coro_id);
   p_node = (InternalPage *)page_buffer;
 
   if (!is_valid) {  // node deleted || outdated cache entry in cached node
@@ -1018,7 +1019,8 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       // need split
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
       int partial_len = hdr.depth + i - depth;  // hdr.depth may be outdated, so use partial_len wrt. depth
-      bool res = out_of_place_write_node(k, v, depth, leaf_addr, partial_len, hdr.partial[i], p_ptr, p, node_ptr, cas_buffer, cxt, coro_id);   //内部节点分裂  分裂后往新的内部节点下申请一个新的缓冲节点和叶节点
+      bool res = out_of_place_write_node(k, v,depth,leaf_addr,leaf_type,klen,vlen,partial_len, partial,hdr.partial[i], p_ptr, p, node_ptr, cas_buffer, cxt, coro_id);   //内部节点分裂  分裂后往新的内部节点下申请一个新的缓冲节点和叶节点
+
       // cas fail, retry
       if (!res) {
         update_retry_flag[dsm->getMyThreadID()]=1;
@@ -1438,7 +1440,7 @@ insert_finish:
 
 
 
-bool Tree::read_leaf(const GlobalAddress &leaf_addr, char *leaf_buffer, int leaf_size, const GlobalAddress &p_ptr, bool from_cache, CoroContext *cxt, int coro_id) {
+bool Tree::read_leaf(GlobalAddress &leaf_addr, char *leaf_buffer, int leaf_size, const GlobalAddress &p_ptr, bool from_cache, CoroContext *cxt, int coro_id) {
   try_read_leaf[dsm->getMyThreadID()] ++;
 re_read:
   dsm->read_sync(leaf_buffer, leaf_addr, leaf_size, cxt);
@@ -1463,7 +1465,7 @@ re_read:
 
 
 
-bool Tree::read_leaves(GlobalAddress* &leaf_addr, char *leaf_buffer,int leaf_cnt, const GlobalAddress* &p_ptr, bool from_cache,CoroContext *cxt, int coro_id) {  //read_batch
+bool Tree::read_leaves(GlobalAddress* &leaf_addrs, char *leaf_buffer,int leaf_cnt, const GlobalAddress* &p_ptr, bool from_cache,CoroContext *cxt, int coro_id) {  //read_batch
   try_read_leaf[dsm->getMyThreadID()] ++;
 re_read:
   std::memset(leaf_buffer, 0, leaf_cnt*sizeof(Leaf_kv));
@@ -1487,7 +1489,7 @@ re_read:
       auto leaf = (Leaf_kv *)leaf_buffer + i*define::allocAlignKVLeafSize;
       if (!from_cache && leaf->rev_ptr != p_ptr[i]) {
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
-      dsm->cas(leaf_addr, leaf->rev_ptr, p_ptr[i], cas_buffer, false, cxt);
+      dsm->cas(leaf_addr[i], leaf->rev_ptr, p_ptr[i], cas_buffer, false, cxt);
       // dsm->cas_sync(leaf_addr, leaf->rev_ptr, p_ptr, cas_buffer, cxt);
       }
       // invalidation
@@ -2027,7 +2029,7 @@ bool Tree::read_node_from_buffer(BufferEntry &p, bool& type_correct, char *node_
   }
   return p_node->is_valid(p_ptr, depth);
 }
-//读出一个buffer node并且验证其正确性
+//读出一个buffer node并且验证其正确性  
 bool Tree::read_buffer_node(const GlobalAddress &node_addr, char *node_buffer, const GlobalAddress& p_ptr, int depth, bool from_cache,   //只需要判断反向指针对不对就可以了 （有没有分裂）
                      CoroContext *cxt, int coro_id) {
   auto read_size = sizeof(GlobalAddress) + sizeof(BufferHeader) + ((1UL << define :: count_1) + (1UL << define :: count_2 ) -2) * sizeof(BufferEntry);
@@ -2188,7 +2190,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
 */
 
 //新建一个内部节点、缓冲节点和叶节点
-bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len, uint8_t partial,uint8_t diff_partial,
+bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len,uint8_t diff_partial,
                                    const GlobalAddress &e_ptr, const InternalEntry &old_e, const GlobalAddress& node_addr,
                                    uint64_t *ret_buffer, CoroContext *cxt, int coro_id) {
 
@@ -2231,14 +2233,9 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   }
   // init buffer nodes
   auto b_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
-  InternalBuffer buffernode = new (b_buffer) InternalBuffer(k,3,depth +1 ,1,0,node_addrs[0]);  // 暂时定初始3B作为partial key
-  buffernode.records[0].leaf_type= leaf_type;
-  buffernode.records[0].partial= partial;  
-  buffernode.records[0].prefix_type= 1;  
-  buffernode.records[0].addr=leaf_addr;
+  InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,3,depth +1 ,1,0,node_addrs[0]);  // 暂时定初始3B作为partial key
+  buffernode.records[0] = BufferEntry(leaf_type,get_partial(k, depth + partial_len),1,leaf_addr);
   
-
-
   // init the parent entry
   auto new_e = InternalEntry(old_e.partial, nodes_type, node_addrs[0]);
   auto page_size = sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(nodes_type) * sizeof(InternalEntry);
@@ -2623,9 +2620,9 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth, con
   {
     index_cache->invalidate(entry_ptr_ptr, entry_ptr);
   }
-  index_cache->add_to_cache(k, 1,old_bnode, GADD(e_ptr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
+  index_cache->add_to_cache(k, 1,(InternalPage*)old_bnode, GADD(e_ptr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
   for (int i = 0; i < new_bnode_num; ++ i) {
-      index_cache->add_to_cache(k,1,new_bnodes[i], GADD(bnode_addrs[i], sizeof(GlobalAddress) + sizeof(BufferHeader)));
+      index_cache->add_to_cache(k,1,(InternalPage*)new_bnodes[i], GADD(bnode_addrs[i], sizeof(GlobalAddress) + sizeof(BufferHeader)));
   }
 
 }

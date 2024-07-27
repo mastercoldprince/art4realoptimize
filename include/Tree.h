@@ -77,8 +77,8 @@ private:
   void coro_worker(CoroYield &yield, RequstGen *gen, WorkFunc work_func, int coro_id);
   void coro_master(CoroYield &yield, int coro_cnt);
 
-  bool read_leaf(const GlobalAddress &leaf_addr, char *leaf_buffer, int leaf_size, const GlobalAddress &p_ptr, bool from_cache, CoroContext *cxt, int coro_id);
-  bool read_leaves(const GlobalAddress* &leaf_addr, char *leaf_buffer,int leaf_cnt, const GlobalAddress* &p_ptr, bool from_cache,CoroContext *cxt, int coro_id);
+  bool read_leaf(GlobalAddress &leaf_addr, char *leaf_buffer, int leaf_size, const GlobalAddress &p_ptr, bool from_cache, CoroContext *cxt, int coro_id);
+  bool read_leaves(GlobalAddress* &leaf_addr, char *leaf_buffer,int leaf_cnt, const GlobalAddress* &p_ptr, bool from_cache,CoroContext *cxt, int coro_id);
   void in_place_update_leaf(const Key &k, Value &v, const GlobalAddress &leaf_addr, int leaf_type,
                                CoroContext *cxt, int coro_id);
   bool out_of_place_update_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, const GlobalAddress &e_ptr, InternalEntry &old_e, const GlobalAddress& node_addr,
@@ -93,7 +93,7 @@ private:
                      CoroContext *cxt, int coro_id);
   bool read_node_from_buffer(BufferEntry &p, bool& type_correct, char *node_buffer, const GlobalAddress& p_ptr, int depth, 
                      CoroContext *cxt, int coro_id);
-  bool out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len, uint8_t partial,uint8_t diff_partial,
+  bool out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len,uint8_t diff_partial,
                                    const GlobalAddress &e_ptr, const InternalEntry &old_e, const GlobalAddress& node_addr,
                                    uint64_t *ret_buffer, CoroContext *cxt, int coro_id);
   bool out_of_place_write_buffer_node(const Key &k, Value &v, int depth, const InternalBuffer bnode,int leaf_type,GlobalAddress leaf_addr,CacheEntry**&entry_ptr_ptr,CacheEntry*& entry_ptr,bool from_cache,GlobalAddress e_ptr,
