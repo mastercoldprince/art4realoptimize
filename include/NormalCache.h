@@ -52,7 +52,7 @@ class NormalCache {
 public:
   NormalCache(int cache_size, DSM *dsm);
 
-  void add_to_cache(const Key& k, const InternalPage* p_node, const GlobalAddress &node_addr);
+  void add_to_cache(const Key& k, int node_type,const InternalPage* p_node, const GlobalAddress &node_addr);
 
   bool search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx);
   void search_range_from_cache(const Key &from, const Key &to, std::vector<RangeCache> &result);

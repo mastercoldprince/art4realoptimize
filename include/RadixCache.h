@@ -82,10 +82,6 @@ public:
     header = new CacheHeader(byte_array, start, byte_array.size() - start - 1);
     records[byte_array.back()] = CacheNodeValue(new_entry, nullptr);
   }
-  CacheNode(const std::vector<uint8_t>& byte_array, int start, CacheBufferEntry* new_entry) {
-    header = new CacheHeader(byte_array, start, byte_array.size() - start - 1);
-    records[byte_array.back()] = CacheNodeValue(new_entry, nullptr);
-  }
 
   // split internal node
   CacheNode(const std::vector<uint8_t>& byte_array, int start, int partial_len,
