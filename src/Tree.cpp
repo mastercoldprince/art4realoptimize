@@ -671,8 +671,8 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   int klen=0,vlen=0;
   {
   int i=0,j=0;
-  while(k[i] ! = 0) klen ++;
-  while(v[j] ! = 0) vlen ++;
+  while(k[i] != 0) klen ++;
+  while(v[j] != 0) vlen ++;
   if(klen<=8) {leaf_type = 1; leaf_size = 8;}
   else if ( 8< klen&& klen <=16) {leaf_type = 5;leaf_size = 16;}
   else if (16<klen && klen <= 32 ) {leaf_type = 9;leaf_size = 32;}
@@ -751,11 +751,8 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     new (leaf_buffer) Leaf_kv(b_addr,leaf_type,klen,vlen,k, v);
     leaf_addr = dsm->alloc(sizeof(Leaf_kv));
     auto b_buffer=(dsm->get_rbuf(coro_id)).get_buffer_buffer();
-    InternalBuffer buffer = new (b_buffer) InternalBuffer(k,2,depth +1 ,1,0,p);  // 暂时定初始2B作为partial key
-    buffer.records[0].leaf_type= leaf_type;
-    buffer.records[0].partial= get_partial(k,3);  
-    buffer.records[0].prefix_type = 1;  
-    buffer.records[0].addr=leaf_addr;
+    InternalBuffer* buffer = new (b_buffer) InternalBuffer(k,2,depth +1 ,1,0,p.addr());  // 暂时定初始2B作为partial key
+    buffer->records[0] = BufferEntry(leaf_type,get_partial(k,3),1,leaf_addr);
     auto new_e = InternalEntry(old_e.partial, 1, b_addr);
     RdmaOpRegion *rs =  new RdmaOpRegion[2];
     {
