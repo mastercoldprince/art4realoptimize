@@ -58,14 +58,14 @@ public:
   const Key& get_key() const { return key; }
   Value get_value() const { return value; }
   bool is_valid(const GlobalAddress& p_ptr, bool from_cache) { return valid && (!from_cache || p_ptr == rev_ptr); }
-  virtual bool is_consistent() const 
+  bool is_consistent() const 
     {
     crc_processor.reset();
     crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(Value));
     return crc_processor.checksum() == checksum;
   }
 
-  virtual void set_consistent() 
+  void set_consistent() 
    {
     crc_processor.reset();
     crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(Value));
@@ -831,9 +831,8 @@ public:
     struct {
       uint8_t  partial;
       uint8_t  child_type   : 2;  // 0 -> leaf  1->buffer  2->internal node
-      uint8_t  empty     : define::kvLenBit - define::nodeTypeNumBit;
+      uint8_t  empty     : 8 - 2 - define::nodeTypeNumBit;
       uint8_t  node_type : define::nodeTypeNumBit;
-
 
       PackedGAddr packed_addr;
     }__attribute__((packed));
@@ -847,7 +846,7 @@ public:
 public:
   InternalEntry() : val(0) {}
   InternalEntry(uint8_t partial, uint8_t child_type,,const GlobalAddress &addr) :
-                partial(partial), child_type(child_type), _packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
+                partial(partial), child_type(child_type), packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
   InternalEntry(uint8_t partial, NodeType node_type, const GlobalAddress &addr) :
                 partial(partial), empty(0), node_type(static_cast<uint8_t>(node_type)), child_type(0), packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
 
@@ -908,7 +907,7 @@ public:
     uint8_t partial[define::bPartialLenMax];
     uint8_t count_1  : define::count_1;
     uint8_t count_2  : define::count_2;
-    uint32_t bn_padding : 64 - define::count_1 - define::count_2 - partial_len - 8*define::bPartialLenMax -8;
+    uint32_t bn_padding : 64 - define::count_1 - define::count_2 - define::partial_len - 8*define::bPartialLenMax -8;
   };
 
   uint64_t val;
@@ -920,6 +919,9 @@ public:
   BufferHeader(const Key &k, int partial_len, int depth, int count_1,int count_2) : depth(depth),partial_len(partial_len),count_1(count_1),count_2(count_2) {
     assert((uint32_t)partial_len <= define::bPartialLenMax);
     for (int i = 0; i < partial_len; ++ i) partial[i] = get_partial(k, depth + i);
+  }
+  NodeType type() const {
+    return static_cast<NodeType>(node_type);
   }
 
   static BufferHeader split_header(const BufferHeader& old_hdr, int diff_idx) {
@@ -970,8 +972,8 @@ public:
 
 public:
   BufferEntry() : val(0) {}
-  BufferEntry(uint8_t node_type, uint8_t partial, uint8_t buffer_node,uint8_t prefix_type,const GlobalAddress &addr) :
-                node_type(node_type), partial(partial), buffer_node(buffer_node),prefix_type(prefix_type),packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
+  BufferEntry(uint8_t node_type, uint8_t partial,uint8_t prefix_type,const GlobalAddress &addr) :
+                node_type(node_type), partial(partial),prefix_type(prefix_type),packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
   BufferEntry(const BufferEntry& e) :
                 node_type(e.node_type), partial(e.partial), packed_addr(e.packed_addr) {}
 

@@ -212,6 +212,7 @@ public:
   void free(const GlobalAddress& addr, int size);
 
   void alloc_nodes(int node_num, GlobalAddress *addrs, bool align = true);
+  void alloc_bnodes(int node_num, GlobalAddress *addrs, bool align = true);
 
   void rpc_call_dir(const RawMessage &m, uint16_t node_id,
                     uint16_t dir_id = 0) {

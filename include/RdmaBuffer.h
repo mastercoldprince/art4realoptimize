@@ -73,7 +73,7 @@ public:
     ptrleaf_buffer         = (char     *)((char *)kvleaf_buffer   + define::allocAlignKVLeafSize * kKVLeafBufferCnt);    
     header_buffer       = (uint64_t *)((char *)ptrleaf_buffer   + define::allocAlignPTRLeafSize * kPTRLeafBufferCnt);   //待解决、、、、
     entry_buffer        = (uint64_t *)((char *)header_buffer + sizeof(uint64_t)   * kHeaderBufferCnt);
-    buffer_entry_buffer = (char     *)((char *)entry_buffer  + sizeof(uint64_t)   * kEntryBufferCnt);
+    buffer_entry_buffer = (uint64_t *)((char *)entry_buffer  + sizeof(uint64_t)   * kEntryBufferCnt);
     zero_byte           = (char     *)((char *)buffer_entry_buffer  + sizeof(uint64_t)   * kBufferEntryBufferCnt);
     range_buffer        = (char     *)((char *)zero_byte     + sizeof(char));
     key_buffer          = (char     *)((char *)range_buffer  + define::keybuffer);
