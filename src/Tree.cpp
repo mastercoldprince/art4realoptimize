@@ -770,7 +770,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     dsm->write_batches_sync(rs, 2, cxt, coro_id);
     bool res = dsm->cas_sync(p_ptr, (uint64_t)p, (uint64_t)new_e, cas_buffer, cxt);
     if(res)   index_cache->add_to_cache(k, 1,(InternalPage*)buffer, GADD(b_addr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
-    delete[] rs; delete buffer;delete leaf_buffer;
+    delete[] rs;
 
     // cas fail, retry
     if (!res) {
