@@ -1459,7 +1459,7 @@ re_read:
 
 
 
-bool Tree::read_leaves(GlobalAddress* &leaf_addrs, char *leaf_buffer,int leaf_cnt, const GlobalAddress* &p_ptr, bool from_cache,CoroContext *cxt, int coro_id) {  //read_batch
+bool Tree::read_leaves(GlobalAddress* &leaf_addrs, char *leaf_buffer,int leaf_cnt, GlobalAddress* &p_ptr, bool from_cache,CoroContext *cxt, int coro_id) {  //read_batch
   try_read_leaf[dsm->getMyThreadID()] ++;
 re_read:
   std::memset(leaf_buffer, 0, leaf_cnt*sizeof(Leaf_kv));
@@ -2674,7 +2674,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
       new_bnodes[i]->records[bnodes_entry_index[i][0]].leaf_type = leaf_type;
       new_bnodes[i]->records[bnodes_entry_index[i][0]].node_type = 0;
       new_bnodes[i]->records[bnodes_entry_index[i][0]].prefix_type = 0;
-      new (leaf_buffer) Leaf_kv(bnode_addr[i],leaf_type,klen,vlen,k,v);
+      new (leaf_buffer) Leaf_kv(bnode_addrs[i],leaf_type,klen,vlen,k,v);
       bnodes_entry_index[i][0] ++;
     } 
     leaf_cnt -= bnodes_entry_index[i][0];
@@ -2694,7 +2694,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   {
     bnode.records[bnodes_entry_index[i][1]].packed_addr={bnode_addrs[i].nodeID, bnode_addrs[i].offset >> ALLOC_ALLIGN_BIT};
   }
-  bnode.nlock();
+  bnode.unlock();
   auto old_bnode_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
   InternalBuffer * old_bnode;
   old_bnode = new (old_bnode_buffer) InternalBuffer(bnode);
@@ -3035,7 +3035,7 @@ next:
   if (p.child_type == 1) {
 
     auto buffer_buffer =  (dsm->get_rbuf(coro_id)).get_buffer_buffer();
-    is_valid = read_buffer_node(p.addr(), type_correct, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);
+    is_valid = read_buffer_node(p.addr(),  buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);
     bp_node = (InternalBuffer *)buffer_buffer;
 
     if (!is_valid) {  // node deleted || outdated cache entry in cached node
@@ -3238,7 +3238,7 @@ else{   //parent是一个buffernode
   if (bp.node_type == 1) {
 
     auto buffer_buffer =  (dsm->get_rbuf(coro_id)).get_buffer_buffer();
-    is_valid = read_buffer_node(bp.addr(), type_correct, buffer_buffer, p_ptr, depth, cxt, coro_id);
+    is_valid = read_buffer_node(bp.addr(), buffer_buffer, p_ptr, depth,from_cache, cxt, coro_id);
     bp_node = (InternalBuffer *)buffer_buffer;
     if (!is_valid) {  // node deleted || outdated cache entry in cached node
     // invalidate the old node cache
@@ -3279,7 +3279,7 @@ else{   //parent是一个buffernode
         {
           parent_type = 1;
           bp = bp_node->records[i];  //修改 
-          leaves_ptr = GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(BufferEntry));
+          leaves_ptr[i] = GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(BufferEntry));
           depth ++;
           goto next; 
         }
