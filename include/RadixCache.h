@@ -157,12 +157,12 @@ private:
 
 
 struct SearchRet {
-  volatile CacheEntry** entry_ptr_ptr;
+  CacheEntry** entry_ptr_ptr;
   CacheEntry* entry_ptr;
   int next_idx;
   // uint64_t counter;
   SearchRet() {}
-  SearchRet(volatile CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr, int next_idx) :
+  SearchRet(CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr, int next_idx) :
     entry_ptr_ptr(entry_ptr_ptr), entry_ptr(entry_ptr), next_idx(next_idx) {}
 };
 
