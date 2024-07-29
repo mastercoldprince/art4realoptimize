@@ -956,7 +956,7 @@ public:
       uint8_t  partial;
 //      uint8_t  fp :define::fp;
       uint8_t node_type : 2;   // 0 -> leaf  1->buffer  2->internal node
-      uint8_t  prefix_type : 1;
+      uint8_t  prefix_type : 1;  //1-> match
       uint8_t  leaf_type : define::leaf_type;  //指向内部节点的时候是内部节点的节点类型
       PackedGAddr packed_addr;
     }__attribute__((packed));
