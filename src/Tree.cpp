@@ -700,6 +700,7 @@ update_finish:
   return res;
 }
 */
+/*
 bool Tree::out_of_place_update_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, const GlobalAddress &e_ptr, InternalEntry &old_e, const GlobalAddress& node_addr,
                                     CoroContext *cxt, int coro_id, bool disable_handover) {
   auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
@@ -796,7 +797,7 @@ void Tree::unlock_node(const GlobalAddress &node_addr, CoroContext *cxt, int cor
   return;
 }
 #endif
-
+*/
 
 /*
 bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, uint8_t partial_key,
@@ -1234,7 +1235,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
   delete[] rs; delete[] node_pages; delete[] node_addrs;
   return res;
 }
-
+/*
 bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len, uint8_t partial,uint8_t diff_partial,
                                    const GlobalAddress &e_ptr, const BufferEntry &old_e, const GlobalAddress& node_addr,
                                    uint64_t *ret_buffer, CoroContext *cxt, int coro_id) {
@@ -1341,8 +1342,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
   delete[] rs; delete[] node_pages; delete[] node_addrs;
   return res;
 }
-
-
+*/
 void Tree::cas_node_type(NodeType next_type, GlobalAddress p_ptr, InternalEntry p, Header hdr,
                          CoroContext *cxt, int coro_id) {
   auto node_addr = p.addr();

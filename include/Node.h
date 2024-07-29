@@ -753,7 +753,7 @@ inline NodeType num_to_node_type(int num) {
 #endif
   assert(false);
 }
-
+class BufferHeader;
 
 class Header {
 public:
