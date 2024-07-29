@@ -759,7 +759,56 @@ inline NodeType num_to_node_type(int num) {
 #endif
   assert(false);
 }
-class BufferHeader;
+class BufferHeader {
+public:
+  union {
+  struct {
+    uint8_t depth;  //8bit
+    uint8_t partial_len  : define::partial_len; //2bit
+    uint8_t bn_padding1 : 6;  
+    uint8_t partial[define::bPartialLenMax]; //16bit
+    uint8_t count_1  ; // 8bit
+    uint8_t count_2  ; //8bit
+    uint16_t bn_padding2;  
+  };
+
+  uint64_t val;
+  };
+
+public:
+  BufferHeader() : depth(0),partial_len(0) ,count_1(0),count_2(0){ memset(partial, 0, sizeof(uint8_t) * define::bPartialLenMax); }
+  BufferHeader(int depth) : depth(depth),partial_len(0) ,count_1(0),count_2(0){ memset(partial, 0, sizeof(uint8_t) * define::bPartialLenMax); }
+  BufferHeader(const Key &k, int partial_len, int depth, int count_1,int count_2) : depth(depth),partial_len(partial_len),count_1(count_1),count_2(count_2) {
+    assert((uint32_t)partial_len <= define::bPartialLenMax);
+    for (int i = 0; i < partial_len; ++ i) partial[i] = get_partial(k, depth + i);
+  }
+
+  static BufferHeader split_header(const BufferHeader& old_hdr, int diff_idx) {
+  auto new_hdr = BufferHeader();
+  for (int i = diff_idx + 1; i < old_hdr.partial_len; ++ i) new_hdr.partial[i - diff_idx - 1] = old_hdr.partial[i];
+  new_hdr.partial_len = old_hdr.partial_len - diff_idx - 1;
+  new_hdr.depth = old_hdr.depth + diff_idx + 1;
+  new_hdr.count_1 = old_hdr.count_1;
+  new_hdr.count_2 = old_hdr.count_2;
+  return new_hdr;
+}
+
+  operator uint64_t() { return val; }
+
+  bool is_match(const Key& k) {
+    for (int i = 0; i < partial_len; ++ i) {
+      if (get_partial(k, depth + i) != partial[i]) return false;
+    }
+    return true;
+  }
+
+  static const uint64_t count_1_mask = (((1UL << define::count_1) - 1) << define::count_2);
+  static const uint64_t count_2_mask = (((1UL << define::count_2) - 1));
+} __attribute__((packed));
+
+
+static_assert(sizeof(BufferHeader) == 8);
+static_assert(1UL << (define::partial_len) >= define::bPartialLenMax);
 
 class Header {
 public:
@@ -897,56 +946,6 @@ static_assert(sizeof(InternalPage) == 8 + 8 + 256 * 8);
 
 /*缓冲节点  */
 
-class BufferHeader {
-public:
-  union {
-  struct {
-    uint8_t depth;  //8bit
-    uint8_t partial_len  : define::partial_len; //2bit
-    uint8_t bn_padding1 : 6;  
-    uint8_t partial[define::bPartialLenMax]; //16bit
-    uint8_t count_1  ; // 8bit
-    uint8_t count_2  ; //8bit
-    uint16_t bn_padding2;  
-  };
-
-  uint64_t val;
-  };
-
-public:
-  BufferHeader() : depth(0),partial_len(0) ,count_1(0),count_2(0){ memset(partial, 0, sizeof(uint8_t) * define::bPartialLenMax); }
-  BufferHeader(int depth) : depth(depth),partial_len(0) ,count_1(0),count_2(0){ memset(partial, 0, sizeof(uint8_t) * define::bPartialLenMax); }
-  BufferHeader(const Key &k, int partial_len, int depth, int count_1,int count_2) : depth(depth),partial_len(partial_len),count_1(count_1),count_2(count_2) {
-    assert((uint32_t)partial_len <= define::bPartialLenMax);
-    for (int i = 0; i < partial_len; ++ i) partial[i] = get_partial(k, depth + i);
-  }
-
-  static BufferHeader split_header(const BufferHeader& old_hdr, int diff_idx) {
-  auto new_hdr = BufferHeader();
-  for (int i = diff_idx + 1; i < old_hdr.partial_len; ++ i) new_hdr.partial[i - diff_idx - 1] = old_hdr.partial[i];
-  new_hdr.partial_len = old_hdr.partial_len - diff_idx - 1;
-  new_hdr.depth = old_hdr.depth + diff_idx + 1;
-  new_hdr.count_1 = old_hdr.count_1;
-  new_hdr.count_2 = old_hdr.count_2;
-  return new_hdr;
-}
-
-  operator uint64_t() { return val; }
-
-  bool is_match(const Key& k) {
-    for (int i = 0; i < partial_len; ++ i) {
-      if (get_partial(k, depth + i) != partial[i]) return false;
-    }
-    return true;
-  }
-
-  static const uint64_t count_1_mask = (((1UL << define::count_1) - 1) << define::count_2);
-  static const uint64_t count_2_mask = (((1UL << define::count_2) - 1));
-} __attribute__((packed));
-
-
-static_assert(sizeof(BufferHeader) == 8);
-static_assert(1UL << (define::partial_len) >= define::bPartialLenMax);
 
 
 class BufferEntry {
