@@ -63,13 +63,13 @@ void NormalCache::_insert(const CacheKey& byte_array, CacheEntry* new_entry) {
 }
 
 
-bool NormalCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
+bool NormalCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
   CacheKey byte_array(k.begin(), k.begin() + define::maxkeyLen - 1);
 
   return _search(byte_array, k.back()-1, entry_ptr_ptr, entry_ptr, entry_idx);
 }
 
-bool NormalCache::_search(CacheKey& byte_prefix, uint8_t last_byte, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
+bool NormalCache::_search(CacheKey& byte_prefix, uint8_t last_byte,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
 try_upper:
   auto r_entry = cache_map.find(byte_prefix);
   if (r_entry != cache_map.end() && (entry_ptr = (CacheEntry *)r_entry->second)) {
@@ -116,7 +116,7 @@ void NormalCache::search_range_from_cache(const Key &from, const Key &to, std::v
   return;
 }
 
-void NormalCache::invalidate(volatile CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr) {
+void NormalCache::invalidate( CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr) {
   if (entry_ptr_ptr && entry_ptr && __sync_bool_compare_and_swap(entry_ptr_ptr, entry_ptr, 0UL)) {
     free_size.fetch_add(sizeof(CacheEntry*) + entry_ptr->content_size() + sizeof(Key));
     _safely_delete(entry_ptr);
@@ -126,7 +126,7 @@ void NormalCache::invalidate(volatile CacheEntry** entry_ptr_ptr, CacheEntry* en
 void NormalCache::_evict() {
   do {
     // _evict_one();
-    std::pair<volatile CacheEntry**, CacheEntry*> next;
+    std::pair<CacheEntry**, CacheEntry*> next;
     if(eviction_list.try_pop(next) && *next.first == next.second) {
       invalidate(next.first, next.second);
     }
