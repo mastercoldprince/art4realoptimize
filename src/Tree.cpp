@@ -752,7 +752,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     leaf_addr = dsm->alloc(sizeof(Leaf_kv));
     auto b_buffer=(dsm->get_rbuf(coro_id)).get_buffer_buffer();
     InternalBuffer* buffer = new (b_buffer) InternalBuffer(k,2,depth +2 ,1,0,p.addr());  // 暂时定初始2B作为partial key
-    buffer->records[0] = BufferEntry(leaf_type,get_partial(k,depth+3),1,leaf_addr);
+    buffer->records[0] = BufferEntry(0,get_partial(k,depth+3),1,leaf_type,leaf_addr);
     auto new_e = InternalEntry(get_partial(k,depth+1), 1, b_addr);
     RdmaOpRegion *rs =  new RdmaOpRegion[2];
     {
@@ -879,8 +879,8 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
           // 2.3 Check if it is the key we search
           if (_k == k) {
-              in_place_update_leaf(k,v,leaf_addrs[i],leaf_type,cxt,coro_id);   
-              goto search_finish;
+              in_place_update_leaf(k,v,leaf_addrs[i],leaf_type,leaf,cxt,coro_id);   
+              goto insert_finish;
           }
         }
     }
@@ -1217,7 +1217,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
 
           // 2.3 Check if it is the key we search
           if (_k == k) {
-              in_place_update_leaf(k,v,leaf_addrs[i],leaf_type,cxt,coro_id);   
+              in_place_update_leaf(k,v,leaf_addrs[i],leaf_type,leaf,cxt,coro_id);   
               goto search_finish;
           }
         }
@@ -1483,7 +1483,7 @@ re_read:
       auto leaf = (Leaf_kv *)leaf_buffer + i*define::allocAlignKVLeafSize;
       if (!from_cache && leaf->rev_ptr != p_ptr[i]) {
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
-      dsm->cas(leaf_addr[i], leaf->rev_ptr, p_ptr[i], cas_buffer, false, cxt);
+      dsm->cas(leaf_addrs[i], leaf->rev_ptr, p_ptr[i], cas_buffer, false, cxt);
       // dsm->cas_sync(leaf_addr, leaf->rev_ptr, p_ptr, cas_buffer, cxt);
       }
       // invalidation
@@ -1636,11 +1636,11 @@ write_leaf:
   return;
 }
 */
-void Tree::in_place_update_leaf(const Key &k, Value &v, const GlobalAddress &leaf_addr, int leaf_type,   
+void Tree::in_place_update_leaf(const Key &k, Value &v, const GlobalAddress &leaf_addr, int leaf_type,Leaf_kv* leaf,  
                                CoroContext *cxt, int coro_id) {
 #ifdef TREE_ENABLE_EMBEDDING_LOCK
-  static const uint64_t lock_cas_offset = ROUND_DOWN(STRUCT_OFFSET(Leaf, lock_byte), 3);
-  static const uint64_t lock_mask       = 1UL << ((STRUCT_OFFSET(Leaf, lock_byte) - lock_cas_offset) * 8);
+  static const uint64_t lock_cas_offset = ROUND_DOWN(STRUCT_OFFSET(Leaf_kv, lock_byte), 3);
+  static const uint64_t lock_mask       = 1UL << ((STRUCT_OFFSET(Leaf_kv, lock_byte) - lock_cas_offset) * 8);
 #endif
 
   auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
@@ -1795,6 +1795,7 @@ update_finish:
   return res;
 }
 */
+/*
 bool Tree::out_of_place_update_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, const GlobalAddress &e_ptr, InternalEntry &old_e, const GlobalAddress& node_addr,
                                     CoroContext *cxt, int coro_id, bool disable_handover) {
   auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
@@ -1893,7 +1894,7 @@ void Tree::unlock_node(const GlobalAddress &node_addr, CoroContext *cxt, int cor
   return;
 }
 #endif
-
+*/
 
 /*
 bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, uint8_t partial_key,
@@ -1932,7 +1933,7 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
 }
 */
 //向缓冲节点空槽插入
-bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type , int leaf_size,
+bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type ,int klen,int vlen,
                                    const GlobalAddress &e_ptr, const BufferEntry &old_e, uint64_t *ret_buffer,
                                    CoroContext *cxt, int coro_id) {
   bool unwrite = leaf_addr == GlobalAddress::Null();
@@ -1940,9 +1941,9 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
   // allocate & write
   if (unwrite) {  // !ONLY allocate once
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer();
-    write_local_leaf(leaf_buffer,leaf_type,k,v,e_ptr);
-    leaf_addr = dsm->alloc(leaf_size);
-    dsm->write_sync(leaf_buffer, leaf_addr,leaf_size, cxt);
+    new (leaf_buffer) Leaf_kv(e_ptr,leaf_type,klen,vlen,k, v);
+    leaf_addr = dsm->alloc(sizeof(Leaf_kv));
+    dsm->write_sync(leaf_buffer, leaf_addr,sizeof(Leaf_kv), cxt);
 
   }
   else {  // write the changed e_ptr inside leaf
@@ -2403,7 +2404,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
   delete[] rs; delete[] node_pages; delete[] node_addrs;
   return res;
 }
-
+/*
 bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len, uint8_t partial,uint8_t diff_partial,
                                    const GlobalAddress &e_ptr, const BufferEntry &old_e, const GlobalAddress& node_addr,
                                    uint64_t *ret_buffer, CoroContext *cxt, int coro_id) {
@@ -2510,8 +2511,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
   delete[] rs; delete[] node_pages; delete[] node_addrs;
   return res;
 }
-
-
+*/
 void Tree::cas_node_type(NodeType next_type, GlobalAddress p_ptr, InternalEntry p, Header hdr,
                          CoroContext *cxt, int coro_id) {
   auto node_addr = p.addr();

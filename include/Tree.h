@@ -79,13 +79,13 @@ private:
 
   bool read_leaf(GlobalAddress &leaf_addr, char *leaf_buffer, int leaf_size, const GlobalAddress &p_ptr, bool from_cache, CoroContext *cxt, int coro_id);
   bool read_leaves(GlobalAddress* &leaf_addr, char *leaf_buffer,int leaf_cnt, const GlobalAddress* &p_ptr, bool from_cache,CoroContext *cxt, int coro_id);
-  void in_place_update_leaf(const Key &k, Value &v, const GlobalAddress &leaf_addr, int leaf_type,
+  void in_place_update_leaf(const Key &k, Value &v, const GlobalAddress &leaf_addr, int leaf_type,Leaf_kv* leaf,
                                CoroContext *cxt, int coro_id);
   bool out_of_place_update_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, const GlobalAddress &e_ptr, InternalEntry &old_e, const GlobalAddress& node_addr,
                                 CoroContext *cxt, int coro_id, bool disable_handover = false);
-  bool out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type , int leaf_size,
-                                   const GlobalAddress &e_ptr, const BufferEntry &old_e, uint64_t *ret_buffer,
-                                   CoroContext *cxt, int coro_id);
+  bool out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type ,int klen,int vlen,
+                                    const GlobalAddress &e_ptr, const BufferEntry &old_e, uint64_t *ret_buffer,
+                                    CoroContext *cxt, int coro_id);
 
   bool read_node(InternalEntry &p, bool& type_correct, char *node_buffer, const GlobalAddress& p_ptr, int depth, bool from_cache,
                  CoroContext *cxt, int coro_id);
@@ -98,12 +98,14 @@ private:
                                    uint64_t *ret_buffer, CoroContext *cxt, int coro_id);
   bool out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len,uint8_t diff_partial,
                                    const GlobalAddress &e_ptr, const BufferEntry &old_e, const GlobalAddress& node_addr,
-                                   uint64_t *ret_buffer, CoroContext *cxt, int coro_id)
+                                   uint64_t *ret_buffer, CoroContext *cxt, int coro_id);
+  
   bool out_of_place_write_buffer_node(const Key &k, Value &v, int depth, const InternalBuffer bnode,int leaf_type,GlobalAddress leaf_addr,CacheEntry**&entry_ptr_ptr,CacheEntry*& entry_ptr,bool from_cache,GlobalAddress e_ptr,
                                    CoroContext *cxt, int coro_id);
+                                   /*
   bool out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len, uint8_t partial,uint8_t diff_partial,
                                    const GlobalAddress &e_ptr, const BufferEntry &old_e, const GlobalAddress& node_addr,
-                                   uint64_t *ret_buffer, CoroContext *cxt, int coro_id);
+                                   uint64_t *ret_buffer, CoroContext *cxt, int coro_id);*/
   bool insert_behind(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, uint8_t partial_key, NodeType node_type,int leaf_type,int klen,int vlen,
                          const GlobalAddress &node_addr, uint64_t *ret_buffer, int& inserted_idx,
                          CoroContext *cxt, int coro_id);

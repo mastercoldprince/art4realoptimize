@@ -159,7 +159,7 @@ void change_node_type(CacheEntry*& entry_ptr)
 }
 
 
-bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
+bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
 
   CacheKey byte_array(k.begin(), k.begin() + define::maxkeyLen - 1);
 
@@ -267,7 +267,7 @@ void RadixCache::search_range_from_cache(const Key &from, const Key &to, std::ve
   return;
 }
 
-void RadixCache::invalidate(volatile CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr) {
+void RadixCache::invalidate(CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr) {
       
   if (entry_ptr_ptr && entry_ptr && __sync_bool_compare_and_swap(entry_ptr_ptr, entry_ptr, 0UL)) {
     free_manager->free(entry_ptr->content_size());
