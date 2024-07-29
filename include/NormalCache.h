@@ -54,15 +54,15 @@ public:
 
   void add_to_cache(const Key& k, int node_type,const InternalPage* p_node, const GlobalAddress &node_addr);
 
-  bool search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx);
+  bool search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx);
   void search_range_from_cache(const Key &from, const Key &to, std::vector<RangeCache> &result);
-  void invalidate(volatile CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr);
+  void invalidate(CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr);
   void statistics();
 
 private:
   void _insert(const CacheKey& byte_array, CacheEntry* new_entry);
 
-  bool _search(CacheKey& byte_prefix, uint8_t last_byte, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx);
+  bool _search(CacheKey& byte_prefix, uint8_t last_byte,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx);
 
   void _evict();
   // void _evict_one();
@@ -76,7 +76,7 @@ private:
   // std::atomic<uint64_t> map_size;
   tbb::concurrent_queue<CacheKey> keys;
 
-  using CacheMap = tbb::concurrent_unordered_map<CacheKey, volatile CacheEntry*, cache_key_hash>;
+  using CacheMap = tbb::concurrent_unordered_map<CacheKey,CacheEntry*, cache_key_hash>;
   CacheMap cache_map;
 
   // GC
@@ -85,7 +85,7 @@ private:
 
   // Eviction
   DSM *dsm;
-  tbb::concurrent_queue<std::pair<volatile CacheEntry**, CacheEntry*> > eviction_list;
+  tbb::concurrent_queue<std::pair< CacheEntry**, CacheEntry*> > eviction_list;
 };
 
 
