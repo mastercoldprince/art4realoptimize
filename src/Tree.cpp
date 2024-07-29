@@ -1459,7 +1459,7 @@ re_read:
 
 
 
-bool Tree::read_leaves(GlobalAddress* &leaf_addrs, char *leaf_buffer,int leaf_cnt, GlobalAddress* &p_ptr, bool from_cache,CoroContext *cxt, int coro_id) {  //read_batch
+bool Tree::read_leaves(GlobalAddress &leaf_addrs[256], char *leaf_buffer,int leaf_cnt, GlobalAddress &p_ptr[256], bool from_cache,CoroContext *cxt, int coro_id) {  //read_batch
   try_read_leaf[dsm->getMyThreadID()] ++;
 re_read:
   std::memset(leaf_buffer, 0, leaf_cnt*sizeof(Leaf_kv));
