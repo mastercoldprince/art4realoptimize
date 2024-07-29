@@ -1424,7 +1424,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   int leaf_cnt = 0;
   BufferEntry leaf_addrs[256][256];
   thread_local std::vector<RdmaOpRegion> rs;
-  int new_bnode_num;
+  int new_bnode_num = 0;
   int leaf_flag = 0; //叶节点的部分键是否重复
   uint8_t new_leaf_partial = get_partial(k,depth+bnode.hdr.partial_len);
   BufferEntry *new_leaf_be;
@@ -1459,10 +1459,10 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     }
   }
 
-
+  bnode_addrs = new GlobalAddress[new_bnode_num];
   dsm->alloc_bnodes(new_bnode_num, bnode_addrs);
   auto leaves_buffer = (dsm->get_rbuf(coro_id)).get_kvleaves_buffer(leaf_cnt);
-  for(int i =0;i< rs.size();i++)
+  for(int i =0;i<(int) rs.size();i++)
   {
     rs[i].source = (uint64_t)leaves_buffer + i * define::allocAlignKVLeafSize;
   }
@@ -1555,6 +1555,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   for (int i = 0; i < new_bnode_num; ++ i) {
       index_cache->add_to_cache(k,1,(InternalPage*)new_bnodes[i], GADD(bnode_addrs[i], sizeof(GlobalAddress) + sizeof(BufferHeader)));
   }
+  return true;
 
 }
 
@@ -2160,7 +2161,7 @@ else{   //parent是一个buffernode
       index_cache->invalidate(entry_ptr_ptr, entry_ptr);
     }
     // re-read node entry
-    if(parent_type = 0)
+    if(parent_type == 0)
     {
     auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
     dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
