@@ -268,7 +268,7 @@ void RadixCache::_evict() {
   bool flag;
   do {
     // _evict_one();
-    std::pair<volatile CacheEntry**, CacheEntry*> next;
+    std::pair<CacheEntry**, CacheEntry*> next;
     if(eviction_list.try_pop(next) && *next.first == next.second) {
       invalidate(next.first, next.second);
     }
