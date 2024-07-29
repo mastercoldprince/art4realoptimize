@@ -20,10 +20,10 @@
 
 struct CacheNodeValue {
 
-  volatile CacheEntry* cache_entry;   //一定要作区分吗？
+  CacheEntry* cache_entry;   //一定要作区分吗？
 
       /* data */
-  volatile void * next;
+  void * next;
 
   CacheNodeValue() :  cache_entry(nullptr), next(nullptr) {}
   CacheNodeValue(CacheEntry* cache_entry, void *next) :
@@ -208,7 +208,7 @@ private:
 
   // FIFIO Eviction
   DSM *dsm;
-  tbb::concurrent_queue<std::pair<volatile CacheEntry**, CacheEntry*> > eviction_list;
+  tbb::concurrent_queue<std::pair< CacheEntry**, CacheEntry*> > eviction_list;
 };
 
 #endif // _RADIX_CACHE_H_
