@@ -964,15 +964,15 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
            // dsm->cas(GADD(p.addr(), sizeof(GlobalAddress)), (uint64_t)bhdr, (uint64_t)new_hdr, hdr_buffer, sizeof(Header), false, cxt);
            // dsm->cas(p_ptr,(uint64_t)p,(uint64_t)new_entry,cas_node_type_buffer,sizeof(InternalEntry), false, cxt);
            //需要同步吗？？？？？？？？？  
-            dsm->two_cas_mask(rs[0],(uint64_t)bhdr,(uint64_t)hdr_buffer,1UL << 64 -1 ,rs[1],(uint64_t)p,(uint64_t)cas_node_type_buffer,1UL << 64 -1,false,cxt);
+            dsm->two_cas_mask(rs[0],(uint64_t)bhdr,(uint64_t)hdr_buffer,1UL << (64 - 1) ,rs[1],(uint64_t)p,(uint64_t)cas_node_type_buffer,1UL << 64 -1,false,cxt);
             index_cache->change_node_type(entry_ptr);
             goto next;
           }
           else{  //有重复的 需要将重复的拿下来到下一级缓冲节点
           bool res=out_of_place_write_buffer_node(k, v,depth,*bp_node,leaf_type,klen,vlen,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p.addr(), cxt,coro_id);
-          if (!res) {
-            p = *(InternalEntry*) cas_buffer;
-            retry_flag = SPLIT_HEADER;
+          if (!res) {  //获取锁失败
+          //  p = *(InternalEntry*) cas_buffer;
+          //  retry_flag = SPLIT_HEADER;
             goto next;
           }
             goto insert_finish;
@@ -1278,7 +1278,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
            // dsm->cas(GADD(p.addr(), sizeof(GlobalAddress)), (uint64_t)bhdr, (uint64_t)new_hdr, hdr_buffer, sizeof(Header), false, cxt);
            // dsm->cas(p_ptr,(uint64_t)p,(uint64_t)new_entry,cas_node_type_buffer,sizeof(InternalEntry), false, cxt);
            //需要同步吗？？？？？？？？？  
-            dsm->two_cas_mask(rs[0],(uint64_t)bhdr,(uint64_t)hdr_buffer,1UL << 64 -1 ,rs[1],(uint64_t)bp,(uint64_t)cas_node_type_buffer,1UL << 64 -1,false,cxt);
+            dsm->two_cas_mask(rs[0],(uint64_t)bhdr,(uint64_t)hdr_buffer,1UL << (64 - 1) ,rs[1],(uint64_t)bp,(uint64_t)cas_node_type_buffer,1UL << 64 -1,false,cxt);
             goto next;
           }
           else{  //有重复的 需要将重复的拿下来到下一级缓冲节点
@@ -2598,7 +2598,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   int leaf_cnt = 0;
   BufferEntry leaf_addrs[256][256];
   thread_local std::vector<RdmaOpRegion> rs;
-  int new_bnode_num;
+  int new_bnode_num = 0;
   int leaf_flag = 0; //叶节点的部分键是否重复
   uint8_t new_leaf_partial = get_partial(k,depth+bnode.hdr.partial_len);
   BufferEntry *new_leaf_be;
@@ -2633,10 +2633,10 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     }
   }
 
-
+  bnode_addrs = new GlobalAddress[new_bnode_num];
   dsm->alloc_bnodes(new_bnode_num, bnode_addrs);
   auto leaves_buffer = (dsm->get_rbuf(coro_id)).get_kvleaves_buffer(leaf_cnt);
-  for(int i =0;i< rs.size();i++)
+  for(int i =0;i<(int) rs.size();i++)
   {
     rs[i].source = (uint64_t)leaves_buffer + i * define::allocAlignKVLeafSize;
   }
@@ -2729,6 +2729,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   for (int i = 0; i < new_bnode_num; ++ i) {
       index_cache->add_to_cache(k,1,(InternalPage*)new_bnodes[i], GADD(bnode_addrs[i], sizeof(GlobalAddress) + sizeof(BufferHeader)));
   }
+  return true;
 
 }
 
@@ -3336,7 +3337,7 @@ else{   //parent是一个buffernode
       index_cache->invalidate(entry_ptr_ptr, entry_ptr);
     }
     // re-read node entry
-    if(parent_type = 0)
+    if(parent_type == 0)
     {
     auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
     dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);

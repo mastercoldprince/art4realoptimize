@@ -896,10 +896,10 @@ public:
   InternalEntry(uint8_t partial, uint8_t child_type,const GlobalAddress &addr) :
                 partial(partial), child_type(child_type), packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
   InternalEntry(uint8_t partial, NodeType node_type, const GlobalAddress &addr) :
-                partial(partial), empty(0), node_type(static_cast<uint8_t>(node_type)), child_type(0), packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
+                partial(partial),child_type(0), empty(0), node_type(static_cast<uint8_t>(node_type)),  packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
 
   InternalEntry(NodeType node_type, const InternalEntry& e) :
-                partial(e.partial), empty(0), node_type(static_cast<uint8_t>(node_type)), child_type(e.child_type), packed_addr(e.packed_addr) {}
+                partial(e.partial),child_type(e.child_type), empty(0), node_type(static_cast<uint8_t>(node_type)),  packed_addr(e.packed_addr) {}
 
   operator uint64_t() const { return val; }
 
@@ -968,9 +968,9 @@ public:
 public:
   BufferEntry() : val(0) {}
   BufferEntry(uint8_t node_type, uint8_t partial,uint8_t prefix_type,uint8_t leaf_type,const GlobalAddress &addr) :
-                node_type(node_type), partial(partial),prefix_type(prefix_type),leaf_type(leaf_type),packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
+                partial(partial),node_type(node_type), prefix_type(prefix_type),leaf_type(leaf_type),packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
   BufferEntry(const BufferEntry& e) :
-                node_type(e.node_type), partial(e.partial), packed_addr(e.packed_addr) {}
+                partial(e.partial),node_type(e.node_type), prefix_type(e.prefix_type), packed_addr(e.packed_addr) {}
 
   operator uint64_t() const { return val; }
 
