@@ -915,29 +915,6 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
           }
         }
       }
-//      }
-/*      else{
-        for(int i=(1UL << define::count_1 ) +(1UL << define::count_2 ) -2 -1;i >=0 ;i--)
-        {
-          if(bp_node->records[i] == BufferEntry::Null()) //If we are at a  buffer  empty
-          { 
-            old_be = bp_node->records[i];
-            be_ptr=GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(BufferEntry));
-            key_type = 1;
-            partial = get_partial(k, bhdr.depth + bhdr.partial_len-1);
-          }
-        }
-      }
-      auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaf_buffer();
-      new (leaf_buffer) Leaf_kv(p.addr(),leaf_type,klen,vlen,k,v);
-      leaf_addr = dsm->alloc(sizeof(Leaf_kv));
-      dsm->write_sync(leaf_buffer, leaf_addr, sizeof(Leaf_kv), cxt);
-      BufferEntry new_be = BufferEntry(leaf_type,partial,leaf_addr);
-      bool res = dsm->cas_sync(be_ptr, (uint64_t)old_be, (uint64_t)new_be, cas_buffer, cxt);
-      if (!res) {
-      p = *(InternalEntry*) cas_buffer;
-      goto next;
-      }*/
     }
     else{ //3.5 the buffer is full need to split 
           //首先查看内部节点有没有重复的 有重复的就放到下一级bn      转换成内部节点需要将cache的节点类型修改一下 
@@ -987,7 +964,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   is_valid = read_node(p, type_correct, page_buffer, p_ptr, depth,from_cache,cxt, coro_id);
   p_node = (InternalPage *)page_buffer;
 
-  if (!is_valid) {  // node deleted || outdated cache entry in cached node
+  if (!is_valid) {  
   update_retry_flag[dsm->getMyThreadID()]=1;
   printf("joker!\n");
     // invalidate the old node cache
@@ -2027,7 +2004,7 @@ bool Tree::read_node_from_buffer(BufferEntry &p, bool& type_correct, char *node_
 //读出一个buffer node并且验证其正确性  
 bool Tree::read_buffer_node(GlobalAddress node_addr, char *node_buffer, const GlobalAddress& p_ptr, int depth, bool from_cache,   //只需要判断反向指针对不对就可以了 （有没有分裂）
                      CoroContext *cxt, int coro_id) {
-  auto read_size = sizeof(GlobalAddress) + sizeof(BufferHeader) + ((1UL << define :: count_1) + (1UL << define :: count_2 ) -2) * sizeof(BufferEntry);
+  auto read_size = sizeof(GlobalAddress) + sizeof(BufferHeader) + 256 * sizeof(BufferEntry);
   dsm->read_sync(node_buffer, node_addr, read_size, cxt);
 
   auto p_node = (InternalBuffer *)node_buffer;
