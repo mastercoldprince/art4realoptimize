@@ -740,7 +740,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
 next:
 if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空槽 生成新的缓冲节点 3.内部节点分裂 分裂之后生成新的缓冲节点 4.内部节点满了扩展  并生成新的缓冲节点  
 {
-   if (p == InternalEntry::Null()) {      
+   if (p == InternalEntry::Null()) {  
 
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
 
@@ -989,7 +989,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
   if (!is_valid) {  // node deleted || outdated cache entry in cached node
   update_retry_flag[dsm->getMyThreadID()]=1;
-
+  printf("joker!\n");
     // invalidate the old node cache
     if (from_cache) {
         index_cache->invalidate(entry_ptr_ptr, entry_ptr);
