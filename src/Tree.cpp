@@ -2773,7 +2773,7 @@ bool Tree::insert_behind(const Key &k, Value &v, int depth, GlobalAddress& leaf_
     }
     dsm->write_batches_sync(rs, 2, cxt, coro_id);
     bool res = dsm->cas_sync(e_ptr, InternalEntry::Null(), (uint64_t)new_e, cas_buffer, cxt);
-    delete[] rs; delete buffer;delete leaf_buffer;
+    delete[] rs; 
 
     if (res) {
       inserted_idx = slot_id;
