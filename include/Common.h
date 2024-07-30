@@ -23,7 +23,7 @@
 
 // Environment Config
 #define MAX_MACHINE 20
-#define MEMORY_NODE_NUM 2
+#define MEMORY_NODE_NUM 1
 #define CPU_PHYSICAL_CORE_NUM 28  // [CONFIG]
 #define MAX_CORO_NUM 8
 
