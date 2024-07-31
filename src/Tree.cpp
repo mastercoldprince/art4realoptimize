@@ -811,7 +811,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       //3.2 partial key not match, need split
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
       int partial_len = bhdr.depth + i - depth;  // hdr.depth may be outdated, so use partial_len wrt. depth
-      bool res = out_of_place_write_node(k, v, depth, leaf_addr, leaf_type,  klen,vlen,partial_len,bhdr.partial[i], p_ptr, p, node_ptr, cas_buffer, cxt, coro_id);
+      bool res = out_of_place_write_node(k, v, depth, leaf_addr, leaf_type,  klen,vlen,partial_len,bhdr.partial[i], p_ptr, p, node_ptr, cas_buffer, cxt, coro_id);   
       if (!res) {
         p = *(InternalEntry*) cas_buffer;
         goto next;
@@ -1125,7 +1125,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     }
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂 
-    if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {  
+    if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {
       //3.2 partial key not match, need split
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
       int partial_len = bhdr.depth + i - depth;  // hdr.depth may be outdated, so use partial_len wrt. depth
