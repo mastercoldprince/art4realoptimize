@@ -391,7 +391,7 @@ bool rdmaReadBatch(ibv_qp *qp, RdmaOpRegion *ror, int k, bool isSignaled,
 }
 
 
-bool rdmaWriteBatch(ibv_qp *qp, RdmaOpRegion *ror, int k, bool isSignaled,
+bool rdmaWriteBatch(ibv_qp *qp, RdmaOpRegion *ror, int k, bool isSignaled, //ccccccccccccccccccccccccccccccccccccccccccccccc
                     uint64_t wrID) {
 
   struct ibv_sge sg[kWriteOroMax];
