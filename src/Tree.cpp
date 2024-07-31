@@ -685,7 +685,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   }
 
   printf("thread %d insert kv: %d\n" ,(int)dsm->getMyThreadID( ),(int)key2int(k));
-  if((int)key2int(k) == 5308670) goto insert_finish;
+  if((int)key2int(k) == 5308670) return;
   // traversal
   GlobalAddress p_ptr;
   InternalEntry p;
