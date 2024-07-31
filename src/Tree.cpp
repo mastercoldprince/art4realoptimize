@@ -723,6 +723,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
     p = entry_ptr->records[entry_idx];
     node_ptr = entry_ptr->addr;
     depth = entry_ptr->depth;
+    parent_type  = entry_ptr->node_type;
   }
   else {
     p_ptr = root_ptr_ptr;
@@ -740,7 +741,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
 next:
 if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空槽 生成新的缓冲节点 3.内部节点分裂 分裂之后生成新的缓冲节点 4.内部节点满了扩展  并生成新的缓冲节点  
 {
-   if (p == InternalEntry::Null()) {  
+   if (p == InternalEntry::Null()) {
 
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
 
@@ -751,9 +752,9 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     new (leaf_buffer) Leaf_kv(b_addr,leaf_type,klen,vlen,k, v);
     leaf_addr = dsm->alloc(sizeof(Leaf_kv));
     auto b_buffer=(dsm->get_rbuf(coro_id)).get_buffer_buffer();
-    InternalBuffer* buffer = new (b_buffer) InternalBuffer(k,2,depth ,1,0,p.addr());  // 暂时定初始2B作为partial key
-    buffer->records[0] = BufferEntry(0,get_partial(k,depth+3),1,leaf_type,leaf_addr);
-    auto new_e = InternalEntry(get_partial(k,depth+1), 1, b_addr);
+    InternalBuffer* buffer = new (b_buffer) InternalBuffer(k,2,depth,1,0,p.addr());  // 暂时定初始2B作为partial key
+    buffer->records[0] = BufferEntry(0,get_partial(k,depth+buffer->hdr.partial_len),1,leaf_type,leaf_addr);
+    auto new_e = InternalEntry(get_partial(k,depth), 1, b_addr);
     RdmaOpRegion *rs =  new RdmaOpRegion[2];
     {
       rs[0].source     = (uint64_t)b_buffer;
@@ -838,7 +839,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     {
       if(bp_node->records[i].partial == partial )
       {
-        if(bp_node->records[i].node_type == 1) 
+        if(bp_node->records[i].node_type == 1 || bp_node->records[i].node_type == 2)   //是一个缓冲节点 或者内部节点 继续往下找 
         {
           bp = bp_node->records[i];
           p_ptr = GADD(p.addr(), sizeof(GlobalAddress)+sizeof(BufferHeader) + i*sizeof(BufferEntry));
@@ -902,7 +903,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
            old_be = bp_node->records[i];
            be_ptr=GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(BufferEntry));
            auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
-           bool res = out_of_place_write_leaf(k,v,depth,leaf_addr,leaf_type ,klen,vlen,be_ptr,old_be,cas_buffer,cxt,coro_id);
+           bool res = out_of_place_write_leaf(k,v,depth,leaf_addr,leaf_type ,klen,vlen,be_ptr,old_be,cas_buffer,cxt,coro_id);  //直接写空槽
            if(res) goto insert_finish;
            else {
             auto e = *(InternalEntry*) cas_buffer;
@@ -966,7 +967,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
   if (!is_valid) {  
   update_retry_flag[dsm->getMyThreadID()]=1;
-  printf("joker!\n");
+
     // invalidate the old node cache
     if (from_cache) {
         index_cache->invalidate(entry_ptr_ptr, entry_ptr);
@@ -1048,6 +1049,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       p_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(InternalEntry));
       p = old_e;
       parent_type = 0;
+      depth++;  //找到了一个槽depth 就要加1
       goto next;
     }
   }
@@ -1083,7 +1085,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       new (leaf_buffer) Leaf_kv(p_ptr,leaf_type,klen,vlen,k, v);
       leaf_addr = dsm->alloc(sizeof(Leaf_kv));
 
-      auto new_be = BufferEntry(0,get_partial(k,depth +1), 1,leaf_type,leaf_addr);
+      auto new_be = BufferEntry(0,get_partial(k,depth), 1,leaf_type,leaf_addr);
 
       dsm->write_sync(leaf_buffer, leaf_addr, sizeof(Leaf_kv), cxt);
       bool res = dsm->cas_sync(bp.addr(), (uint64_t)bp, (uint64_t)new_be, cas_buffer, cxt);
@@ -2205,7 +2207,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   }
   // init buffer nodes
   auto b_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
-  InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,3,depth +1 ,1,0,node_addrs[0]);  // 暂时定初始3B作为partial key
+  InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,2,depth  ,1,0,node_addrs[0]);  // 暂时定初始3B作为partial key
   buffernode->records[0] = BufferEntry(0,get_partial(k, depth + partial_len),1,leaf_type,leaf_addr);
   
   // init the parent entry
@@ -2272,7 +2274,6 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
 }
 
 
-
 bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len,uint8_t diff_partial,
                                    const GlobalAddress &e_ptr, const BufferEntry &old_e, const GlobalAddress& node_addr,
                                    uint64_t *ret_buffer, CoroContext *cxt, int coro_id) {
@@ -2316,7 +2317,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
   }
   // init buffer nodes
   auto b_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
-  InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,3,depth +1 ,1,0,node_addrs[0]);  // 暂时定初始3B作为partial key
+  InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,2,depth ,1,0,node_addrs[0]);  // 暂时定初始2B作为partial key
   buffernode->records[0] = BufferEntry(0,get_partial(k, depth + partial_len),1,leaf_type,leaf_addr);
   
   // init the parent entry
@@ -2381,6 +2382,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
   delete[] rs; delete[] node_pages; delete[] node_addrs;
   return res;
 }
+
 /*
 bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len, uint8_t partial,uint8_t diff_partial,
                                    const GlobalAddress &e_ptr, const BufferEntry &old_e, const GlobalAddress& node_addr,
@@ -2662,15 +2664,19 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     for(int j =0;j<bnodes_entry_index[i][0];j++)
     {
       new_bnodes[i]->records[j].partial = get_partial(leaf_key.at(leaf_cnt),depth + bnode.hdr.partial_len + 1 + com_par_len + 1);
-    }
+    } 
+     //修改bufferentry的地址 
+    bnode.records[bnodes_entry_index[i][1]].packed_addr={bnode_addrs[i].nodeID, bnode_addrs[i].offset >> ALLOC_ALLIGN_BIT};
+
   }
   //修改原来的buffer node  要上锁 
   bnode.hdr.count_1 = new_bnode_num;
-  //修改bufferentry的地址 
+/*
   for(int i=0;i<new_bnode_num;i++)
   {
     bnode.records[bnodes_entry_index[i][1]].packed_addr={bnode_addrs[i].nodeID, bnode_addrs[i].offset >> ALLOC_ALLIGN_BIT};
   }
+*/
   bnode.unlock();
   auto old_bnode_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
   InternalBuffer * old_bnode;
