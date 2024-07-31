@@ -788,7 +788,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     bool is_match;
     auto buffer_buffer =  (dsm->get_rbuf(coro_id)).get_buffer_buffer();
     GlobalAddress addr = p.addr();
-    is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);
+    is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   //段错误 
     bp_node = (InternalBuffer *)buffer_buffer;
     //3.1 check partial key
     if (!is_valid) {  // node deleted || outdated cache entry in cached node
@@ -2006,7 +2006,7 @@ bool Tree::read_node_from_buffer(BufferEntry &p, bool& type_correct, char *node_
 //读出一个buffer node并且验证其正确性  
 bool Tree::read_buffer_node(GlobalAddress node_addr, char *node_buffer, const GlobalAddress& p_ptr, int depth, bool from_cache,   //只需要判断反向指针对不对就可以了 （有没有分裂）
                      CoroContext *cxt, int coro_id) {
-  auto read_size = sizeof(GlobalAddress) + sizeof(BufferHeader) + 256 * sizeof(BufferEntry);
+  auto read_size = sizeof(InternalBuffer);
   dsm->read_sync(node_buffer, node_addr, read_size, cxt);
 
   auto p_node = (InternalBuffer *)node_buffer;
