@@ -893,7 +893,7 @@ bool Tree::read_node_from_buffer(BufferEntry &p, bool& type_correct, char *node_
 //读出一个buffer node并且验证其正确性  
 bool Tree::read_buffer_node(GlobalAddress node_addr, char *node_buffer, const GlobalAddress& p_ptr, int depth, bool from_cache,   //只需要判断反向指针对不对就可以了 （有没有分裂）
                      CoroContext *cxt, int coro_id) {
-  int read_size = sizeof(InternalBuffer);
+  auto read_size = sizeof(GlobalAddress) + sizeof(BufferHeader) + 256*sizeof(BufferEntry) +1;
   dsm->read_sync(node_buffer, node_addr, read_size, cxt);
 
   auto p_node = (InternalBuffer *)node_buffer;
