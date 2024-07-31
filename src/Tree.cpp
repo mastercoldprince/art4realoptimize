@@ -1033,7 +1033,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   // allocate & write new leaf
   auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaf_buffer();
   auto leaf_e_ptr = GADD(bnode_addr, sizeof(GlobalAddress) + sizeof(BufferHeader) + sizeof(BufferEntry) * 1);
-  printf("leaf buffer:  %d\n",leaf_buffer);
+ // printf("leaf buffer:  %d\n",leaf_buffer);
   if (leaf_unwrite) {  // !ONLY allocate once
     new (leaf_buffer) Leaf_kv(leaf_e_ptr,leaf_type,klen,vlen,k, v);
     leaf_addr = dsm->alloc(sizeof(Leaf_kv));
@@ -1048,9 +1048,9 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   NodeType nodes_type = num_to_node_type(2);
   InternalPage ** node_pages = new InternalPage* [new_node_num];
   auto rev_ptr = e_ptr;
-  for (int i = 0; i < new_node_num; ++ i) {
+  for (int i = 0; i < new_node_num -1; ++ i) {
     auto node_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
-    printf("internal node buffer:  %d\n",node_buffer);
+ //   printf("internal node buffer:  %d\n",node_buffer);
     node_pages[i] = new (node_buffer) InternalPage(k, define::hPartialLenMax, depth, nodes_type, rev_ptr);
     node_pages[i]->records[0] = InternalEntry(get_partial(k, depth + define::hPartialLenMax),
                                               nodes_type, node_addrs[i + 1]);
@@ -1058,11 +1058,21 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
     partial_len -= define::hPartialLenMax + 1;
     depth += define::hPartialLenMax + 1;
   }
+  {    
+    auto node_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
+ //   printf("internal node buffer:  %d\n",node_buffer);
+    node_pages[new_node_num -1] = new (node_buffer) InternalPage(k, partial_len, depth, nodes_type, rev_ptr);
+    depth += partial_len + 1;
+    node_pages[new_node_num -1]->records[0] = InternalEntry(diff_partial,old_e);
+    node_pages[new_node_num -1]->records[1] = InternalEntry(get_partial(k,depth),1,bnode_addr);
+
+  }
   // init buffer nodes
   auto b_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
-    printf("buffer node buffer:  %d\n",b_buffer);
+ //   printf("buffer node buffer:  %d\n",b_buffer);
   InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,2,depth,1,0,node_addrs[0]);  // 暂时定初始2B作为partial key
-  buffernode->records[0] = BufferEntry(0,get_partial(k, depth + partial_len),1,leaf_type,leaf_addr);
+
+  buffernode->records[0] = BufferEntry(0,get_partial(k, depth + 2 + 1),1,leaf_type,leaf_addr);
   
   // init the parent entry
   auto new_e = InternalEntry(old_e.partial, nodes_type, node_addrs[0]);
@@ -1130,8 +1140,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
 bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len,uint8_t diff_partial,
                                    const GlobalAddress &e_ptr, const BufferEntry &old_e, const GlobalAddress& node_addr,
                                    uint64_t *ret_buffer, CoroContext *cxt, int coro_id) {
-
-  auto insert_leaf_merge_write_start = std::chrono::high_resolution_clock::now();                                  
+                                
   int new_node_num = partial_len / (define::hPartialLenMax + 1) + 1;
   auto leaf_unwrite = (leaf_addr == GlobalAddress::Null());
 
@@ -1168,10 +1177,19 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
     partial_len -= define::hPartialLenMax + 1;
     depth += define::hPartialLenMax + 1;
   }
+  {    
+    auto node_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
+ //   printf("internal node buffer:  %d\n",node_buffer);
+    node_pages[new_node_num -1] = new (node_buffer) InternalPage(k, partial_len, depth, nodes_type, rev_ptr);
+    depth += partial_len + 1;
+    node_pages[new_node_num -1]->records[0] = InternalEntry(diff_partial,old_e);
+    node_pages[new_node_num -1]->records[1] = InternalEntry(get_partial(k,depth),1,bnode_addr);
+  }
+
   // init buffer nodes
   auto b_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
   InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,2,depth ,1,0,node_addrs[0]);  // 暂时定初始2B作为partial key
-  buffernode->records[0] = BufferEntry(0,get_partial(k, depth + partial_len),1,leaf_type,leaf_addr);
+  buffernode->records[0] = BufferEntry(0,get_partial(k, depth + 2 + 1 ),1,leaf_type,leaf_addr);
   
   // init the parent entry
   auto new_e = BufferEntry(1,old_e.partial, 1,nodes_type, node_addrs[0]);
@@ -1421,13 +1439,14 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   auto acquire_lock = dsm->cas_mask_sync(GADD(e_ptr, lock_cas_offset), 0UL, ~0UL, cas_buffer, lock_mask, cxt);
   if(!acquire_lock) return false;
 
+  depth ++;
   int count_index[256][256];  //[][0] -> count  [1~] ->index
   int leaf_cnt = 0;
   BufferEntry leaf_addrs[256][256];
   thread_local std::vector<RdmaOpRegion> rs;
   int new_bnode_num = 0;
   int leaf_flag = 0; //叶节点的部分键是否重复
-  uint8_t new_leaf_partial = get_partial(k,depth+bnode.hdr.partial_len);
+  uint8_t new_leaf_partial = get_partial(k,depth);
   BufferEntry *new_leaf_be;
   GlobalAddress *bnode_addrs;
   int bnodes_entry_index[256][256];
@@ -1442,7 +1461,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   {
     if(count_index[i][0] > 1 || (count_index[i][0] == 1 && i == (int)new_leaf_partial))
     {
-      if(i == (int)get_partial(k,depth+bnode.hdr.partial_len)) leaf_flag =1;
+      if(i == (int)get_partial(k,depth)) leaf_flag =1;
       new_bnode_num ++;
       leaf_cnt += count_index[i][0];
       bnodes_entry_index[new_bnode_num - 1][0] = count_index[i][0];
@@ -1506,12 +1525,12 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     } 
     leaf_cnt -= bnodes_entry_index[i][0];
 
-    int com_par_len = get_2B_partial(leaf_key,depth + bnode.hdr.partial_len + 1);
-    BufferHeader  bhdr(leaf_key[0], com_par_len, depth + bnode.hdr.partial_len , bnodes_entry_index[i][0], 0);
+    int com_par_len = get_2B_partial(leaf_key,depth);
+    BufferHeader  bhdr(leaf_key[0], com_par_len, depth + 1 , bnodes_entry_index[i][0], 0);
     new_bnodes[i]->hdr = bhdr;
     for(int j =0;j<bnodes_entry_index[i][0];j++)
     {
-      new_bnodes[i]->records[j].partial = get_partial(leaf_key.at(leaf_cnt),depth + bnode.hdr.partial_len + 1 + com_par_len + 1);
+      new_bnodes[i]->records[j].partial = get_partial(leaf_key.at(leaf_cnt),depth + com_par_len + 1);
     } 
      //修改bufferentry的地址 
     bnode.records[bnodes_entry_index[i][1]].packed_addr={bnode_addrs[i].nodeID, bnode_addrs[i].offset >> ALLOC_ALLIGN_BIT};

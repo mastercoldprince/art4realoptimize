@@ -8,7 +8,7 @@ inline uint8_t get_partial(const Key& key, int depth) {
   return depth == 0 ? 0 : key.at(depth - 1);
 }
 
-inline int get_2B_partial(const std::vector<Key> keys, int depth) {
+inline int get_2B_partial(const std::vector<Key> keys, int depth) {   //key 从第depth个字节开始 有没有共同的  前depth个都是一样的 看后面的
 
   if (keys.empty() || depth >=(int) keys[0].size()) {
       return 0;
