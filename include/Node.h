@@ -865,6 +865,44 @@ static_assert(1UL << (8 - define::nodeTypeNumBit) >= define::hPartialLenMax);
 /*
   Internal Nodes
 */
+class BufferEntry {
+public:
+  union {
+  union {
+    struct {
+      uint8_t  partial;
+//      uint8_t  fp :define::fp;
+      uint8_t node_type : 2;   // 0 -> leaf  1->buffer  2->internal node
+      uint8_t  prefix_type : 1;  //1-> match
+      uint8_t  leaf_type : define::leaf_type;  //指向内部节点的时候是内部节点的节点类型
+      PackedGAddr packed_addr;
+    }__attribute__((packed));
+  };
+
+  uint64_t val;
+  };
+
+public:
+  BufferEntry() : val(0) {}
+  BufferEntry(uint8_t node_type, uint8_t partial,uint8_t prefix_type,uint8_t leaf_type,const GlobalAddress &addr) :
+                partial(partial),node_type(node_type), prefix_type(prefix_type),leaf_type(leaf_type),packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
+  BufferEntry(const BufferEntry& e) :
+                partial(e.partial),node_type(e.node_type), prefix_type(e.prefix_type), packed_addr(e.packed_addr) {}
+
+  operator uint64_t() const { return val; }
+
+  static BufferEntry Null() {
+    static BufferEntry zero;
+    return zero;
+  }
+  NodeType type() const {
+    return static_cast<NodeType>(leaf_type);
+  }
+
+  GlobalAddress addr() const {
+    return GlobalAddress{packed_addr.mn_id, packed_addr.offset << ALLOC_ALLIGN_BIT};
+  }
+} __attribute__((packed));
 class InternalEntry {
 public:
   union {
@@ -893,7 +931,8 @@ public:
                 partial(partial),child_type(0), empty(0), node_type(static_cast<uint8_t>(node_type)),  packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
   InternalEntry(NodeType node_type, const InternalEntry& e) :
                 partial(e.partial),child_type(e.child_type), empty(0), node_type(static_cast<uint8_t>(node_type)),  packed_addr(e.packed_addr) {}
-
+  InternalEntry(NodeType node_type, const BufferEntry& e) :
+                partial(e.partial),child_type(e.node_type),packed_addr(e.packed_addr) {}
   operator uint64_t() const { return val; }
 
   static InternalEntry Null() {
@@ -941,44 +980,7 @@ static_assert(sizeof(InternalPage) == 8 + 8 + 256 * 8);
 
 
 
-class BufferEntry {
-public:
-  union {
-  union {
-    struct {
-      uint8_t  partial;
-//      uint8_t  fp :define::fp;
-      uint8_t node_type : 2;   // 0 -> leaf  1->buffer  2->internal node
-      uint8_t  prefix_type : 1;  //1-> match
-      uint8_t  leaf_type : define::leaf_type;  //指向内部节点的时候是内部节点的节点类型
-      PackedGAddr packed_addr;
-    }__attribute__((packed));
-  };
 
-  uint64_t val;
-  };
-
-public:
-  BufferEntry() : val(0) {}
-  BufferEntry(uint8_t node_type, uint8_t partial,uint8_t prefix_type,uint8_t leaf_type,const GlobalAddress &addr) :
-                partial(partial),node_type(node_type), prefix_type(prefix_type),leaf_type(leaf_type),packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
-  BufferEntry(const BufferEntry& e) :
-                partial(e.partial),node_type(e.node_type), prefix_type(e.prefix_type), packed_addr(e.packed_addr) {}
-
-  operator uint64_t() const { return val; }
-
-  static BufferEntry Null() {
-    static BufferEntry zero;
-    return zero;
-  }
-  NodeType type() const {
-    return static_cast<NodeType>(leaf_type);
-  }
-
-  GlobalAddress addr() const {
-    return GlobalAddress{packed_addr.mn_id, packed_addr.offset << ALLOC_ALLIGN_BIT};
-  }
-} __attribute__((packed));
 
 
 
