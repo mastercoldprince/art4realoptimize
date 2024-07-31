@@ -2181,7 +2181,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   // allocate & write new leaf
   auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaf_buffer();
   auto leaf_e_ptr = GADD(bnode_addr, sizeof(GlobalAddress) + sizeof(BufferHeader) + sizeof(BufferEntry) * 1);
-
+  printf("leaf buffer:  %" PRIu64"\n",leaf_buffer.val);
   if (leaf_unwrite) {  // !ONLY allocate once
     new (leaf_buffer) Leaf_kv(leaf_e_ptr,leaf_type,klen,vlen,k, v);
     leaf_addr = dsm->alloc(sizeof(Leaf_kv));
@@ -2191,13 +2191,14 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
     *ptr_buffer = leaf_e_ptr;
     dsm->write((const char *)ptr_buffer, leaf_addr, sizeof(GlobalAddress), false, cxt);
   }
-  printf("internal node addr:  %" PRIu64" bnode addr: %" PRIu64" leaf addr:  %" PRIu64"\n",node_addrs[0].val,bnode_addr.val,leaf_addr.val);
+//  printf("internal node addr:  %" PRIu64" bnode addr: %" PRIu64" leaf addr:  %" PRIu64"\n",node_addrs[0].val,bnode_addr.val,leaf_addr.val);
   // init inner nodes
   NodeType nodes_type = num_to_node_type(2);
   InternalPage ** node_pages = new InternalPage* [new_node_num];
   auto rev_ptr = e_ptr;
   for (int i = 0; i < new_node_num - 1; ++ i) {
     auto node_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
+    printf("internal node buffer:  %" PRIu64"\n",node_buffer.val);
     node_pages[i] = new (node_buffer) InternalPage(k, define::hPartialLenMax, depth, nodes_type, rev_ptr);
     node_pages[i]->records[0] = InternalEntry(get_partial(k, depth + define::hPartialLenMax),
                                               nodes_type, node_addrs[i + 1]);
@@ -2207,6 +2208,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   }
   // init buffer nodes
   auto b_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
+    printf("buffer node buffer:  %" PRIu64"\n",b_buffer.val);
   InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,2,depth,1,0,node_addrs[0]);  // 暂时定初始2B作为partial key
   buffernode->records[0] = BufferEntry(0,get_partial(k, depth + partial_len),1,leaf_type,leaf_addr);
   
