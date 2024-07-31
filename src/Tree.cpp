@@ -1033,7 +1033,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   // allocate & write new leaf
   auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaf_buffer();
   auto leaf_e_ptr = GADD(bnode_addr, sizeof(GlobalAddress) + sizeof(BufferHeader) + sizeof(BufferEntry) * 1);
-  printf("leaf buffer:  %" PRIu64"\n",leaf_buffer.val);
+  printf("leaf buffer:  %d\n",leaf_buffer);
   if (leaf_unwrite) {  // !ONLY allocate once
     new (leaf_buffer) Leaf_kv(leaf_e_ptr,leaf_type,klen,vlen,k, v);
     leaf_addr = dsm->alloc(sizeof(Leaf_kv));
@@ -1050,7 +1050,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   auto rev_ptr = e_ptr;
   for (int i = 0; i < new_node_num - 1; ++ i) {
     auto node_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
-    printf("internal node buffer:  %" PRIu64"\n",node_buffer.val);
+    printf("internal node buffer:  %d\n",node_buffer);
     node_pages[i] = new (node_buffer) InternalPage(k, define::hPartialLenMax, depth, nodes_type, rev_ptr);
     node_pages[i]->records[0] = InternalEntry(get_partial(k, depth + define::hPartialLenMax),
                                               nodes_type, node_addrs[i + 1]);
@@ -1060,7 +1060,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   }
   // init buffer nodes
   auto b_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
-    printf("buffer node buffer:  %" PRIu64"\n",b_buffer.val);
+    printf("buffer node buffer:  %d\n",b_buffer);
   InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,2,depth,1,0,node_addrs[0]);  // 暂时定初始2B作为partial key
   buffernode->records[0] = BufferEntry(0,get_partial(k, depth + partial_len),1,leaf_type,leaf_addr);
   
