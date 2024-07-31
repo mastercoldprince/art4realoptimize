@@ -34,6 +34,7 @@ uint64_t retry_cnt[MAX_APP_THREAD][MAX_FLAG_NUM];
 thread_local CoroCall Tree::worker[MAX_CORO_NUM];
 thread_local CoroCall Tree::master;
 thread_local CoroQueue Tree::busy_waiting_queue;
+int cnt = 0;
 
 
 Tree::Tree(DSM *dsm, uint16_t tree_id) : dsm(dsm), tree_id(tree_id) {
