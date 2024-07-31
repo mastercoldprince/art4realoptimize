@@ -722,6 +722,7 @@ cnt ++;
     assert(entry_idx >= 0);
     p_ptr = GADD(entry_ptr->addr, sizeof(InternalEntry) * entry_idx);
     p = entry_ptr->records[entry_idx];
+    bp =(BufferEntry) entry_ptr->records[entry_idx];
     node_ptr = entry_ptr->addr;
     depth = entry_ptr->depth;
     parent_type  = entry_ptr->node_type;
