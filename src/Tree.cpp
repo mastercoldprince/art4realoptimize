@@ -2191,7 +2191,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
     *ptr_buffer = leaf_e_ptr;
     dsm->write((const char *)ptr_buffer, leaf_addr, sizeof(GlobalAddress), false, cxt);
   }
-  printf("internal node addr:  %" PRIu64" bnode addr: %" PRIu64" leaf addr:  %" PRIu64"\n",node_addr[0].val,bnode_addr.val,leaf_addr.val);
+  printf("internal node addr:  %" PRIu64" bnode addr: %" PRIu64" leaf addr:  %" PRIu64"\n",node_addrs[0].val,bnode_addr.val,leaf_addr.val);
   // init inner nodes
   NodeType nodes_type = num_to_node_type(2);
   InternalPage ** node_pages = new InternalPage* [new_node_num];
