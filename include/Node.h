@@ -897,8 +897,6 @@ public:
                 partial(partial), child_type(child_type), packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
   InternalEntry(uint8_t partial, NodeType node_type, const GlobalAddress &addr) :
                 partial(partial),child_type(0), empty(0), node_type(static_cast<uint8_t>(node_type)),  packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
-  InternalEntry(uint8_t partial, const InternalEntry& e) :
-                partial(partial), child_type(e.child_type), empty(0), node_type(e.node_type),packed_addr(e.packed_addr) {}
   InternalEntry(NodeType node_type, const InternalEntry& e) :
                 partial(e.partial),child_type(e.child_type), empty(0), node_type(static_cast<uint8_t>(node_type)),  packed_addr(e.packed_addr) {}
 
