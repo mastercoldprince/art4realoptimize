@@ -2166,9 +2166,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
 //新建一个内部节点、缓冲节点和叶节点
 bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len,uint8_t diff_partial,
                                    const GlobalAddress &e_ptr, const InternalEntry &old_e, const GlobalAddress& node_addr,
-                                   uint64_t *ret_buffer, CoroContext *cxt, int coro_id) {
-
-  auto insert_leaf_merge_write_start = std::chrono::high_resolution_clock::now();                                  
+                                   uint64_t *ret_buffer, CoroContext *cxt, int coro_id) {                               
   int new_node_num = partial_len / (define::hPartialLenMax + 1) + 1;
   auto leaf_unwrite = (leaf_addr == GlobalAddress::Null());
 
@@ -2228,7 +2226,6 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
     rs[new_node_num].dest       = bnode_addr;
     rs[new_node_num].size       = sizeof(InternalBuffer);
     rs[new_node_num].is_on_chip = false;
-
   }
   if (leaf_unwrite) {
     rs[new_node_num + 1].source     = (uint64_t)leaf_buffer;
@@ -2236,7 +2233,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
     rs[new_node_num + 1].size       = sizeof(Leaf_kv);
     rs[new_node_num + 1].is_on_chip = false;
   }
-  dsm->write_batches_sync(rs, (leaf_unwrite ? new_node_num + 1 : new_node_num), cxt, coro_id);
+  dsm->write_batches_sync(rs,new_node_num + 2 , cxt, coro_id);
 
   // cas
   auto remote_cas = [=](){
@@ -2346,7 +2343,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
     rs[new_node_num + 1].size       = sizeof(Leaf_kv);
     rs[new_node_num + 1].is_on_chip = false;
   }
-  dsm->write_batches_sync(rs, (leaf_unwrite ? new_node_num + 1 : new_node_num), cxt, coro_id);
+  dsm->write_batches_sync(rs, (leaf_unwrite ? new_node_num + 2 : new_node_num), cxt, coro_id);
 
   // cas
   auto remote_cas = [=](){
