@@ -2331,7 +2331,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
     rs[i].is_on_chip = false;
   }
   {
-    rs[new_node_num].source     = (uint64_t)b_buffer;
+    rs[new_node_num].source     = (uint64_t)buffernode;
     rs[new_node_num].dest       = bnode_addr;
     rs[new_node_num].size       = sizeof(InternalBuffer);
     rs[new_node_num].is_on_chip = false;
