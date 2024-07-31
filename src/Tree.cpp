@@ -86,6 +86,7 @@ uint64_t insert_type_cnt[MAX_APP_THREAD][6];
 thread_local CoroCall Tree::worker[MAX_CORO_NUM];
 thread_local CoroCall Tree::master;
 thread_local CoroQueue Tree::busy_waiting_queue;
+int cnt = 0;
 
 
 Tree::Tree(DSM *dsm, uint16_t tree_id) : dsm(dsm), tree_id(tree_id) {
@@ -683,9 +684,9 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   else if (256<vlen && vlen <= 512 ) {leaf_type += 3;leaf_size += 512;}
   else {leaf_type += 4;leaf_size += 1024;}
   }
-
-  printf("thread %d insert kv: %d\n" ,(int)dsm->getMyThreadID( ),(int)key2int(k));
-  if((int)key2int(k) == 5308670 || (int) key2int(k)== 41660477) return;
+cnt ++;
+  printf("%d thread %d insert kv: %d\n",cnt ,(int)dsm->getMyThreadID( ),(int)key2int(k));
+  if((int)key2int(k) == 5308670 || (int) key2int(k)== 41660477 || (int) key2int(k)==41661573) return;
   // traversal
   GlobalAddress p_ptr;
   InternalEntry p;
