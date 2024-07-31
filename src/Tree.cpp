@@ -1048,7 +1048,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   NodeType nodes_type = num_to_node_type(2);
   InternalPage ** node_pages = new InternalPage* [new_node_num];
   auto rev_ptr = e_ptr;
-  for (int i = 0; i < new_node_num - 1; ++ i) {
+  for (int i = 0; i < new_node_num; ++ i) {
     auto node_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
     printf("internal node buffer:  %d\n",node_buffer);
     node_pages[i] = new (node_buffer) InternalPage(k, define::hPartialLenMax, depth, nodes_type, rev_ptr);
