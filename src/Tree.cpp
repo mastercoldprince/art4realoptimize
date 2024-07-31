@@ -724,7 +724,7 @@ cnt ++;
     p = entry_ptr->records[entry_idx];
     bp.partial = p.partial;
     bp.node_type = p.child_type;
-    bp.packed_addr ={p.nodeID, p.offset >> ALLOC_ALLIGN_BIT} 
+    bp.packed_addr ={p.addr().nodeID, p.addr().offset >> ALLOC_ALLIGN_BIT} 
     node_ptr = entry_ptr->addr;
     depth = entry_ptr->depth;
     parent_type  = entry_ptr->node_type;
