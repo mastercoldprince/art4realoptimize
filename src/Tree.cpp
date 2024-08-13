@@ -1177,7 +1177,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
     partial_len -= define::hPartialLenMax + 1;
     depth += define::hPartialLenMax + 1;
   }
-  {    
+  {
     auto node_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
  //   printf("internal node buffer:  %d\n",node_buffer);
     node_pages[new_node_num -1] = new (node_buffer) InternalPage(k, partial_len, depth, nodes_type, rev_ptr);
