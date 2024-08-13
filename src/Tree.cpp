@@ -1103,36 +1103,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
 
       goto insert_finish;
     }
-  if(bp.node_type == 0)  //只有一个叶节点 
-  {
-    auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_leaf_buffer();
-    is_valid = read_leaf(bp.addr(), leaf_buffer, sizeof(Leaf_kv), p_ptr, from_cache, cxt, coro_id);
-    if (!is_valid) {
-      // invalidate the old leaf entry cache
-      if (from_cache) {
-        index_cache->invalidate(entry_ptr_ptr, entry_ptr);
-      }
-      // re-read leaf entry
-      auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
-      dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(BufferEntry), cxt);
-      bp = *(BufferEntry *)entry_buffer;
-      from_cache = false;
-      goto next;
-    }
-    auto leaf = (Leaf_kv *)leaf_buffer;
-    auto _k = leaf->get_key();
-    if (_k == k) {
-      if (is_load) {
-        goto insert_finish;
-      }
-      if (leaf->get_value() == v) {
-        goto insert_finish;
-      }
-      in_place_update_leaf(k, v, bp.addr(), leaf, cxt, coro_id);
-    
-    }
-    //直接在后面插入一个新的键
-  }
+
   if(bp.node_type == 1)   //找buffer node 看有没有空的
   {
 
