@@ -1078,6 +1078,14 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   }
 }
 else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲节点头部分裂 4.缓冲节点满了 结构化修改 
+
+
+
+
+
+
+
+
   if (bp == BufferEntry::Null()) {      //直接写 写了cas  
 
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
@@ -1160,7 +1168,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     {
       if(bp_node->records[i].partial == partial )
       {
-        if(bp_node->records[i].node_type == 1) 
+        if(bp_node->records[i].node_type == 1 || bp_node->records[i].node_type == 2) 
         {
           bp = bp_node->records[i];
           p_ptr = GADD(bp.addr(), sizeof(GlobalAddress)+sizeof(BufferHeader) + i*sizeof(BufferEntry));
@@ -1169,7 +1177,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
           from_cache = false;
           goto next;
         }
-        else 
+        else  //是叶节点则读过来看
         {
           leaf_addrs[leaf_cnt] = bp_node->records[i].addr();
           leaves_ptr[leaf_cnt]  = GADD(bp.addr(), sizeof(GlobalAddress)+sizeof(BufferHeader) + i*sizeof(BufferEntry));
@@ -1278,6 +1286,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
           }
     }
   }
+
   //内部节点
   // 3. Find out a node
   // 3.1 read the node
