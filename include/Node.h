@@ -927,8 +927,8 @@ public:
   InternalEntry() : val(0) {}
   InternalEntry(uint8_t partial, uint8_t child_type,const GlobalAddress &addr) :
                 partial(partial), child_type(child_type), packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
-  InternalEntry(uint8_t partial, NodeType node_type, const GlobalAddress &addr) :
-                partial(partial),child_type(0), empty(0), node_type(static_cast<uint8_t>(node_type)),  packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
+  InternalEntry(uint8_t partial, uint8_t child_type,NodeType node_type, const GlobalAddress &addr) :
+                partial(partial),child_type(child_type), empty(0), node_type(static_cast<uint8_t>(node_type)),  packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
   InternalEntry(NodeType node_type, const InternalEntry& e) :
                 partial(e.partial),child_type(e.child_type), empty(0), node_type(static_cast<uint8_t>(node_type)),  packed_addr(e.packed_addr) {}
   InternalEntry(uint8_t partial, const InternalEntry& e) :
@@ -982,10 +982,6 @@ static_assert(sizeof(InternalPage) == 8 + 8 + 256 * 8);
 
 
 
-
-
-
-
 class InternalBuffer {
 public:
   // for invalidation
@@ -1021,7 +1017,7 @@ public:
   void unlock() { w_lock = 0; };
   void lock() { w_lock = 1; };
 
-} __attribute__((packed));
+}__attribute__((packed));
 
 
 static_assert(sizeof(InternalBuffer) == 8 + 8 + 256 * 8 + 1);

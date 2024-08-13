@@ -1059,14 +1059,13 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
     partial_len -= define::hPartialLenMax + 1;
     depth += define::hPartialLenMax + 1;
   }
-  {    
+  { 
     auto node_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
  //   printf("internal node buffer:  %d\n",node_buffer);
     node_pages[new_node_num -1] = new (node_buffer) InternalPage(k, partial_len, depth, nodes_type, rev_ptr);
     depth += partial_len + 1;
-    node_pages[new_node_num -1]->records[0] = InternalEntry(diff_partial,old_e);
+    node_pages[new_node_num -1]->records[0] = InternalEntry(diff_partial,old_e);   //节点类型？？？
     node_pages[new_node_num -1]->records[1] = InternalEntry(get_partial(k,depth),1,bnode_addr);
-
   }
   // init buffer nodes
   auto b_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
@@ -1076,7 +1075,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   buffernode->records[0] = BufferEntry(0,get_partial(k, depth + 2 + 1),1,leaf_type,leaf_addr);
   
   // init the parent entry
-  auto new_e = InternalEntry(old_e.partial, nodes_type, node_addrs[0]);
+  auto new_e = InternalEntry(old_e.partial,2,nodes_type, node_addrs[0]);
   auto page_size = sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(nodes_type) * sizeof(InternalEntry);
 
   // batch_write nodes (doorbell batching)
@@ -1193,7 +1192,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
   buffernode->records[0] = BufferEntry(0,get_partial(k, depth + 2 + 1 ),1,leaf_type,leaf_addr);
   
   // init the parent entry
-  auto new_e = BufferEntry(1,old_e.partial, 1,nodes_type, node_addrs[0]);
+  auto new_e = BufferEntry(2,old_e.partial, 1,nodes_type, node_addrs[0]);
   auto page_size = sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(nodes_type) * sizeof(InternalEntry);
 
   // batch_write nodes (doorbell batching)
@@ -1523,7 +1522,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
       new_bnodes[i]->records[bnodes_entry_index[i][0]].prefix_type = 0;
       new (leaf_buffer) Leaf_kv(bnode_addrs[i],leaf_type,klen,vlen,k,v);
       bnodes_entry_index[i][0] ++;
-    } 
+    }
     leaf_cnt -= bnodes_entry_index[i][0];
 
     int com_par_len = get_2B_partial(leaf_key,depth);
@@ -1532,10 +1531,10 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     for(int j =0;j<bnodes_entry_index[i][0];j++)
     {
       new_bnodes[i]->records[j].partial = get_partial(leaf_key.at(leaf_cnt),depth + com_par_len + 1);
-    } 
+    }
      //修改bufferentry的地址 
     bnode.records[bnodes_entry_index[i][1]].packed_addr={bnode_addrs[i].nodeID, bnode_addrs[i].offset >> ALLOC_ALLIGN_BIT};
-
+    bnode.records[bnodes_entry_index[i][1]].node_type = 1;
   }
   //修改原来的buffer node  要上锁 
   bnode.hdr.count_1 = new_bnode_num;
