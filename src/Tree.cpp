@@ -764,7 +764,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       rs[0].size       = sizeof(InternalBuffer);
       rs[0].is_on_chip = false;
     }
-   {
+    {
       rs[1].source     = (uint64_t)leaf_buffer;
       rs[1].dest       = leaf_addr;
       rs[1].size       = sizeof(Leaf_kv);
@@ -790,7 +790,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     bool is_match;
     auto buffer_buffer =  (dsm->get_rbuf(coro_id)).get_buffer_buffer();
     GlobalAddress addr = p.addr();
-    is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   //段错误 
+    is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   
     bp_node = (InternalBuffer *)buffer_buffer;
     //3.1 check partial key
     if (!is_valid) {  // node deleted || outdated cache entry in cached node
@@ -810,8 +810,8 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
 
-    for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂 
-    if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {  
+    for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂   新建一个共同前缀的内部节点
+    if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {
       //3.2 partial key not match, need split
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
       int partial_len = bhdr.depth + i - depth;  // hdr.depth may be outdated, so use partial_len wrt. depth
@@ -968,7 +968,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   is_valid = read_node(p, type_correct, page_buffer, p_ptr, depth,from_cache,cxt, coro_id);
   p_node = (InternalPage *)page_buffer;
 
-  if (!is_valid) {  
+  if (!is_valid) {
   update_retry_flag[dsm->getMyThreadID()]=1;
 
     // invalidate the old node cache
@@ -1078,7 +1078,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   }
 }
 else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲节点头部分裂 4.缓冲节点满了 结构化修改 
-  if (bp == BufferEntry::Null()) {       //直接写 写了cas  
+  if (bp == BufferEntry::Null()) {      //直接写 写了cas  
 
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
 
@@ -1128,7 +1128,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
 
-    for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂 
+    for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂   新建一个共同前缀的内部节点
     if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {
       //3.2 partial key not match, need split
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
@@ -2210,14 +2210,13 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
     partial_len -= define::hPartialLenMax + 1;
     depth += define::hPartialLenMax + 1;
   }
-  {    
+  { 
     auto node_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
  //   printf("internal node buffer:  %d\n",node_buffer);
     node_pages[new_node_num -1] = new (node_buffer) InternalPage(k, partial_len, depth, nodes_type, rev_ptr);
     depth += partial_len + 1;
-    node_pages[new_node_num -1]->records[0] = InternalEntry(diff_partial,old_e);
+    node_pages[new_node_num -1]->records[0] = InternalEntry(diff_partial,old_e);   //节点类型？？？
     node_pages[new_node_num -1]->records[1] = InternalEntry(get_partial(k,depth),1,bnode_addr);
-
   }
   // init buffer nodes
   auto b_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
@@ -2227,7 +2226,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   buffernode->records[0] = BufferEntry(0,get_partial(k, depth + 2 + 1),1,leaf_type,leaf_addr);
   
   // init the parent entry
-  auto new_e = InternalEntry(old_e.partial, nodes_type, node_addrs[0]);
+  auto new_e = InternalEntry(old_e.partial,2,nodes_type, node_addrs[0]);
   auto page_size = sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(nodes_type) * sizeof(InternalEntry);
 
   // batch_write nodes (doorbell batching)
@@ -2344,7 +2343,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
   buffernode->records[0] = BufferEntry(0,get_partial(k, depth + 2 + 1 ),1,leaf_type,leaf_addr);
   
   // init the parent entry
-  auto new_e = BufferEntry(1,old_e.partial, 1,nodes_type, node_addrs[0]);
+  auto new_e = BufferEntry(2,old_e.partial, 1,nodes_type, node_addrs[0]);
   auto page_size = sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(nodes_type) * sizeof(InternalEntry);
 
   // batch_write nodes (doorbell batching)
@@ -2679,7 +2678,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
       new_bnodes[i]->records[bnodes_entry_index[i][0]].prefix_type = 0;
       new (leaf_buffer) Leaf_kv(bnode_addrs[i],leaf_type,klen,vlen,k,v);
       bnodes_entry_index[i][0] ++;
-    } 
+    }
     leaf_cnt -= bnodes_entry_index[i][0];
 
     int com_par_len = get_2B_partial(leaf_key,depth);
@@ -2688,10 +2687,10 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     for(int j =0;j<bnodes_entry_index[i][0];j++)
     {
       new_bnodes[i]->records[j].partial = get_partial(leaf_key.at(leaf_cnt),depth + com_par_len + 1);
-    } 
+    }
      //修改bufferentry的地址 
     bnode.records[bnodes_entry_index[i][1]].packed_addr={bnode_addrs[i].nodeID, bnode_addrs[i].offset >> ALLOC_ALLIGN_BIT};
-
+    bnode.records[bnodes_entry_index[i][1]].node_type = 1;
   }
   //修改原来的buffer node  要上锁 
   bnode.hdr.count_1 = new_bnode_num;
