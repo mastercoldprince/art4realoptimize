@@ -184,9 +184,14 @@ bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_pt
               // __sync_fetch_and_add(&(entry_ptr->counter), 1UL);
               entry_ptr_ptr = item.entry_ptr_ptr;
               entry_idx = i; //叶节点开始的位置 也可能不是一个叶节点
-              if(e.node_type == 0)
-              {
+               //有可能是生成第一个缓冲节点 所以不会有上一节的节点
+
               ret.pop();
+              if(ret.empty())  //已经是最后一个节点了
+              {
+                first_buffer = 1;
+              }
+              else{
               cache_entry = ret.top().entry_ptr;//获取上一级的entry  找一个这个buffer在上一级是个啥？ 
               parent_parent_type = cache_entry->node_type;
               cache_entry_parent = cache_entry;
@@ -198,7 +203,10 @@ bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_pt
 
                 }
               }
+
               }
+
+              
               return true;
             }
           }
