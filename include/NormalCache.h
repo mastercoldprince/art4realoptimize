@@ -16,7 +16,7 @@ struct CacheEntry {
   // fixed
   uint8_t depth;
   uint8_t node_type;   // 标识本身是一个什么节点  0 internal 1 buffer
-  GlobalAddress addr;
+  GlobalAddress addr;  //表示这个节点的第一个slot的起始地址？？
   std::vector<InternalEntry> records;
   // faa
   // volatile mutable uint64_t counter;

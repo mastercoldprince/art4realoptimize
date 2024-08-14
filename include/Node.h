@@ -1012,6 +1012,14 @@ public:
   InternalBuffer(const Key &k, int partial_len, int depth, int count_1,int count_2, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), hdr(k, partial_len, depth, count_1,count_2) {
     std::fill(records, records + (define::count_1 + define::count_2) -2, BufferEntry::Null());
   }
+  InternalBuffer(int depth,std::vector<InternalEntry> records)
+  {
+    hdr.depth = depth;
+    for(int i=0;i<records.size();i++)
+    {
+      this->records[i] = (BufferEntry)records[i];
+    }
+  }
 
   bool is_valid(const GlobalAddress& p_ptr, int depth, bool from_cache) const { return hdr.depth <= depth && (!from_cache || p_ptr == rev_ptr); }
   void unlock() { w_lock = 0; };

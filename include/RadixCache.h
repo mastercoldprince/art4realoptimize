@@ -23,7 +23,7 @@ struct CacheNodeValue {
   CacheEntry* cache_entry;   //一定要作区分吗？
 
       /* data */
-  void * next;
+  void * next;   //指向下一个？
 
   CacheNodeValue() :  cache_entry(nullptr), next(nullptr) {}
   CacheNodeValue(CacheEntry* cache_entry, void *next) :
@@ -176,7 +176,7 @@ public:
 //  void add_buffer_to_cache(const Key& k, const InternalBuffer* p_node, const GlobalAddress &node_addr);
   void change_node_type(CacheEntry*& entry_ptr);
 
-  bool search_from_cache(const Key& k, CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx);
+  bool search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& parent_parent_type,int& entry_idx,CacheEntry* & cache_entry_parent);
   void search_range_from_cache(const Key &from, const Key &to, std::vector<RangeCache> &result);
   void invalidate(volatile CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr);
   void statistics();
