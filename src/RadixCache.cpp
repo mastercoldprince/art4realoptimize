@@ -203,14 +203,10 @@ bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_pt
 
                 }
               }
-
               }
-
-              
               return true;
             }
           }
-         return true;
         }
 
       }
