@@ -177,14 +177,15 @@ bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_pt
         }
         else{          //如果是最接近叶节点的缓冲节点直接返回该缓冲节点  或者返回多个槽？
             for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {  //一个个查看slot
-            const auto& e = cache_entry->records[i];
+               BufferEntry e = *((BufferEntry*)&cache_entry->records[i]);
             if (e != BufferEntry::Null() && e.partial == next_partial) {       //找到部分键匹配的了  应该返回这个缓冲节点本身 而不是缓冲节点的槽  所以需要在上一个entry里面去找buffer对应的slot的位置  现在是buffer 上一级起码还有一个节点
             
               entry_ptr = cache_entry;
               // __sync_fetch_and_add(&(entry_ptr->counter), 1UL);
               entry_ptr_ptr = item.entry_ptr_ptr;
               entry_idx = i; //叶节点开始的位置 也可能不是一个叶节点
-
+              if(e.node_type == 0)
+              {
               ret.pop();
               cache_entry = ret.top().entry_ptr;//获取上一级的entry  找一个这个buffer在上一级是个啥？ 
               parent_parent_type = cache_entry->node_type;
@@ -197,7 +198,7 @@ bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_pt
 
                 }
               }
-
+              }
               return true;
             }
           }
