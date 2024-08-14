@@ -212,14 +212,10 @@ bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, Cac
 
                 }
               }
-
               }
-
-              
               return true;
             }
           }
-         return true;
         }
 
       }
