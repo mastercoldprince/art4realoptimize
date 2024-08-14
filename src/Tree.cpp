@@ -731,7 +731,7 @@ cnt ++;
     parent_type  = entry_ptr->node_type;
     if(entry_ptr->node_type == 1)   //如果cache找到的缓冲节点则直接去读吧！！！  后面如果是从cache来的 并且类型就是一个缓冲节点就不用再读一遍了 
     {
-      p_ptr = GADD(cache_entry_parent,sizeof(InternalEntry)*entry_idx);
+      p_ptr = GADD(cache_entry_parent->addr,sizeof(InternalEntry)*entry_idx);
       p = cache_entry_parent->records[entry_idx];
       parent_type = cache_entry_parent->node_type;
       depth = cache_entry_parent->depth;
@@ -1141,6 +1141,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
 
     bool is_match;
     auto buffer_buffer =  (dsm->get_rbuf(coro_id)).get_buffer_buffer();
+    GlobalAddress addr = bp.addr();
     if(buffer_from_cache_flag)
     {
       bp_node =new InternalBuffer(entry_ptr->depth,entry_ptr->records);
