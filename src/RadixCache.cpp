@@ -189,7 +189,7 @@ bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_pt
               cache_entry = ret.top().entry_ptr;//获取上一级的entry  找一个这个buffer在上一级是个啥？ 
               parent_parent_type = cache_entry->node_type;
               cache_entry_parent = cache_entry;
-              uint8_t partial = k.at(cache_entry.next_idx);
+              uint8_t partial = k.at(ret.top().next_idx);
               for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {  //一个个查看slot
                 const auto& e = cache_entry->records[i];
                 if (e != InternalEntry::Null() && e.partial == partial) { 
