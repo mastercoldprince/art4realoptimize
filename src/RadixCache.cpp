@@ -159,7 +159,7 @@ void change_node_type(CacheEntry*& entry_ptr)
 }
 
 
-bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
+bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& parent_parent_type,int& entry_idx,CacheEntry* & cache_entry_parent) {  //当发现是一个缓冲节点直接返回内部节点？  entry_ptr_ptr是地址 entry_ptr的地址
 
   CacheKey byte_array(k.begin(), k.begin() + define::maxkeyLen - 1);
 
@@ -184,17 +184,33 @@ bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, Cac
           }
 
         }
-        else{
+        else{          //如果是最接近叶节点的缓冲节点直接返回该缓冲节点  或者返回多个槽？
             for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {  //一个个查看slot
             const auto& e = cache_entry->records[i];
-            if (e != BufferEntry::Null() && e.partial == next_partial) {       //找到部分键匹配的了
+            if (e != BufferEntry::Null() && e.partial == next_partial) {       //找到部分键匹配的了  应该返回这个缓冲节点本身 而不是缓冲节点的槽  所以需要在上一个entry里面去找buffer对应的slot的位置  现在是buffer 上一级起码还有一个节点
+            
               entry_ptr = cache_entry;
               // __sync_fetch_and_add(&(entry_ptr->counter), 1UL);
               entry_ptr_ptr = item.entry_ptr_ptr;
-              entry_idx = i;
+              entry_idx = i; //叶节点开始的位置 也可能不是一个叶节点
+
+              ret.pop();
+              cache_entry = ret.top().entry_ptr;//获取上一级的entry  找一个这个buffer在上一级是个啥？ 
+              parent_parent_type = cache_entry->node_type;
+              cache_entry_parent = cache_entry;
+              uint8_t partial = k.at(cache_entry.next_idx);
+              for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {  //一个个查看slot
+                const auto& e = cache_entry->records[i];
+                if (e != InternalEntry::Null() && e.partial == partial) { 
+                entry_idx = i;   //返回这个buffer在父节点的下标
+
+                }
+              }
+
               return true;
             }
           }
+         return true;
         }
 
       }
@@ -207,7 +223,7 @@ bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, Cac
 
 bool RadixCache::_search(const CacheKey& byte_array, SearchRetStk& ret) {
   CacheNode* node = cache_root;
-  int idx = 0;
+  int idx = 0;  //和depth作用一样
 
 next:
   if (idx >= (int)byte_array.size()) {  // exit
@@ -225,14 +241,14 @@ next:
 
   // 2. parse_node
   auto& cache_map = node->records;
-  auto partial = byte_array[idx];
+  auto partial = byte_array[idx];   //共同前缀的后一个字节 
 
-  CacheMap::const_iterator r_entry = cache_map.find(partial);
+  CacheMap::const_iterator r_entry = cache_map.find(partial);  //直接map过去的
   if (r_entry != cache_map.end()) {
     auto cache_entry = (CacheEntry *)r_entry->second.cache_entry;
     // ret.push(std::make_pair(std::make_pair(&(r_entry->second.cache_entry), cache_entry), idx + 1));
     ret.push(SearchRet(&(r_entry->second.cache_entry), cache_entry, idx + 1));//存下来的是CacheEntry  相当于存下来了一整个内部节点或者缓冲节点
-    node = (CacheNode *)(r_entry->second.next);  //看下一层还能不能继续往下 应该是在插入函数修改的  
+    node = (CacheNode *)(r_entry->second.next);  //看下一层还能不能继续往下 应该是在插入函数修改的  next应该指向的是和该内部节点所指向的所有内部节点
     if (node) {
       idx ++;
       goto next;

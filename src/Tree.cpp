@@ -665,7 +665,7 @@ insert_time[dsm->getMyThreadID()]+=(uint64_t)duration.count();
 
 
 
-void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_update, bool is_load) {
+void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_update, bool is_load) {   
   assert(dsm->is_register());
   int leaf_type=-1;
   int leaf_size =0;
@@ -699,6 +699,7 @@ cnt ++;
   bool from_cache = false;
   CacheEntry** entry_ptr_ptr = nullptr;
   CacheEntry* entry_ptr = nullptr;
+  CacheEntry* cache_entry_parent;
   int entry_idx = -1;
   int cache_depth = 0;
 
@@ -714,20 +715,34 @@ cnt ++;
   uint64_t* cas_buffer;
   int debug_cnt = 0;
   int parent_type = 0; //0 ->internal 1->buffer
+  int parent_parent_type = -1;
+  int buffer_from_cache_flag = 0;
+ 
 
 
   //search from cache
-  from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, entry_idx);
+  from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, parent_parent_type,entry_idx,cache_entry_parent);   //check   直接从cache里面找到一个 
   if (from_cache) { // cache hit
     assert(entry_idx >= 0);
     p_ptr = GADD(entry_ptr->addr, sizeof(InternalEntry) * entry_idx);
     p = entry_ptr->records[entry_idx];
-    bp.partial = p.partial;
-    bp.node_type = p.child_type;
-    bp.packed_addr ={p.addr().nodeID, p.addr().offset >> ALLOC_ALLIGN_BIT} ;
     node_ptr = entry_ptr->addr;
     depth = entry_ptr->depth;
     parent_type  = entry_ptr->node_type;
+    if(entry_ptr->node_type == 1)   //如果cache找到的缓冲节点则直接去读吧！！！  后面如果是从cache来的 并且类型就是一个缓冲节点就不用再读一遍了 
+    {
+      p_ptr = GADD(cache_entry_parent,sizeof(InternalEntry)*entry_idx);
+      p = cache_entry_parent->records[entry_idx];
+      parent_type = cache_entry_parent->node_type;
+      depth = cache_entry_parent->depth;
+      node_ptr = cache_entry_parent->addr;
+      buffer_from_cache_flag = 1;
+    }
+    bp.partial = p.partial;
+    bp.node_type = p.child_type;
+    bp.packed_addr ={p.addr().nodeID, p.addr().offset >> ALLOC_ALLIGN_BIT} ;
+
+
   }
   else {
     p_ptr = root_ptr_ptr;
@@ -790,8 +805,16 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     bool is_match;
     auto buffer_buffer =  (dsm->get_rbuf(coro_id)).get_buffer_buffer();
     GlobalAddress addr = p.addr();
-    is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   
-    bp_node = (InternalBuffer *)buffer_buffer;
+    if(buffer_from_cache_flag)
+    {
+      bp_node =new InternalBuffer(entry_ptr->depth,entry_ptr->records);
+      //is_valid？ 本地的节点如何验证 is valid？？   不用验证 ？
+    }
+    else{
+      is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   
+      bp_node = (InternalBuffer *)buffer_buffer;
+    }
+
     //3.1 check partial key
     if (!is_valid) {  // node deleted || outdated cache entry in cached node
       if (from_cache) {
@@ -1112,13 +1135,21 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       goto insert_finish;
     }
 
+
   if(bp.node_type == 1)   //找buffer node 看有没有空的
   {
 
     bool is_match;
     auto buffer_buffer =  (dsm->get_rbuf(coro_id)).get_buffer_buffer();
-    is_valid = read_buffer_node(bp.addr(), buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);
-    bp_node = (InternalBuffer *)buffer_buffer;
+    if(buffer_from_cache_flag)
+    {
+      bp_node =new InternalBuffer(entry_ptr->depth,entry_ptr->records);
+      //is_valid？
+    }
+    else{
+      is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   
+      bp_node = (InternalBuffer *)buffer_buffer;
+    } 
     //3.1 check partial key
     if (!is_valid) {  // node deleted || outdated cache entry in cached node
       if (from_cache) {
@@ -1221,9 +1252,6 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       GlobalAddress be_ptr;
       BufferEntry old_be;
       uint8_t partial;
-
-//      if(get_partial(k, bhdr.depth + bhdr.partial_len-1) == bhdr.partial[bhdr.partial_len-1])
-//      {
         for(int i=0;i < 256;i++)
         {
           if(bp_node->records[i] == BufferEntry::Null()) //If we are at a  buffer  empty and partial key match
