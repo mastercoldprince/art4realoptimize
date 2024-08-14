@@ -1015,7 +1015,7 @@ public:
   InternalBuffer(int depth,std::vector<InternalEntry> records)
   {
     hdr.depth = depth;
-    for(int i=0;i<records.size();i++)
+    for(int i=0;i<(int)records.size();i++)
     {
       this->records[i] = *((BufferEntry*)&records[i]);
     }
