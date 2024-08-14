@@ -3036,6 +3036,7 @@ bool Tree::search(const Key &k, Value &v, CoroContext *cxt, int coro_id) {   ///
   bool from_cache = false;
   CacheEntry** entry_ptr_ptr = nullptr;
   CacheEntry* entry_ptr = nullptr;
+  CacheEntry* cache_entry_parent;
   int entry_idx = -1;
   int cache_depth = 0;
 
@@ -3047,13 +3048,29 @@ bool Tree::search(const Key &k, Value &v, CoroContext *cxt, int coro_id) {   ///
   Header hdr;
   BufferHeader bhdr;
   int max_num;
+  int parent_parent_type = -1;
+  int buffer_from_cache_flag = 0;
 
-  from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, entry_idx);
+  from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, parent_parent_type,entry_idx,cache_entry_parent);   //check   直接从cache里面找到一个 
   if (from_cache) { // cache hit
     assert(entry_idx >= 0);
     p_ptr = GADD(entry_ptr->addr, sizeof(InternalEntry) * entry_idx);
     p = entry_ptr->records[entry_idx];
     depth = entry_ptr->depth;
+    parent_type  = entry_ptr->node_type;
+    if(entry_ptr->node_type == 1)   //如果cache找到的缓冲节点则直接去读吧！！！  后面如果是从cache来的 并且类型就是一个缓冲节点就不用再读一遍了 
+    {
+      p_ptr = GADD(cache_entry_parent->addr,sizeof(InternalEntry)*entry_idx);
+      p = cache_entry_parent->records[entry_idx];
+      parent_type = cache_entry_parent->node_type;
+      depth = cache_entry_parent->depth;
+      buffer_from_cache_flag = 1;
+    }
+    bp.partial = p.partial;
+    bp.node_type = p.child_type;
+    bp.packed_addr ={p.addr().nodeID, p.addr().offset >> ALLOC_ALLIGN_BIT} ;
+
+
   }
   else {
     p_ptr = root_ptr_ptr;
