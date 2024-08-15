@@ -176,7 +176,7 @@ public:
 //  void add_buffer_to_cache(const Key& k, const InternalBuffer* p_node, const GlobalAddress &node_addr);
   void change_node_type(CacheEntry*& entry_ptr);
 
-  bool search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& parent_parent_type,int& entry_idx,CacheEntry* & cache_entry_parent,bool& first_buffer);
+  bool search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& parent_parent_type,int& entry_idx,CacheEntry* & cache_entry_parent,const bool& first_buffer);
   void search_range_from_cache(const Key &from, const Key &to, std::vector<RangeCache> &result);
   void invalidate(CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr);
   void clear();
