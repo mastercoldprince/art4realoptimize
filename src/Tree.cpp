@@ -717,7 +717,7 @@ cnt ++;
   int parent_type = 0; //0 ->internal 1->buffer
   int parent_parent_type = -1;
   bool buffer_from_cache_flag = 0;
-  bool first_buffer = 0;
+  int first_buffer = 0;
  
 
 
