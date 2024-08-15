@@ -159,7 +159,7 @@ void change_node_type(CacheEntry*& entry_ptr)
 }
 
 
-bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& parent_parent_type,int& entry_idx,CacheEntry* & cache_entry_parent,bool& first_buffer) {  //当发现是一个缓冲节点直接返回内部节点？  entry_ptr_ptr是地址 entry_ptr的地址
+bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& parent_parent_type,int& entry_idx,CacheEntry* & cache_entry_parent,const bool& first_buffer) {  //当发现是一个缓冲节点直接返回内部节点？  entry_ptr_ptr是地址 entry_ptr的地址
 
   CacheKey byte_array(k.begin(), k.begin() + define::maxkeyLen - 1);
 
