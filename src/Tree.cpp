@@ -924,8 +924,8 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
         }
     }
     //3.4 still have empty slot  不存在部分键相同的情况  有的话 则往下找 否则放空位 
-    if(bhdr.count_1+bhdr.count_2 < 256)
-    {
+  //  if(bhdr.count_1+bhdr.count_2 < 256)
+   // {
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
 
       GlobalAddress be_ptr;
@@ -956,11 +956,24 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
           }
         }
       }
-    }
-    else{ //3.5 the buffer is full need to split 
+      bool repeat_partial = false;
+      for(int i = 0;i< 256 ;i++)
+      {
+        for(int j =i+1;j<256;j++)
+        {
+          if(bp_node->records[i].partial == bp_node->records[j].partial)
+          {
+            repeat_partial = true;
+            break;
+          }
+        }
+        if(repeat_partial) break;
+      }
+ //   }
+  //  else{ //3.5 the buffer is full need to split 
           //首先查看内部节点有没有重复的 有重复的就放到下一级bn      转换成内部节点需要将cache的节点类型修改一下 
           //否则转换成一个内部节点
-          if(bhdr.count_1 == 256) //没有重复的 转换成一个内部节点  并且需要顺着往下找  cas header 和父节点的node_type
+          if(!repeat_partial) //没有重复的 转换成一个内部节点  并且需要顺着往下找  cas header 和父节点的node_type
           { auto hdr_buffer = (dsm->get_rbuf(coro_id)).get_header_buffer();
             auto cas_node_type_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
             InternalEntry new_entry(p);
@@ -996,7 +1009,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
             goto insert_finish;
 
           }
-    }
+  //  }
   }
   //内部节点
   // 3. Find out a node
@@ -1263,8 +1276,8 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
         }
     }
     //3.4 still have empty slot  不存在部分键相同的情况  有的话 则往下找 否则放空位 
-    if(bhdr.count_1+bhdr.count_2 < 256)
-    {
+  //  if(bhdr.count_1+bhdr.count_2 < 256)
+  //  {
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
 
       GlobalAddress be_ptr;
@@ -1291,11 +1304,24 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
           }
         }
       }
-    }
-    else{ //3.5 the buffer is full need to split 
+      bool repeat_partial = false;
+      for(int i = 0;i< 256 ;i++)
+      {
+        for(int j =i+1;j<256;j++)
+        {
+          if(bp_node->records[i].partial == bp_node->records[j].partial)
+          {
+            repeat_partial = true;
+            break;
+          }
+        }
+        if(repeat_partial) break;
+      }
+  //  }
+  //  else{ //3.5 the buffer is full need to split 
           //首先查看内部节点有没有重复的 有重复的就放到下一级bn 
           //否则转换成一个内部节点
-          if(bhdr.count_1 == 256) //没有重复的 转换成一个内部节点  并且需要顺着往下找  cas header 和父节点的node_type
+          if(!repeat_partial) //没有重复的 转换成一个内部节点  并且需要顺着往下找  cas header 和父节点的node_type
           { auto hdr_buffer = (dsm->get_rbuf(coro_id)).get_header_buffer();
             auto cas_node_type_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
             BufferEntry new_entry(bp);            
@@ -1330,7 +1356,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
             goto insert_finish;
 
           }
-    }
+   // }
   }
 
   //内部节点
