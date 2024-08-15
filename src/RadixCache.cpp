@@ -189,7 +189,7 @@ bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_pt
               ret.pop();
               if(ret.empty())  //已经是最后一个节点了
               {
-                first_buffer = true;
+                first_buffer = 1;
               }
               else{
               cache_entry = ret.top().entry_ptr;//获取上一级的entry  找一个这个buffer在上一级是个啥？ 
