@@ -2000,10 +2000,6 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
   };
 
   bool res=remote_cas();
-  int a;
-  int b;
-  int c;
-  c= a+b;
 
   return res;
 
