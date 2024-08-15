@@ -716,8 +716,8 @@ cnt ++;
   int debug_cnt = 0;
   int parent_type = 0; //0 ->internal 1->buffer
   int parent_parent_type = -1;
-  int buffer_from_cache_flag = 0;
-  int first_buffer = 0;
+  bool buffer_from_cache_flag = 0;
+  bool first_buffer = 0;
  
 
 
@@ -748,7 +748,7 @@ cnt ++;
         node_ptr = cache_entry_parent->addr;
       }
 
-      buffer_from_cache_flag = 1;
+      buffer_from_cache_flag = true;
     }
     bp.partial = p.partial;
     bp.node_type = p.child_type;
@@ -825,21 +825,21 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     else{
       is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   
       bp_node = (InternalBuffer *)buffer_buffer;
+          //3.1 check partial key
+      if (!is_valid) {  // node deleted || outdated cache entry in cached node
+        if (from_cache) {
+          index_cache->invalidate(entry_ptr_ptr, entry_ptr);
+        }
+        // re-read node entry
+        auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
+        dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
+        p = *(InternalEntry *)entry_buffer;
+        from_cache = false;
+        retry_flag = INVALID_NODE;
+        goto next;
+      }
     }
 
-    //3.1 check partial key
-    if (!is_valid) {  // node deleted || outdated cache entry in cached node
-      if (from_cache) {
-        index_cache->invalidate(entry_ptr_ptr, entry_ptr);
-      }
-      // re-read node entry
-      auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
-      dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
-      p = *(InternalEntry *)entry_buffer;
-      from_cache = false;
-      retry_flag = INVALID_NODE;
-      goto next;
-    }
     bhdr=bp_node->hdr;
     if (depth == bhdr.depth) {
       index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
@@ -908,6 +908,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
           dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(BufferEntry), cxt);
           p = *(InternalEntry *)entry_buffer;
           from_cache = false;
+          buffer_from_cache_flag = false;
           goto next;
         }
         for(int i =0;i<leaf_cnt;i++)
@@ -1162,20 +1163,21 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     else{
       is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   
       bp_node = (InternalBuffer *)buffer_buffer;
-    } 
-    //3.1 check partial key
-    if (!is_valid) {  // node deleted || outdated cache entry in cached node
-      if (from_cache) {
-        index_cache->invalidate(entry_ptr_ptr, entry_ptr);
+          //3.1 check partial key
+      if (!is_valid) {  // node deleted || outdated cache entry in cached node
+        if (from_cache) {
+          index_cache->invalidate(entry_ptr_ptr, entry_ptr);
+        }
+        // re-read node entry
+        auto entry_buffer = (dsm->get_rbuf(coro_id)).get_buffer_entry_buffer();
+        dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
+        bp = *(BufferEntry *)entry_buffer;
+        from_cache = false;
+        retry_flag = INVALID_NODE;
+        goto next;
       }
-      // re-read node entry
-      auto entry_buffer = (dsm->get_rbuf(coro_id)).get_buffer_entry_buffer();
-      dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
-      bp = *(BufferEntry *)entry_buffer;
-      from_cache = false;
-      retry_flag = INVALID_NODE;
-      goto next;
-    }
+    } 
+
     bhdr=bp_node->hdr;
     if (depth == hdr.depth) {
     index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
@@ -1243,6 +1245,8 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
           auto entry_buffer = (dsm->get_rbuf(coro_id)).get_buffer_entry_buffer();
           dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(BufferEntry), cxt);
           bp = *(BufferEntry *)entry_buffer;
+          from_cache = false;
+          buffer_from_cache_flag = false;
           goto next;
         }
         for(int i =0;i<leaf_cnt;i++)
