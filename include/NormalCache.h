@@ -24,9 +24,18 @@ struct CacheEntry {
   CacheEntry() {}
   CacheEntry(const InternalPage* p_node, int node_type, const GlobalAddress& addr) :
              depth(p_node->hdr.depth + p_node->hdr.partial_len), node_type(node_type), addr(addr){
-    for (int i = 0; i < node_type_to_num(p_node->hdr.type()); ++ i) {
-      const auto& e = p_node->records[i];
-      records.push_back(e);
+    if(node_type == 0)
+    {
+      for (int i = 0; i < node_type_to_num(p_node->hdr.type()); ++ i) {
+        const auto& e = p_node->records[i];
+        records.push_back(e);
+    }
+    }
+    else{
+      for (int i = 0; i < 256; ++ i) {
+        const auto& e = p_node->records[i];
+        records.push_back(e);
+    }
     }
   }
 

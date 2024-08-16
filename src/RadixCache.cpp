@@ -24,10 +24,10 @@ void RadixCache::clear() {
 void RadixCache::add_to_cache(const Key& k, int node_type, const InternalPage* p_node, const GlobalAddress &node_addr) {
 
   auto depth = p_node->hdr.depth - 1;
-  if (depth == 0) return;
+  if (depth == 0) return;   //如果是基数树根节点指向的第一个内部节点不放在cache？
 
-  std::vector<uint8_t> byte_array(k.begin(), k.begin() + depth);
-  for (int i = 0; i < (int)p_node->hdr.partial_len; ++ i) byte_array.push_back(p_node->hdr.partial[i]);
+  std::vector<uint8_t> byte_array(k.begin(), k.begin() + depth);  //存到这个深度的所有字节
+  for (int i = 0; i < (int)p_node->hdr.partial_len; ++ i) byte_array.push_back(p_node->hdr.partial[i]);  //再存下新的内部节点的partialkey  也就是 byte_arry里面存放由根节点到这个内部节点的所有键（包括内部节点本身的部分键）
 
   auto new_entry = new CacheEntry(p_node,node_type,node_addr);
   _insert(byte_array, new_entry);
@@ -49,7 +49,7 @@ void RadixCache::_insert(const std::vector<uint8_t>& byte_array, CacheEntry* new
 next:
   // 1. parse header
   auto hdr = (CacheHeader *)node->header;
-  for (int i = 0; i < (int)hdr->partial.size(); ++ i) {
+  for (int i = 0; i < (int)hdr->partial.size(); ++ i) {   //要进行分裂   也是新建一个cache node
     auto cur_partial = byte_array[hdr->depth + i];
     if (hdr->depth + i == (int)byte_array.size() - 1 || cur_partial != hdr->partial[i]) {
       // split
@@ -96,7 +96,7 @@ next:
       return;
     }
   }
-  idx = hdr->depth + hdr->partial.size();
+  idx = hdr->depth + hdr->partial.size();  //和depth功能一致
 
   // 2. parse_node
   auto& cache_map = node->records;
