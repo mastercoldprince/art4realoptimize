@@ -1013,12 +1013,12 @@ public:
       {
         records[i] = bnode.records[i];
       }
-      if(this->rev_ptr == 0) printf("0001! \n");
+      if(this->rev_ptr.val == 0) printf("0001! \n");
     }
 
   InternalBuffer(const Key &k, int partial_len, int depth, int count_1,int count_2, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), hdr(k, partial_len, depth, count_1,count_2) {
     std::fill(records, records + 256, BufferEntry::Null());
-    if(this->rev_ptr == 0) printf("0002! \n");
+    if(this->rev_ptr.val == 0) printf("0002! \n");
   }
   InternalBuffer(int depth,std::vector<InternalEntry> records)
   {
