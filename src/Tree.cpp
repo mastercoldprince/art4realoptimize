@@ -2306,7 +2306,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   auto b_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
  //   printf("buffer node buffer:  %d\n",b_buffer);
   if(node_addrs[0].val == 0) printf("0003!\n");
-  InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,2,depth,1,0,);  // 暂时定初始2B作为partial key buffer地址
+  InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,2,depth,1,0,node_addrs[0]);  // 暂时定初始2B作为partial key buffer地址
 
   buffernode->records[0] = BufferEntry(0,get_partial(k, depth + 2 + 1),1,leaf_type,leaf_addr);
   
