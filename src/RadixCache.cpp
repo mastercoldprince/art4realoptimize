@@ -208,6 +208,7 @@ bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, Cac
               }
               else{
               cache_entry = ret.top().entry_ptr;//获取上一级的entry  找一个这个buffer在上一级是个啥？ 
+              if(cache_entry == 0) return false;
               parent_parent_type = cache_entry->node_type;
               cache_entry_parent = cache_entry;
               uint8_t partial = k.at(ret.top().next_idx);
