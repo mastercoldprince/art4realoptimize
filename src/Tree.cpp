@@ -847,7 +847,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     }
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂   新建一个共同前缀的内部节点
-    if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {
+    if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {     //bug
       //3.2 partial key not match, need split
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
       int partial_len = bhdr.depth + i - depth;  // hdr.depth may be outdated, so use partial_len wrt. depth
@@ -873,9 +873,9 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     GlobalAddress leaves_ptr[256];
     int leaf_cnt = 0;
     //3.3 search an exists slot first 
-    for(int i=0;i < 256;i++)
+    for(int i=0;i < 256;i++)   //bp node 全空？
     {
-      if(bp_node->records[i].partial == partial )
+      if(bp_node->records[i] != BufferEntry::Null()&&bp_node->records[i].partial == partial )
       {
         if(bp_node->records[i].node_type == 1 || bp_node->records[i].node_type == 2)   //是一个缓冲节点 或者内部节点 继续往下找 
         {
@@ -890,7 +890,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
         {
           leaf_addrs[leaf_cnt] = bp_node->records[i].addr();
           leaves_ptr[leaf_cnt]  = GADD(p.addr(), sizeof(GlobalAddress)+sizeof(BufferHeader) + i*sizeof(BufferEntry));
-          leaf_cnt ++;
+          leaf_cnt ++;   
         }
       }
     }
