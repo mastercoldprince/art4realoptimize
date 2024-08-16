@@ -23,6 +23,11 @@ void RadixCache::add_to_cache(const Key& k, const InternalPage* p_node, const Gl
   for (int i = 0; i < (int)p_node->hdr.partial_len; ++ i) byte_array.push_back(p_node->hdr.partial[i]);  //再存下新的内部节点的partialkey  也就是 byte_arry里面存放由根节点到这个内部节点的所有键（包括内部节点本身的部分键）
 
   auto new_entry = new CacheEntry(p_node,node_type,node_addr);
+  if (new_entry == 0)
+  {
+    printf("000 1!\n");
+  }
+  
   _insert(byte_array, new_entry);
 #ifndef CACHE_ENABLE_ART
   free_manager->consume(sizeof(Key));  // emulate hash-based cache
@@ -241,7 +246,6 @@ next:
   CacheMap::const_iterator r_entry = cache_map.find(partial);  //直接map过去的
   if (r_entry != cache_map.end()) {
     auto cache_entry = (CacheEntry *)r_entry->second.cache_entry;
-    if(cache_entry == 0) printf("00!\n");
     // ret.push(std::make_pair(std::make_pair(&(r_entry->second.cache_entry), cache_entry), idx + 1));
     ret.push(SearchRet(&(r_entry->second.cache_entry), cache_entry, idx + 1));//存下来的是CacheEntry  相当于存下来了一整个内部节点或者缓冲节点
     node = (CacheNode *)(r_entry->second.next);  //看下一层还能不能继续往下 应该是在插入函数修改的  next应该指向的是和该内部节点所指向的所有内部节点
