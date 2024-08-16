@@ -163,6 +163,7 @@ bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_pt
   if(_search(byte_array, ret)) {
     while(!ret.empty()) {
       const auto& item = ret.top();    //已经是最接近叶节点的一个缓冲节点了    一定是一个缓冲节点？   不一定 可能失效 
+      if(item.entry_ptr == 0) return false;
       auto cache_entry = item.entry_ptr;
       auto next_partial = k.at(item.next_idx);
       if (cache_entry) {
