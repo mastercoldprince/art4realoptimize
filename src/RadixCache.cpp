@@ -121,7 +121,7 @@ next:
     return;
   }
   // 2.2 internal level
-  else {
+  else {    //一直要找到最下面一层的节点
     auto& node_entry = cache_map[partial];
     if (node_entry.next == nullptr) {
       auto next_node = new CacheNode(byte_array, idx + 1, new_entry);
@@ -251,6 +251,7 @@ next:
   CacheMap::const_iterator r_entry = cache_map.find(partial);  //直接map过去的
   if (r_entry != cache_map.end()) {
     auto cache_entry = (CacheEntry *)r_entry->second.cache_entry;
+    if(cache_entry == 0) printf("00!\n");
     // ret.push(std::make_pair(std::make_pair(&(r_entry->second.cache_entry), cache_entry), idx + 1));
     ret.push(SearchRet(&(r_entry->second.cache_entry), cache_entry, idx + 1));//存下来的是CacheEntry  相当于存下来了一整个内部节点或者缓冲节点
     node = (CacheNode *)(r_entry->second.next);  //看下一层还能不能继续往下 应该是在插入函数修改的  next应该指向的是和该内部节点所指向的所有内部节点
