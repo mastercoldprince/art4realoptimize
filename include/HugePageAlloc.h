@@ -8,6 +8,8 @@
 
 #include <sys/mman.h>
 #include <memory.h>
+#include <errno.h>
+#include <stdio.h>
 
 
 char *getIP();
@@ -17,6 +19,7 @@ inline void *hugePageAlloc(size_t size) {
                      MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
     if (res == MAP_FAILED) {
         Debug::notifyError("%s mmap failed!\n", getIP());
+        fprintf(stderr, "mmap failed: %s\n", strerror(errno));
     }
 
     return res;
