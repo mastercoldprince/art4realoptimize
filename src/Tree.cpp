@@ -1432,7 +1432,7 @@ re_switch:
     goto re_switch;
   }
 }
-//新建很多个缓冲节点 有重复的往里面放
+//新建很多个缓冲节点 有重复的往里面放  
 bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,InternalBuffer bnode,int leaf_type,int klen,int vlen,GlobalAddress leaf_addr,CacheEntry**&entry_ptr_ptr,CacheEntry*& entry_ptr,bool from_cache,GlobalAddress e_ptr, CoroContext *cxt, int coro_id) {
   //先获取锁 再修改 否则不修改
   static const uint64_t lock_cas_offset = ROUND_DOWN(STRUCT_OFFSET(InternalBuffer, lock_byte), 3);  //8B对齐
@@ -1522,7 +1522,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
       new_bnodes[i]->records[bnodes_entry_index[i][0]].leaf_type = leaf_type;
       new_bnodes[i]->records[bnodes_entry_index[i][0]].node_type = 0;
       new_bnodes[i]->records[bnodes_entry_index[i][0]].prefix_type = 0;
-      new (leaf_buffer) Leaf_kv(bnode_addrs[i],leaf_type,klen,vlen,k,v);
+      new (leaf_buffer) Leaf_kv(GADD(bnode_addrs[i],sizeof(GlobalAddress)+sizeof(BufferHeader)+bnodes_entry_index[i][0]*sizeof(BufferEntry)),leaf_type,klen,vlen,k,v);   //修改  叶节点的反向指针应该指向槽的地址 
       bnodes_entry_index[i][0] ++;
     }
     leaf_cnt -= bnodes_entry_index[i][0];
@@ -1601,7 +1601,7 @@ bool Tree::insert_behind(const Key &k, Value &v, int depth, GlobalAddress& leaf_
     GlobalAddress b_addr;
     b_addr = dsm->alloc(sizeof(InternalBuffer));
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaf_buffer();
-    new (leaf_buffer) Leaf_kv(b_addr,leaf_type,klen,vlen,k, v);
+    new (leaf_buffer) Leaf_kv(GADD(b_addr,sizeof(GlobalAddress)+sizeof(BufferHeader)),leaf_type,klen,vlen,k, v);
     leaf_addr = dsm->alloc(sizeof(Leaf_kv));
     auto b_buffer=(dsm->get_rbuf(coro_id)).get_buffer_buffer();
    // if(GADD(node_addr, slot_id * sizeof(InternalEntry)).val == 0) printf("0001!\n");
@@ -1931,7 +1931,7 @@ next:
         if(partial ==  bp_node->records[i].partial && (bp_node->records[i].node_type == 1 || bp_node->records[i].node_type == 2))  
         {
           parent_type = 1;
-          bp = bp_node->records[i];  //修改 
+          bp = bp_node->records[i];  
           p_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(BufferEntry));
           depth ++;
           goto next; 
@@ -2130,7 +2130,7 @@ else{   //parent是一个buffernode
         if(partial ==  bp_node->records[i].partial && (bp_node->records[i].node_type == 1 || bp_node->records[i].node_type == 2))  
         {
           parent_type = 1;
-          bp = bp_node->records[i];  //修改 
+          bp = bp_node->records[i];  
           leaves_ptr[i] = GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(BufferEntry));
           depth ++;
           goto next; 
