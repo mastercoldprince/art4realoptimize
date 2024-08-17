@@ -1019,7 +1019,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
 
 //新建一个内部节点、缓冲节点和叶节点
 bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len,uint8_t diff_partial,
-                                   const GlobalAddress &e_ptr, const InternalEntry &old_e, const GlobalAddress& node_addr,
+                                   const GlobalAddress &e_ptr, const InternalEntry &old_e,const GlobalAddress& node_addr,
                                    uint64_t *ret_buffer, CoroContext *cxt, int coro_id) {                               
   int new_node_num = partial_len / (define::hPartialLenMax + 1) + 1;
   auto leaf_unwrite = (leaf_addr == GlobalAddress::Null());
@@ -1077,6 +1077,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   
   // init the parent entry
   auto new_e = InternalEntry(old_e.partial,2,nodes_type, node_addrs[0]);
+  auto new_hdr = BufferHeader(old_hdr,)
   auto page_size = sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(nodes_type) * sizeof(InternalEntry);
 
   // batch_write nodes (doorbell batching)
@@ -1119,7 +1120,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
 // #endif
   if (!res) reclaim_memory();
 
-  // cas the updated rev_ptr inside old leaf / old node
+  // cas the updated rev_ptr and depth inside buffer node 
   if (res) {
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
     dsm->cas(old_e.addr(), e_ptr, GADD(node_addrs[new_node_num - 1], sizeof(GlobalAddress) + sizeof(Header)), cas_buffer, false, cxt);
