@@ -778,7 +778,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     GlobalAddress b_addr;
     b_addr = dsm->alloc(sizeof(InternalBuffer));
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaf_buffer();
-    new (leaf_buffer) Leaf_kv(b_addr,leaf_type,klen,vlen,k, v);
+    new (leaf_buffer) Leaf_kv(GADD(b_addr,sizeof(GlobalAddress)+sizeof(BufferHeader)),leaf_type,klen,vlen,k, v);
     leaf_addr = dsm->alloc(sizeof(Leaf_kv));
     auto b_buffer=(dsm->get_rbuf(coro_id)).get_buffer_buffer();
    // if(p.addr().val == 0)printf("0002!\n");
@@ -1129,13 +1129,6 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   }
 }
 else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲节点头部分裂 4.缓冲节点满了 结构化修改 
-
-
-
-
-
-
-
 
   if (bp == BufferEntry::Null()) {      //直接写 写了cas  
 
@@ -1525,7 +1518,7 @@ re_read:
 
 
 
-bool Tree::read_leaves(GlobalAddress* leaf_addrs, char *leaf_buffer,int leaf_cnt, GlobalAddress* p_ptr, bool from_cache,CoroContext *cxt, int coro_id) {  //read_batch
+bool Tree::read_leaves(GlobalAddress* leaf_addrs, char *leaf_buffer,int leaf_cnt, GlobalAddress* p_ptr, bool from_cache,CoroContext *cxt, int coro_id) {  //read_batch  !!!问题在哪里！
   try_read_leaf[dsm->getMyThreadID()] ++;
 re_read:
   std::memset(leaf_buffer, 0, leaf_cnt*sizeof(Leaf_kv));
@@ -2672,7 +2665,7 @@ re_switch:
     goto re_switch;
   }
 }
-//新建很多个缓冲节点 有重复的往里面放
+//新建很多个缓冲节点 有重复的往里面放  
 bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,InternalBuffer bnode,int leaf_type,int klen,int vlen,GlobalAddress leaf_addr,CacheEntry**&entry_ptr_ptr,CacheEntry*& entry_ptr,bool from_cache,GlobalAddress e_ptr, CoroContext *cxt, int coro_id) {
   //先获取锁 再修改 否则不修改
   static const uint64_t lock_cas_offset = ROUND_DOWN(STRUCT_OFFSET(InternalBuffer, lock_byte), 3);  //8B对齐
@@ -2762,7 +2755,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
       new_bnodes[i]->records[bnodes_entry_index[i][0]].leaf_type = leaf_type;
       new_bnodes[i]->records[bnodes_entry_index[i][0]].node_type = 0;
       new_bnodes[i]->records[bnodes_entry_index[i][0]].prefix_type = 0;
-      new (leaf_buffer) Leaf_kv(bnode_addrs[i],leaf_type,klen,vlen,k,v);
+      new (leaf_buffer) Leaf_kv(GADD(bnode_addrs[i],sizeof(GlobalAddress)+sizeof(BufferHeader)+bnodes_entry_index[i][0]*sizeof(BufferEntry)),leaf_type,klen,vlen,k,v);   //修改  叶节点的反向指针应该指向槽的地址 
       bnodes_entry_index[i][0] ++;
     }
     leaf_cnt -= bnodes_entry_index[i][0];
@@ -2841,7 +2834,7 @@ bool Tree::insert_behind(const Key &k, Value &v, int depth, GlobalAddress& leaf_
     GlobalAddress b_addr;
     b_addr = dsm->alloc(sizeof(InternalBuffer));
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaf_buffer();
-    new (leaf_buffer) Leaf_kv(b_addr,leaf_type,klen,vlen,k, v);
+    new (leaf_buffer) Leaf_kv(GADD(b_addr,sizeof(GlobalAddress)+sizeof(BufferHeader)),leaf_type,klen,vlen,k, v);
     leaf_addr = dsm->alloc(sizeof(Leaf_kv));
     auto b_buffer=(dsm->get_rbuf(coro_id)).get_buffer_buffer();
    // if(GADD(node_addr, slot_id * sizeof(InternalEntry)).val == 0) printf("0001!\n");
@@ -3201,7 +3194,7 @@ next:
         if(partial ==  bp_node->records[i].partial && (bp_node->records[i].node_type == 1 || bp_node->records[i].node_type == 2))  
         {
           parent_type = 1;
-          bp = bp_node->records[i];  //修改 
+          bp = bp_node->records[i];  
           p_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(BufferEntry));
           depth ++;
           goto next; 
@@ -3400,7 +3393,7 @@ else{   //parent是一个buffernode
         if(partial ==  bp_node->records[i].partial && (bp_node->records[i].node_type == 1 || bp_node->records[i].node_type == 2))  
         {
           parent_type = 1;
-          bp = bp_node->records[i];  //修改 
+          bp = bp_node->records[i];  
           leaves_ptr[i] = GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(BufferEntry));
           depth ++;
           goto next; 
