@@ -753,8 +753,6 @@ cnt ++;
     bp.partial = p.partial;
     bp.node_type = p.child_type;
     bp.packed_addr ={p.addr().nodeID, p.addr().offset >> ALLOC_ALLIGN_BIT} ;
-
-
   }
   else {
     p_ptr = root_ptr_ptr;
@@ -2301,7 +2299,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
  // if(node_addrs[0].val == 0) printf("0003!\n");
   InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,2,depth,1,0,node_addrs[0]);  // 暂时定初始2B作为partial key buffer地址
 
-  buffernode->records[0] = BufferEntry(0,get_partial(k, depth + 2 + 1),1,leaf_type,leaf_addr);
+  buffernode->records[0] = BufferEntry(0,get_partial(k, depth + 2 ),1,leaf_type,leaf_addr);
   
   // init the parent entry
   auto new_e = InternalEntry(old_e.partial,2,nodes_type, node_addrs[0]);
@@ -2419,7 +2417,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
   auto b_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
  // if(node_addrs[0].val == 0) printf("0004!\n");
   InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,2,depth ,1,0,node_addrs[0]);  // 暂时定初始2B作为partial key buffer地址
-  buffernode->records[0] = BufferEntry(0,get_partial(k, depth + 2 + 1 ),1,leaf_type,leaf_addr);
+  buffernode->records[0] = BufferEntry(0,get_partial(k, depth + 2  ),1,leaf_type,leaf_addr);
   
   // init the parent entry
   auto new_e = BufferEntry(2,old_e.partial, 1,nodes_type, node_addrs[0]);
