@@ -847,7 +847,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     }
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂   新建一个共同前缀的内部节点
-    if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {     //bug
+    if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {     //
       //3.2 partial key not match, need split
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
       int partial_len = bhdr.depth + i - depth;  // hdr.depth may be outdated, so use partial_len wrt. depth
@@ -939,11 +939,11 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
         {
           if(bp_node->records[i] == BufferEntry::Null()) //If we are at a  buffer  empty and partial key match
           {
-           //depth ++;
+           depth ++;
            old_be = bp_node->records[i];
            be_ptr=GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(BufferEntry));
            auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
-           bool res = out_of_place_write_leaf(k,v,depth +1,leaf_addr,leaf_type ,klen,vlen,be_ptr,old_be,cas_buffer,cxt,coro_id);  //直接写空槽
+           bool res = out_of_place_write_leaf(k,v,depth,leaf_addr,leaf_type ,klen,vlen,be_ptr,old_be,cas_buffer,cxt,coro_id);  //直接写空槽
            if(res) goto insert_finish;
            else {
             auto e = *(BufferEntry*) cas_buffer;
@@ -1281,11 +1281,11 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
         {
           if(bp_node->records[i] == BufferEntry::Null()) //If we are at a  buffer  empty and partial key match
           {
-           //depth ++;
+           depth ++;
            old_be = bp_node->records[i];
            be_ptr=GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(BufferEntry));
            auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
-           bool res = out_of_place_write_leaf(k,v,depth+1,leaf_addr,leaf_type ,klen,vlen,be_ptr,old_be,cas_buffer,cxt,coro_id);
+           bool res = out_of_place_write_leaf(k,v,depth,leaf_addr,leaf_type ,klen,vlen,be_ptr,old_be,cas_buffer,cxt,coro_id);
            if(res) goto insert_finish;
            else {
             auto e = *(BufferEntry*) cas_buffer;
@@ -2012,7 +2012,7 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
   }
 
   // cas entry
-  auto new_e = BufferEntry(0,get_partial(k,depth -1),1,leaf_type,leaf_addr);   //待完善
+  auto new_e = BufferEntry(0,get_partial(k,depth-1),1,leaf_type,leaf_addr);   
 
   auto remote_cas = [=](){
     bool res=dsm->cas_sync(e_ptr, (uint64_t)old_e, (uint64_t)new_e, ret_buffer, cxt);
