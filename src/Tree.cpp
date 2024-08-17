@@ -665,7 +665,7 @@ insert_time[dsm->getMyThreadID()]+=(uint64_t)duration.count();
 
 
 
-void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_update, bool is_load) {   
+void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_update, bool is_load) {
   assert(dsm->is_register());
   int leaf_type=-1;
   int leaf_size =0;
@@ -776,7 +776,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     GlobalAddress b_addr;
     b_addr = dsm->alloc(sizeof(InternalBuffer));
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaf_buffer();
-    new (leaf_buffer) Leaf_kv(GADD(b_addr,sizeof(GlobalAddress)+sizeof(BufferHeader)),leaf_type,klen,vlen,k, v);
+    Leaf_kv *leaf = new (leaf_buffer) Leaf_kv(GADD(b_addr,sizeof(GlobalAddress)+sizeof(BufferHeader)),leaf_type,klen,vlen,k, v);
     leaf_addr = dsm->alloc(sizeof(Leaf_kv));
     auto b_buffer=(dsm->get_rbuf(coro_id)).get_buffer_buffer();
    // if(p.addr().val == 0)printf("0002!\n");
@@ -945,7 +945,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
            if(res) goto insert_finish;
            else {
             auto e = *(BufferEntry*) cas_buffer;
-            if (e.partial == get_partial(k, depth)) {  // same partial keys insert to the same empty slot  再次查找本层 
+            if (e.partial == get_partial(k, depth - 1)) {  // same partial keys insert to the same empty slot  再次查找本层 
               bp = e;
               from_cache = false;
               parent_type = 1;
@@ -2245,7 +2245,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
 
 //新建一个内部节点、缓冲节点和叶节点
 bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len,uint8_t diff_partial,
-                                   const GlobalAddress &e_ptr, const InternalEntry &old_e, const GlobalAddress& node_addr,
+                                   const GlobalAddress &e_ptr, const InternalEntry &old_e,const GlobalAddress& node_addr,
                                    uint64_t *ret_buffer, CoroContext *cxt, int coro_id) {                               
   int new_node_num = partial_len / (define::hPartialLenMax + 1) + 1;
   auto leaf_unwrite = (leaf_addr == GlobalAddress::Null());
@@ -2303,6 +2303,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   
   // init the parent entry
   auto new_e = InternalEntry(old_e.partial,2,nodes_type, node_addrs[0]);
+  auto new_hdr = BufferHeader(old_hdr,)
   auto page_size = sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(nodes_type) * sizeof(InternalEntry);
 
   // batch_write nodes (doorbell batching)
@@ -2345,7 +2346,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
 // #endif
   if (!res) reclaim_memory();
 
-  // cas the updated rev_ptr inside old leaf / old node
+  // cas the updated rev_ptr and depth inside buffer node 
   if (res) {
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
     dsm->cas(old_e.addr(), e_ptr, GADD(node_addrs[new_node_num - 1], sizeof(GlobalAddress) + sizeof(Header)), cas_buffer, false, cxt);
