@@ -738,7 +738,6 @@ cnt ++;
         p = get_root_ptr(cxt, coro_id);
         parent_type = 0;
         depth = 0;
-
       }
       else{
         p_ptr = GADD(cache_entry_parent->addr,sizeof(InternalEntry)*entry_idx);
@@ -747,7 +746,6 @@ cnt ++;
         depth = cache_entry_parent->depth;
         node_ptr = cache_entry_parent->addr;
       }
-
       buffer_from_cache_flag = true;
     }
     bp.partial = p.partial;
@@ -842,6 +840,9 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     bhdr=bp_node->hdr;
     if (depth == bhdr.depth) {
       index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
+    }
+    if  (depth > bhdr.depth) {
+      pritnf("nooooo! 1\n");
     }
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂   新建一个共同前缀的内部节点
@@ -1188,6 +1189,10 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     if (depth == hdr.depth) {
     index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
+    if  (depth > bhdr.depth) {
+      pritnf("nooooo! 2\n");
+    }
+
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂   新建一个共同前缀的内部节点
     if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {
