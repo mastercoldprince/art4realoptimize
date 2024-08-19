@@ -1043,6 +1043,9 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   if (depth == hdr.depth) {
     index_cache->add_to_cache(k, 0,p_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header)));
   }
+  if  (depth > hdr.depth) {
+      printf("nooooo! 2\n");
+    }
 
 
   for (int i = 0; i < hdr.partial_len; ++ i) {
@@ -1190,7 +1193,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
     if  (depth > bhdr.depth) {
-      printf("nooooo! 2\n");
+      printf("nooooo! 3\n");
     }
 
 
@@ -1386,6 +1389,9 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
   if (depth == hdr.depth) {
     index_cache->add_to_cache(k, 0,p_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header)));
   }
+    if  (depth > hdr.depth) {
+      printf("nooooo! 4\n");
+    }
 
 
   for (int i = 0; i < hdr.partial_len; ++ i) {
