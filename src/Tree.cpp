@@ -723,6 +723,7 @@ cnt ++;
 
 
   //search from cache
+  /*
   from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, parent_parent_type,entry_idx,cache_entry_parent,first_buffer);   //check   直接从cache里面找到一个 
   if (from_cache) { // cache hit
     assert(entry_idx >= 0);
@@ -753,11 +754,11 @@ cnt ++;
     bp.node_type = p.child_type;
     bp.packed_addr ={p.addr().nodeID, p.addr().offset >> ALLOC_ALLIGN_BIT} ;
   }
-  else {
+  else {*/
     p_ptr = root_ptr_ptr;
     p = get_root_ptr(cxt, coro_id);
     depth = 0;
-  }
+//  }
 
 
   depth ++;  // partial key in entry is matched
