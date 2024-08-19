@@ -5,6 +5,7 @@
 #include "GlobalAddress.h"
 #include "Key.h"
 
+int internal_cnt =0;
 
 struct PackedGAddr {  // 48-bit, used by node addr/leaf addr (not entry addr)
   uint64_t mn_id     : define::mnIdBit;
@@ -966,9 +967,10 @@ public:
   InternalEntry records[256];
 
 public:
-  InternalPage() { std::fill(records, records + 256, InternalEntry::Null()); }
+  InternalPage() { std::fill(records, records + 256, InternalEntry::Null()); internal_cnt ++;}
   InternalPage(const Key &k, int partial_len, int depth, NodeType node_type, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), hdr(k, partial_len, depth, node_type) {
     std::fill(records, records + 256, InternalEntry::Null());
+    internal_cnt ++;
   }
 
   bool is_valid(const GlobalAddress& p_ptr, int depth, bool from_cache) const { return hdr.type() != NODE_DELETED && hdr.depth <= depth && (!from_cache || p_ptr == rev_ptr); }
