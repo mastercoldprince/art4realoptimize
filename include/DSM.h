@@ -12,7 +12,7 @@
 #include "RdmaBuffer.h"
 #include "Common.h"
 
-
+GlobalAddress adr;
 class DSMKeeper;
 class Directory;
 
@@ -254,6 +254,8 @@ inline GlobalAddress DSM::alloc(size_t size, bool align) {
     // retry
     addr = local_allocator.malloc(size, need_chunk, align);
   }
+  adr = addr;
+
   return addr;
 }
 
