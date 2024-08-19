@@ -87,6 +87,7 @@ thread_local CoroCall Tree::worker[MAX_CORO_NUM];
 thread_local CoroCall Tree::master;
 thread_local CoroQueue Tree::busy_waiting_queue;
 int cnt = 0;
+extern int internal_cnt;
 
 
 Tree::Tree(DSM *dsm, uint16_t tree_id) : dsm(dsm), tree_id(tree_id) {
@@ -1043,10 +1044,6 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   if (depth == hdr.depth) {
     index_cache->add_to_cache(k, 0,p_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header)));
   }
-  if  (depth > hdr.depth) {
-      printf("nooooo! 2\n");
-    }
-
 
   for (int i = 0; i < hdr.partial_len; ++ i) {
     if (get_partial(k, hdr.depth + i) != hdr.partial[i]) {
@@ -1191,9 +1188,6 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     bhdr=bp_node->hdr;
     if (depth == hdr.depth) {
     index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
-    }
-    if  (depth > bhdr.depth) {
-      printf("nooooo! 3\n");
     }
 
 
@@ -1389,9 +1383,6 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
   if (depth == hdr.depth) {
     index_cache->add_to_cache(k, 0,p_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header)));
   }
-    if  (depth > hdr.depth) {
-      printf("nooooo! 4\n");
-    }
 
 
   for (int i = 0; i < hdr.partial_len; ++ i) {
