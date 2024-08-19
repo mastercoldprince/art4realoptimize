@@ -842,7 +842,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
     if  (depth > bhdr.depth) {
-      pritnf("nooooo! 1\n");
+      printf("nooooo! 1\n");
     }
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂   新建一个共同前缀的内部节点
@@ -1190,7 +1190,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
     if  (depth > bhdr.depth) {
-      pritnf("nooooo! 2\n");
+      printf("nooooo! 2\n");
     }
 
 
@@ -2308,7 +2308,6 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   
   // init the parent entry
   auto new_e = InternalEntry(old_e.partial,2,nodes_type, node_addrs[0]);
-  auto new_hdr = BufferHeader(old_hdr,)
   auto page_size = sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(nodes_type) * sizeof(InternalEntry);
 
   // batch_write nodes (doorbell batching)
