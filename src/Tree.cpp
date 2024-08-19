@@ -35,7 +35,7 @@ thread_local CoroCall Tree::worker[MAX_CORO_NUM];
 thread_local CoroCall Tree::master;
 thread_local CoroQueue Tree::busy_waiting_queue;
 int cnt = 0;
-extern int internal_cnt;
+
 
 
 Tree::Tree(DSM *dsm, uint16_t tree_id) : dsm(dsm), tree_id(tree_id) {
