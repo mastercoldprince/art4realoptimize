@@ -572,8 +572,7 @@ std::pair<bool, bool> DSM::two_cas_mask_sync(RdmaOpRegion &cas_ror_1, uint64_t e
 
 void DSM::cas(GlobalAddress gaddr, uint64_t equal, uint64_t val,
               uint64_t *rdma_buffer, bool signal, CoroContext *ctx) {
-  if(gaddr.val == 1100519309312 && ( (val & 0x1F )==5 )) printf("its me!!!!!");
-//  if(gaddr.val == 549755813888 ) printf("its me!!!!!\n");
+
   if (ctx == nullptr) {
     rdmaCompareAndSwap(iCon->data[0][gaddr.nodeID], (uint64_t)rdma_buffer,
                        remoteInfo[gaddr.nodeID].dsmBase + gaddr.offset, equal,
