@@ -14,7 +14,7 @@ inline int get_2B_partial(const std::vector<Key> keys, int depth) {   //key ไป็
       return 0;
   }
   // Initialize the common prefix length to the maximum possible length
-  int common_prefix_length = keys[0].size() - depth;
+  int common_prefix_length = 0;
 
   // Compare each character starting from depth
   for (int i = depth; i <(int) keys[0].size(); ++i) {
