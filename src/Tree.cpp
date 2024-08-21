@@ -919,7 +919,10 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
           auto _k = leaf->get_key();
 
           // 2.3 Check if it is the key we search
-          if (_k == k) {
+          if (_k == k) {    //叶节点不相等咋办  不相等在后面找空位插入
+            if (is_load) {
+               goto insert_finish;
+                }
               in_place_update_leaf(k,v,leaf_addrs[i],leaf_type,leaf,cxt,coro_id);   
               goto insert_finish;
           }
@@ -942,7 +945,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
           {
            depth ++;
            old_be = bp_node->records[i];
-           be_ptr=GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(BufferEntry));
+           be_ptr=GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader) + i * sizeof(BufferEntry));
            auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
            bool res = out_of_place_write_leaf(k,v,depth,leaf_addr,leaf_type ,klen,vlen,be_ptr,old_be,cas_buffer,cxt,coro_id);  //直接写空槽
            if(res) goto insert_finish;
@@ -2021,7 +2024,7 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
   auto new_e = BufferEntry(0,get_partial(k,depth-1),1,leaf_type,leaf_addr);   
 
   auto remote_cas = [=](){
-    bool res=dsm->cas_sync(e_ptr, (uint64_t)old_e, (uint64_t)new_e, ret_buffer, cxt);
+    bool res=dsm->cas_sync(e_ptr, (uint64_t)old_e, (uint64_t)new_e, ret_buffer, cxt); //传参问题啊啊啊啊啊！
     return res;
   };
 
