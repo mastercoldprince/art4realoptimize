@@ -1220,7 +1220,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
     rs[new_node_num + 1].size       = sizeof(Leaf_kv);
     rs[new_node_num + 1].is_on_chip = false;
   }
-  dsm->write_batches_sync(rs, (leaf_unwrite ? new_node_num + 2 : new_node_num), cxt, coro_id);
+  dsm->write_batches_sync(rs, (leaf_unwrite ? new_node_num + 2 : new_node_num +1), cxt, coro_id);
 
   // cas
   auto remote_cas = [=](){
