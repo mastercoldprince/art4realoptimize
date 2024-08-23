@@ -26,6 +26,7 @@ inline int get_2B_partial(const std::vector<Key> keys, int depth) {   //key ไป็
           }
       }
   }
+  printf("length %d\n",common_prefix_length);
   return common_prefix_length<2? common_prefix_length:2;
 }
 
