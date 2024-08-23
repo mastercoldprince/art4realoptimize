@@ -1549,6 +1549,7 @@ re_read:
     for(int i =0;i<leaf_cnt;i++)
     {
       auto leaf = (Leaf_kv *)leaf_buffer + i*define::allocAlignKVLeafSize;
+      printf("leaf key is %d\n",(int)key2int(leaf->key));
       if (!from_cache && leaf->rev_ptr != p_ptr[i]) {
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
       dsm->cas(leaf_addrs[i], leaf->rev_ptr, p_ptr[i], cas_buffer, false, cxt);
@@ -1559,7 +1560,7 @@ re_read:
       leaf_cache_invalid[dsm->getMyThreadID()] ++;
       return false;
       }
-      if (!leaf->is_consistent()) {
+      if (!leaf->is_consistent()) {   //判断校验和的时候 ？？？  
       read_leaf_retry[dsm->getMyThreadID()] ++;
       goto re_read;
       }
