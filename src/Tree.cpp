@@ -1534,7 +1534,7 @@ re_read:
     std::vector<RdmaOpRegion> rs;
     Leaf_kv * leaf;
     // 2.3.1 read the leaf
-    auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaves_buffer(leaf_cnt); 
+//    auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaves_buffer(leaf_cnt); 
     for(int i =0;i<leaf_cnt;i++)
     {
       RdmaOpRegion r;
