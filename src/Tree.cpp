@@ -2800,7 +2800,9 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
 
   //整一个write_batch  写所有的缓冲节点和叶节点 还有写旧的叶节点
   RdmaOpRegion *rs_write =  new RdmaOpRegion[new_bnode_num + 2];
-  std::fill(rs_write,rs_write+ new_bnode_num + 2,0);
+  for (int i = 0; i < new_bnode_num + 2; ++ i) {
+    rs_write[i]=0;
+  }
   for (int i = 0; i < new_bnode_num; ++ i) {
     rs_write[i].source     = (uint64_t)new_bnodes[i];
     rs_write[i].dest       = bnode_addrs[i];
