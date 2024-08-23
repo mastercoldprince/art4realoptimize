@@ -62,7 +62,7 @@ public:
   bool is_valid(const GlobalAddress& p_ptr, bool from_cache) const { return valid && (!from_cache || p_ptr == rev_ptr); }
   bool is_consistent() const {
     crc_processor.reset();
-    crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(Value));
+    crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
     return crc_processor.checksum() == checksum;
   }
 
