@@ -62,14 +62,14 @@ public:
   bool is_consistent() const 
   {
     crc_processor.reset();
-    crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(Value));
+    crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
     return crc_processor.checksum() == checksum;
   }
 
   void set_consistent() 
   {
     crc_processor.reset();
-    crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(Value));
+    crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
     checksum = crc_processor.checksum();
   }
   void set_value(const Value& val) { value = val; }

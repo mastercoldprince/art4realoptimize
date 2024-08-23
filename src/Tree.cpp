@@ -1550,7 +1550,7 @@ re_read:
 
     for(int i =0;i<leaf_cnt;i++)
     {
-      auto leaf = (Leaf_kv *)leaf_buffer + i*define::allocAlignKVLeafSize;
+      Leaf_kv* leaf = (Leaf_kv *)(leaf_buffer + i*define::allocAlignKVLeafSize);
       printf("leaf key is %d\n",(int)key2int(leaf->key));
       if (!from_cache && leaf->rev_ptr != p_ptr[i]) {
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
