@@ -26,7 +26,7 @@ inline int get_2B_partial(const std::vector<Key> keys, int depth) {   //key ไป็
           }
       }
   }
-  return common_prefix_length;
+  return common_prefix_length<2? common_prefix_length:2;
 }
 
 inline Key get_leftmost(const Key& key, int depth) {
