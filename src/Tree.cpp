@@ -1454,12 +1454,15 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   BufferEntry *new_leaf_be;
   GlobalAddress *bnode_addrs;
   int bnodes_entry_index[256][256];
+  memset(count_index,0,256*256*sizeof(int));
+  memset(bnodes_entry_index,0,256*256*sizeof(int));
 
   for(int i=0; i <256 ;i++)
   {
     count_index[(int)bnode.records[i].partial][0] ++;
     count_index[(int)bnode.records[i].partial][count_index[(int)bnode.records[i].partial][0]] = i;
-    if(count_index[(int)bnode.records[i].partial][0] == 60) printf("the big partial is %d \n",i);
+    if(count_index[(int)bnode.records[i].partial][0] > 1) printf("partial is %d \n",i);
+
   }
 
   for(int i=0; i <256 ;i++)
