@@ -1540,6 +1540,7 @@ re_read:
     for(int i =0;i<leaf_cnt;i++)
     {
       RdmaOpRegion r;
+      memset(&r,0,sizeof(RdmaOpRegion));
       r.source     = (uint64_t)leaf_buffer + i * define::allocAlignKVLeafSize;
       r.dest       = leaf_addrs[i];
       r.size       = sizeof(Leaf_kv);
