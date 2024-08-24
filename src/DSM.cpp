@@ -281,6 +281,7 @@ void DSM::write_batches_sync(RdmaOpRegion *rs, int k, CoroContext *ctx, int coro
   int cnt[MAX_MACHINE];
 
   std::fill(cnt, cnt + MAX_MACHINE, 0);
+  memset(each_rs,0,MAX_MACHINE*kWriteOroMax*sizeof(RdmaOpRegion));
   for (int i = 0; i < k; ++ i) {
     int node_id = GlobalAddress{rs[i].dest}.nodeID;
     each_rs[node_id][cnt[node_id] ++] = rs[i];
