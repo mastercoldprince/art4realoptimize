@@ -1561,20 +1561,20 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   memset(rs_write,0,sizeof(RdmaOpRegion)*(new_bnode_num + 2));
 
   for (int i = 0; i < new_bnode_num; ++ i) {
-    rs_write[i].source     = (uint64_t)(const char*)new_bnodes[i];
+    rs_write[i].source     = (uint64_t)new_bnodes[i];
     rs_write[i].dest       = bnode_addrs[i];
     rs_write[i].size       = sizeof(InternalBuffer);
     rs_write[i].is_on_chip = false;
    // dsm->write((const char*)new_bnodes[i], bnode_addrs[i], sizeof(InternalBuffer), false, cxt);
   }
   {
-    rs_write[new_bnode_num].source     = (uint64_t)(const char*)leaf_buffer;
+    rs_write[new_bnode_num].source     = (uint64_t)leaf_buffer;
     rs_write[new_bnode_num].dest       = leaf_addr;
     rs_write[new_bnode_num].size       = sizeof(Leaf_kv);
     rs_write[new_bnode_num].is_on_chip = false;
   //  dsm->write((const char*)leaf_buffer, leaf_addr, sizeof(Leaf_kv), false, cxt);
 
-    rs_write[new_bnode_num +1].source     = (uint64_t)(const char*)old_bnode_buffer;
+    rs_write[new_bnode_num +1].source     = (uint64_t)old_bnode_buffer;
     rs_write[new_bnode_num +1].dest       = e_ptr;
     rs_write[new_bnode_num +1].size       = sizeof(InternalBuffer);
     rs_write[new_bnode_num +1].is_on_chip = false;
