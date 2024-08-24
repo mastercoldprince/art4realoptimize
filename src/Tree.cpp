@@ -1197,7 +1197,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
     if (depth > hdr.depth) {
-    printf("noo!\n");
+    printf("noo! %d\n",cnt);
     }
 
 
