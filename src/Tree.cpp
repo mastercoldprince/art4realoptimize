@@ -1196,7 +1196,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     if (depth == bhdr.depth) {
     index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
-    if (depth > hdr.depth) {
+    if (depth > bhdr.depth) {
     printf("noo! %d\n",cnt);
     }
 
@@ -1230,7 +1230,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     //3.3 search an exists slot first 
     for(int i=0;i < 256;i++)   // 找当前键是否已经存在  并且是叶子还是buffer   是buffer继续往下层找  是叶子看看重复不 不重复就正常插入本层
     {
-      if(bp_node->records[i].partial == partial )
+      if(bp_node->records[i] != BufferEntry::Null() && bp_node->records[i].partial == partial )
       {
         if(bp_node->records[i].node_type == 1 || bp_node->records[i].node_type == 2) 
         {
