@@ -2706,7 +2706,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   {
     count_index[(int)bnode.records[i].partial][0] ++;
     count_index[(int)bnode.records[i].partial][count_index[(int)bnode.records[i].partial][0]] = i;
-    if(count_index[(int)bnode.records[i].partial][0] > 1) printf("partial is %d \n",i);
+  //  if(count_index[(int)bnode.records[i].partial][0] > 1) printf("partial is %d \n",i);
 
   }
 
@@ -2770,6 +2770,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     if(leaf_flag && bnode.records[bnodes_entry_index[i][1]].partial == new_leaf_partial)
     {
       leaf_key.push_back(k);
+      leaf_cnt++;
       new_bnodes[i]->records[bnodes_entry_index[i][0]].leaf_type = leaf_type;
       new_bnodes[i]->records[bnodes_entry_index[i][0]].node_type = 0;
       new_bnodes[i]->records[bnodes_entry_index[i][0]].prefix_type = 0;
