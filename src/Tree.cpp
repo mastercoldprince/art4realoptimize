@@ -2692,7 +2692,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   thread_local std::vector<RdmaOpRegion> rs;
   int new_bnode_num = 0;
   int leaf_flag = 0; //叶节点的部分键是否重复
-  uint8_t new_leaf_partial = get_partial(k,depth);
+  uint8_t new_leaf_partial = get_partial(k,depth-1);
   BufferEntry *new_leaf_be;
   GlobalAddress *bnode_addrs;
   int bnodes_entry_index[256][256];
@@ -2782,7 +2782,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     new_bnodes[i]->hdr = bhdr;
     for(int j =0;j<bnodes_entry_index[i][0];j++)
     {
-      new_bnodes[i]->records[j].partial = get_partial(leaf_key.at(leaf_cnt),depth + com_par_len + 1);
+      new_bnodes[i]->records[j].partial = get_partial(leaf_key.at(leaf_cnt),depth + com_par_len);
     }
      //修改bufferentry的地址 
     bnode.records[bnodes_entry_index[i][1]].packed_addr={bnode_addrs[i].nodeID, bnode_addrs[i].offset >> ALLOC_ALLIGN_BIT};
