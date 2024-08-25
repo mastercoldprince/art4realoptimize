@@ -855,13 +855,14 @@ public:
     for (int i = diff_idx + 1; i < old_hdr.partial_len; ++ i) new_hdr.partial[i - diff_idx - 1] = old_hdr.partial[i];
     new_hdr.partial_len = old_hdr.partial_len - diff_idx - 1;
     new_hdr.depth = old_hdr.depth + diff_idx + 1;
+    new_hdr.node_type = old_hdr.node_type;
     return new_hdr;
   }
 
   NodeType type() const {
     return static_cast<NodeType>(node_type);
   }
-  static const uint64_t node_type_mask = (((1UL << define::nodeTypeNumBit) - 1) << 8);
+  static const uint64_t node_type_mask = (((1UL << define::nodeTypeNumBit) - 1) << 7);
 } __attribute__((packed));
 
 
@@ -895,7 +896,8 @@ public:
                 partial(partial),node_type(node_type), prefix_type(prefix_type),leaf_type(leaf_type),packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
   BufferEntry(const BufferEntry& e) :
                 partial(e.partial),node_type(e.node_type), prefix_type(e.prefix_type), leaf_type(e.leaf_type),packed_addr(e.packed_addr) {}
-
+  BufferEntry(NodeType node_type, const BufferEntry& e) :
+                partial(e.partial),node_type(static_cast<uint8_t>(node_type)),prefix_type(e.prefix_type),leaf_type(e.leaf_type),packed_addr(e.packed_addr) {}
   operator uint64_t() const { return val; }
 
   static BufferEntry Null() {
