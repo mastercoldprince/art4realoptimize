@@ -845,9 +845,6 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     if (depth == bhdr.depth) {
       index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
-    if  (depth > bhdr.depth) {
-      printf("nooooo! 1\n");
-    }
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂   新建一个共同前缀的内部节点
     if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {     //
@@ -2307,7 +2304,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
     node_pages[new_node_num -1] = new (node_buffer) InternalPage(k, partial_len, depth, nodes_type, rev_ptr);
     depth += partial_len + 1;
     node_pages[new_node_num -1]->records[0] = InternalEntry(diff_partial,old_e);   //节点类型？？？
-    node_pages[new_node_num -1]->records[1] = InternalEntry(get_partial(k,depth),1,bnode_addr);
+    node_pages[new_node_num -1]->records[1] = InternalEntry(get_partial(k,depth -1),1,bnode_addr);
   }
   // init buffer nodes
   auto b_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
@@ -2315,7 +2312,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
  // if(node_addrs[0].val == 0) printf("0003!\n");
   InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,2,depth,1,0,node_addrs[0]);  // 暂时定初始2B作为partial key buffer地址
 
-  buffernode->records[0] = BufferEntry(0,get_partial(k, depth + 2 ),1,leaf_type,leaf_addr);
+  buffernode->records[0] = BufferEntry(0,get_partial(k, depth+2 ),1,leaf_type,leaf_addr);
   
   // init the parent entry
   auto new_e = InternalEntry(old_e.partial,2,nodes_type, node_addrs[0]);
@@ -2426,7 +2423,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
     node_pages[new_node_num -1] = new (node_buffer) InternalPage(k, partial_len, depth, nodes_type, rev_ptr);
     depth += partial_len + 1;
     node_pages[new_node_num -1]->records[0] = InternalEntry(diff_partial,old_e);
-    node_pages[new_node_num -1]->records[1] = InternalEntry(get_partial(k,depth),1,bnode_addr);
+    node_pages[new_node_num -1]->records[1] = InternalEntry(get_partial(k,depth-1),1,bnode_addr);
   }
 
   // init buffer nodes
