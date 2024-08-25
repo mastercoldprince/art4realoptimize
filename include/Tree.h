@@ -112,7 +112,7 @@ private:
   void cas_node_type(NodeType next_type, GlobalAddress p_ptr, InternalEntry p, Header hdr,
                      CoroContext *cxt, int coro_id);
   void cas_node_type_from_buffer(NodeType next_type, GlobalAddress p_ptr, BufferEntry p, Header hdr,
-                         CoroContext *cxt, int coro_id)
+                         CoroContext *cxt, int coro_id);
   void range_query_on_page(InternalPage* page, bool from_cache, int depth,
                            GlobalAddress p_ptr, InternalEntry p,
                            const Key &from, const Key &to, State l_state, State r_state,
