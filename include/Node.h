@@ -856,7 +856,7 @@ public:
   NodeType type() const {
     return static_cast<NodeType>(node_type);
   }
-  static const uint64_t node_type_mask = (((1UL << define::nodeTypeNumBit) - 1) << 7);
+  static const uint64_t node_type_mask = (((1UL << define::nodeTypeNumBit) - 1) << 8);
 } __attribute__((packed));
 
 
