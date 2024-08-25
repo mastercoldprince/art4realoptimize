@@ -1434,6 +1434,76 @@ re_switch:
     goto re_switch;
   }
 }
+void Tree::cas_node_type_from_buffer(NodeType next_type, GlobalAddress p_ptr, BufferEntry p, Header hdr,
+                         CoroContext *cxt, int coro_id) {
+  auto node_addr = p.addr();
+  auto header_addr = GADD(node_addr, sizeof(GlobalAddress));
+  auto cas_buffer_1 = (dsm->get_rbuf(coro_id)).get_cas_buffer();
+  auto cas_buffer_2 = (dsm->get_rbuf(coro_id)).get_cas_buffer();
+  auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
+  std::pair<bool, bool> res = std::make_pair(false, false);
+
+  // batch cas old_entry & node header to change node type
+  auto remote_cas_both = [=, &p_ptr, &p, &hdr](){
+    auto new_e = BufferEntry(next_type, p);
+    RdmaOpRegion rs[2];
+    rs[0].source     = (uint64_t)cas_buffer_1;
+    rs[0].dest       = p_ptr;
+    rs[0].is_on_chip = false;
+    rs[1].source     = (uint64_t)cas_buffer_2;
+    rs[1].dest       = header_addr;
+    rs[1].is_on_chip = false;
+    std::pair<bool, bool> res=dsm->two_cas_mask_sync(rs[0], (uint64_t)p, (uint64_t)new_e, ~0UL,
+                                  rs[1], hdr, Header(next_type), Header::node_type_mask, cxt);
+
+    return res;
+  };
+
+  // only cas old_entry
+  auto remote_cas_entry = [=, &p_ptr, &p](){
+    auto new_e = BufferEntry(next_type, p);
+    return dsm->cas_sync(p_ptr, (uint64_t)p, (uint64_t)new_e, cas_buffer_1, cxt);
+  };
+
+  // only cas node_header
+  auto remote_cas_header = [=, &hdr](){
+    return dsm->cas_mask_sync(header_addr, hdr, Header(next_type), cas_buffer_2, Header::node_type_mask, cxt);
+  };
+
+  // read down to find target entry when split
+  auto read_first_entry = [=, &p_ptr, &p](){
+    p_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header));
+    dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(BufferEntry), cxt);
+    p = *(BufferEntry *)entry_buffer;
+  };
+
+re_switch:
+  auto old_res = res;
+  if (!old_res.first && !old_res.second) {
+    res = remote_cas_both();
+  }
+  else {
+    if (!old_res.first)  res.first  = remote_cas_entry();
+    if (!old_res.second) res.second = remote_cas_header();
+  }
+  if (!res.first) {
+    p = *(BufferEntry *)cas_buffer_1;
+    // handle the conflict when switch & split/delete happen at the same time
+    while (p != BufferEntry::Null() && p.node_type != 1 && p.addr() != node_addr) {
+      read_first_entry();
+      retry_cnt[dsm->getMyThreadID()][SWITCH_FIND_TARGET] ++;
+    }
+    if (p.addr() != node_addr || p.type() >= next_type) res.first = true;  // no need to retry
+  }
+  if (!res.second) {
+    hdr = *(Header *)cas_buffer_2;
+    if (hdr.type() >= next_type) res.second = true;  // no need to retry
+  }
+  if (!res.first || !res.second) {
+    retry_cnt[dsm->getMyThreadID()][SWITCH_RETRY] ++;
+    goto re_switch;
+  }
+}
 //新建很多个缓冲节点 有重复的往里面放  
 bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,InternalBuffer bnode,int leaf_type,int klen,int vlen,GlobalAddress leaf_addr,CacheEntry**&entry_ptr_ptr,CacheEntry*& entry_ptr,bool from_cache,GlobalAddress e_ptr, CoroContext *cxt, int coro_id) {
   //先获取锁 再修改 否则不修改
