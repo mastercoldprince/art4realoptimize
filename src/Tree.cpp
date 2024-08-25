@@ -2075,13 +2075,13 @@ bool Tree::read_node_from_buffer(BufferEntry &p, bool& type_correct, char *node_
   auto& hdr = p_node->hdr;
 
 
-  if (hdr.node_type != p.node_type) {
-    if (hdr.node_type > p.node_type) {  // need to read the rest part
+  if (hdr.node_type != p.leaf_type) {
+    if (hdr.node_type > p.leaf_type) {  // need to read the rest part
       read_node_repair[dsm->getMyThreadID()] ++;
       auto remain_size = (node_type_to_num(hdr.type()) - node_type_to_num(p.type())) * sizeof(InternalEntry);
       dsm->read_sync(node_buffer + read_size, GADD(p.addr(), read_size), remain_size, cxt);
     }
-    p.node_type = hdr.node_type;
+    p.leaf_type = hdr.node_type;
     type_correct = false;
   }
   else type_correct = true ;
