@@ -254,7 +254,7 @@ inline GlobalAddress DSM::alloc(size_t size, bool align) {
     // retry
     addr = local_allocator.malloc(size, need_chunk, align);
   }
-//  if(addr.val == 1101222903808) printf("its me !!! \n");  if p.addr == 这个的时候
+  if(addr.val == 101627314831360) printf("its me !!! \n");  
 
 
   return addr;
