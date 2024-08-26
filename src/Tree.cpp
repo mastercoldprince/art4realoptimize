@@ -2681,7 +2681,10 @@ void Tree::cas_node_type_from_buffer(NodeType next_type, GlobalAddress p_ptr, Bu
   auto cas_buffer_2 = (dsm->get_rbuf(coro_id)).get_cas_buffer();
   auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
   std::pair<bool, bool> res = std::make_pair(false, false);
+  auto new_e = BufferEntry(next_type, p);
 
+  bool res = cas_sync(p_ptr, (uint64_t)p,(uint64_t) new_e,cas_buffer_1,cxt);
+  bool res2 = cas_sync(header_addr, hdr,Header(next_type),cas_buffer_2,cxt);
   // batch cas old_entry & node header to change node type
   auto remote_cas_both = [=, &p_ptr, &p, &hdr](){
     auto new_e = BufferEntry(next_type, p);
