@@ -1223,6 +1223,8 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     auto partial = get_partial(k, depth);
     GlobalAddress leaf_addrs[256];
     GlobalAddress leaves_ptr[256];
+    memset(leaf_addrs,0,256*sizeof(GlobalAddress));
+    memset(leaves_ptr,0,256*sizeof(GlobalAddress));
     int leaf_cnt = 0;
     //3.3 search an exists slot first 
     for(int i=0;i < 256;i++)   // 找当前键是否已经存在  并且是叶子还是buffer   是buffer继续往下层找  是叶子看看重复不 不重复就正常插入本层
