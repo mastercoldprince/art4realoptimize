@@ -891,7 +891,7 @@ public:
   BufferEntry(const BufferEntry& e) :
                 partial(e.partial),node_type(e.node_type), prefix_type(e.prefix_type), leaf_type(e.leaf_type),packed_addr(e.packed_addr) {}
   BufferEntry(NodeType node_type, const BufferEntry& e) :
-                partial(e.partial),node_type(static_cast<uint8_t>(node_type)),prefix_type(e.prefix_type),leaf_type(e.leaf_type),packed_addr(e.packed_addr) {}
+                partial(e.partial),node_type(e.node_type),prefix_type(e.prefix_type),leaf_type(static_cast<uint8_t>(node_type)),packed_addr(e.packed_addr) {}
   operator uint64_t() const { return val; }
 
   static BufferEntry Null() {
