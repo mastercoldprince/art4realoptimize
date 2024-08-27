@@ -1125,7 +1125,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   }
   // 3.4 node is full, switch node type
   int slot_id;
-  cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
+  cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();  //可能存了一样的partial
   if (insert_behind(k, v, depth, leaf_addr,get_partial(k,depth), p.type(),leaf_type,klen, vlen,node_ptr,cas_buffer,slot_id,cxt,coro_id)){  // insert success
     auto next_type = num_to_node_type(slot_id);
     cas_node_type(next_type, p_ptr, p, hdr, cxt, coro_id);
@@ -2330,7 +2330,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
  //   printf("internal node buffer:  %d\n",node_buffer);
     node_pages[new_node_num -1] = new (node_buffer) InternalPage(k, partial_len, depth, nodes_type, rev_ptr);
     depth += partial_len + 1;
-    node_pages[new_node_num -1]->records[0] = InternalEntry(diff_partial,old_e);   //节点类型？？？
+    node_pages[new_node_num -1]->records[0] = InternalEntry(diff_partial,old_e);   
     node_pages[new_node_num -1]->records[1] = InternalEntry(get_partial(k,depth -1),1,bnode_addr);
   }
   // init buffer nodes
