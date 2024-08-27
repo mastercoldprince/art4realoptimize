@@ -840,7 +840,7 @@ public:
     assert((uint32_t)partial_len <= define::hPartialLenMax);
     for (int i = 0; i < partial_len; ++ i) this->partial[i] = partial[i];
   }
-  Header(BufferHeader bhdr) : depth(bhdr.depth),node_type(node_type_to_num(NODE_256)),partial_len(bhdr.partial_len)
+  Header(BufferHeader bhdr) : depth(bhdr.depth),node_type((uint8_t)node_type_to_num(NODE_256)),partial_len(bhdr.partial_len)
   {
     for(int i =0;i<partial_len;i++) partial[i] = bhdr.partial[i];
   }
@@ -947,7 +947,8 @@ public:
   InternalEntry(uint8_t partial, const InternalEntry& e) :
                 partial(partial), child_type(e.child_type), empty(0), node_type(e.node_type),packed_addr(e.packed_addr) {}
   InternalEntry(uint8_t partial, const BufferEntry& e) :
-                partial(e.partial),child_type(e.node_type),packed_addr(e.packed_addr) {}
+                partial(e.partial),child_type(e.node_type),empty(0),node_type(e.leaf_type),packed_addr(e.packed_addr) {}
+  
   operator uint64_t() const { return val; }
 
   static InternalEntry Null() {

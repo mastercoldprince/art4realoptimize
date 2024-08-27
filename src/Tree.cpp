@@ -982,7 +982,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
             auto cas_node_type_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
             InternalEntry new_entry(p);
             new_entry.child_type = 2;
-            new_entry.node_type = node_type_to_num(NODE_256);
+            new_entry.node_type = (uint8_t)node_type_to_num(NODE_256);
             new (hdr_buffer) Header(bhdr); 
             new (cas_node_type_buffer) InternalEntry(new_entry);
 
