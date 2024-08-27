@@ -1066,7 +1066,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
  //   printf("internal node buffer:  %d\n",node_buffer);
     node_pages[new_node_num -1] = new (node_buffer) InternalPage(k, partial_len, depth, nodes_type, rev_ptr);
     depth += partial_len + 1;
-    node_pages[new_node_num -1]->records[0] = InternalEntry(diff_partial,old_e);   //节点类型？？？
+    node_pages[new_node_num -1]->records[0] = InternalEntry(diff_partial,old_e);   
     node_pages[new_node_num -1]->records[1] = InternalEntry(get_partial(k,depth -1),1,bnode_addr);
   }
   // init buffer nodes
