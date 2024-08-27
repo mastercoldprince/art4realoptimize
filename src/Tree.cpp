@@ -999,10 +999,23 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
            // dsm->cas(GADD(p.addr(), sizeof(GlobalAddress)), (uint64_t)bhdr, (uint64_t)new_hdr, hdr_buffer, sizeof(Header), false, cxt);
            // dsm->cas(p_ptr,(uint64_t)p,(uint64_t)new_entry,cas_node_type_buffer,sizeof(InternalEntry), false, cxt);
-           //需要同步吗？？？？？？？？？  
+           //需要同步吗？？？？？？？？？  转换成内部节点之后？
             dsm->two_cas_mask(rs[0],(uint64_t)bhdr,(uint64_t)hdr_buffer,~0UL ,rs[1],(uint64_t)p,(uint64_t)cas_node_type_buffer,~0UL,false,cxt);
             if(from_cache) index_cache->change_node_type(entry_ptr);
-            goto next;
+            for(int i =0 ;i<256;i++)
+            {
+              if(bp_node->records[i] != BufferEntry::Null()&&bp_node->records[i].partial == partial)
+              {
+                p = *(InternalEntry*)&(bp_node->records[i]);
+                p_ptr = GADD(p.addr(), sizeof(GlobalAddress)+sizeof(Header) + i*sizeof(InternalEntry));
+                parent_type = 0;
+                depth ++;
+                from_cache = false; 
+                goto next;
+              }
+            }
+            
+
           }
           else{  //有重复的 需要将重复的拿下来到下一级缓冲节点   depth 已加partial len
           bool res=out_of_place_write_buffer_node(k, v,depth,*bp_node,leaf_type,klen,vlen,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p.addr(), cxt,coro_id);
@@ -1329,7 +1342,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
             auto cas_node_type_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
             BufferEntry new_entry(bp);            
             new_entry.node_type = 2;
-            new_entry.leaf_type = node_type_to_num(NODE_256);
+            new_entry.leaf_type = static_cast<uint8_t>(NODE_256);
             new (hdr_buffer) Header(bhdr);
             new (cas_node_type_buffer) BufferEntry(new_entry);
             
@@ -1348,7 +1361,18 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
            //需要同步吗？？？？？？？？？  
             dsm->two_cas_mask(rs[0],(uint64_t)bhdr,(uint64_t)hdr_buffer,~0UL ,rs[1],(uint64_t)bp,(uint64_t)cas_node_type_buffer,~0UL,false,cxt);
             if(from_cache) index_cache->change_node_type(entry_ptr);
-            goto next;
+            for(int i =0 ;i<256;i++)
+            {
+              if(bp_node->records[i] != BufferEntry::Null()&&bp_node->records[i].partial == partial)
+              {
+                p = *(InternalEntry*)&(bp_node->records[i]);
+                p_ptr = GADD(bp.addr(), sizeof(GlobalAddress)+sizeof(Header) + i*sizeof(InternalEntry));
+                parent_type = 0;
+                depth ++;
+                from_cache = false; 
+                goto next;
+              }
+            }
           }
           else{  //有重复的 需要将重复的拿下来到下一级缓冲节点
           bool res=out_of_place_write_buffer_node(k, v,depth,*bp_node,leaf_type,klen,vlen,leaf_addr,entry_ptr_ptr, entry_ptr,from_cache,bp.addr(), cxt,coro_id);
