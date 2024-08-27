@@ -1001,7 +1001,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
            // dsm->cas(p_ptr,(uint64_t)p,(uint64_t)new_entry,cas_node_type_buffer,sizeof(InternalEntry), false, cxt);
            //需要同步吗？？？？？？？？？  
             dsm->two_cas_mask(rs[0],(uint64_t)bhdr,(uint64_t)hdr_buffer,~0UL ,rs[1],(uint64_t)p,(uint64_t)cas_node_type_buffer,~0UL,false,cxt);
-            index_cache->change_node_type(entry_ptr);
+            if(from_cache) index_cache->change_node_type(entry_ptr);
             goto next;
           }
           else{  //有重复的 需要将重复的拿下来到下一级缓冲节点   depth 已加partial len
@@ -1347,6 +1347,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
            // dsm->cas(p_ptr,(uint64_t)p,(uint64_t)new_entry,cas_node_type_buffer,sizeof(InternalEntry), false, cxt);
            //需要同步吗？？？？？？？？？  
             dsm->two_cas_mask(rs[0],(uint64_t)bhdr,(uint64_t)hdr_buffer,~0UL ,rs[1],(uint64_t)bp,(uint64_t)cas_node_type_buffer,~0UL,false,cxt);
+            if(from_cache) index_cache->change_node_type(entry_ptr);
             goto next;
           }
           else{  //有重复的 需要将重复的拿下来到下一级缓冲节点
