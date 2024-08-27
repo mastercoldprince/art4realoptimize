@@ -961,9 +961,9 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
         }
       }
       bool repeat_partial = false;
-      for(int i = 0;i< 256 ;i++)
+      for(int i = 0;i<256;i++)
       {
-        for(int j =i+1;j<256;j++)
+        for(int j = 0;j<256;j++)
         {
           if(bp_node->records[i].partial == bp_node->records[j].partial)
           {
@@ -1112,6 +1112,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       goto next;  // search next level
     }
   }
+
   // if no match slot, then find an empty slot to insert leaf directly
   for (int i = 0; i < max_num; ++ i) {
     auto old_e = p_node->records[i];
@@ -1323,7 +1324,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       bool repeat_partial = false;
       for(int i = 0;i< 256 ;i++)
       {
-        for(int j =i+1;j<256;j++)
+        for(int j =0;j<256;j++)
         {
           if(bp_node->records[i].partial == bp_node->records[j].partial)
           {
