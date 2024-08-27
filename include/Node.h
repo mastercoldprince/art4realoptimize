@@ -827,7 +827,11 @@ public:
 public:
   Header() : depth(0), node_type(0), partial_len(0) { memset(partial, 0, sizeof(uint8_t) * define::hPartialLenMax); }
   Header(int depth) : depth(depth), node_type(0), partial_len(0) { memset(partial, 0, sizeof(uint8_t) * define::hPartialLenMax); }
-  Header(NodeType node_type) : depth(0), node_type(node_type), partial_len(0) { memset(partial, 0, sizeof(uint8_t) * define::hPartialLenMax); }
+  Header(NodeType node_type,Header hdr) : depth(hdr.depth), node_type(node_type), partial_len(hdr.partial_len)
+   { //memset(partial, 0, sizeof(uint8_t) * define::hPartialLenMax);
+     for(int i =0 ;i<partial_len;i++)
+     partial[i] = hdr.partial[i]; 
+   }
   Header(const Key &k, int partial_len, int depth, NodeType node_type) : depth(depth), node_type(node_type), partial_len(partial_len) {
     assert((uint32_t)partial_len <= define::hPartialLenMax);
     for (int i = 0; i < partial_len; ++ i) partial[i] = get_partial(k, depth + i);
@@ -862,7 +866,7 @@ public:
   NodeType type() const {
     return static_cast<NodeType>(node_type);
   }
-  static const uint64_t node_type_mask = (((1UL << define::nodeTypeNumBit) - 1) << 8);
+  static const uint64_t node_type_mask = (((1UL << define::nodeTypeNumBit) - 1) << 7);
 } __attribute__((packed));
 
 
