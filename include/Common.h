@@ -98,7 +98,7 @@ constexpr uint64_t dsmSize           = 64;        // GB  [CONFIG]
 constexpr uint64_t kChunkSize        = 16 * MB;   // B
 
 // Rdma Buffer
-constexpr uint64_t rdmaBufferSize    = 4;         // GB  [CONFIG]
+constexpr uint64_t rdmaBufferSize    = 6;         // GB  [CONFIG]
 constexpr int64_t kPerThreadRdmaBuf  = rdmaBufferSize * define::GB / MAX_APP_THREAD;
 constexpr int64_t kPerCoroRdmaBuf    = kPerThreadRdmaBuf / MAX_CORO_NUM;
 
