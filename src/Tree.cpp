@@ -776,7 +776,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
     //新建一个缓冲节点 和叶节点 一起写过去 最后cas
     GlobalAddress b_addr;
-    b_addr = dsm->alloc(sizeof(InternalBuffer));
+    b_addr = dsm->alloc(sizeof(InternalBuffer));   
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaf_buffer();
     Leaf_kv *leaf = new (leaf_buffer) Leaf_kv(GADD(b_addr,sizeof(GlobalAddress)+sizeof(BufferHeader)),leaf_type,klen,vlen,k, v);
     leaf_addr = dsm->alloc(sizeof(Leaf_kv));
