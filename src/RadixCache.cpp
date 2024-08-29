@@ -214,9 +214,9 @@ bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, Cac
               uint8_t partial = k.at(ret.top().next_idx);
               for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {  //一个个查看slot
                 const auto& e = cache_entry->records[i];
-                if (e != InternalEntry::Null() && e.partial == partial) { 
+                if (e != BufferEntry::Null()&&e != InternalEntry::Null() && e.partial == partial) { 
                 entry_idx = i;   //返回这个buffer在父节点的下标
-
+                return true;
                 }
               }
               }
@@ -259,7 +259,7 @@ next:
   if (r_entry != cache_map.end()) {
     auto cache_entry = (CacheEntry *)r_entry->second.cache_entry;
     // ret.push(std::make_pair(std::make_pair(&(r_entry->second.cache_entry), cache_entry), idx + 1));
-    ret.push(SearchRet(&(r_entry->second.cache_entry), cache_entry, idx + 1));//存下来的是CacheEntry  相当于存下来了一整个内部节点或者缓冲节点
+    ret.push(SearchRet(&(r_entry->second.cache_entry), cache_entry, idx + 1));//存下来的是CacheEntry  相当于存下来了一整个内部节点或者缓冲节点 idx存的是
     node = (CacheNode *)(r_entry->second.next);  //看下一层还能不能继续往下 应该是在插入函数修改的  next应该指向的是和该内部节点所指向的所有内部节点
     if (node) {
       idx ++;

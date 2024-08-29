@@ -734,7 +734,7 @@ k_v = (int)key2int(k);
     node_ptr = entry_ptr->addr;
     depth = entry_ptr->depth;
     parent_type  = entry_ptr->node_type;
-    if(entry_ptr->node_type == 1)   //如果cache找到的缓冲节点则直接去读吧！！！  后面如果是从cache来的 并且类型就是一个缓冲节点就不用再读一遍了 
+    if(entry_ptr->node_type == 1)   //如果cache找到的缓冲节点则直接去读吧！！！  后面如果是从cache来的 并且类型就是一个缓冲节点就不用再读一遍了 还是再读一次吧、、、
     {
       if(first_buffer) 
       {
@@ -754,6 +754,7 @@ k_v = (int)key2int(k);
     }
     bp.partial = p.partial;
     bp.node_type = p.child_type;
+    bp.leaf_type = p.node_type;
     bp.packed_addr ={p.addr().nodeID, p.addr().offset >> ALLOC_ALLIGN_BIT} ;
   }
   else {
@@ -818,12 +819,13 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     bool is_match;
     auto buffer_buffer =  (dsm->get_rbuf(coro_id)).get_buffer_buffer();
     GlobalAddress addr = p.addr();
-    if(buffer_from_cache_flag)
+//    if(buffer_from_cache_flag)
     {
-      bp_node =new InternalBuffer(entry_ptr->depth,entry_ptr->records);
+//      bp_node =new InternalBuffer(entry_ptr->depth,entry_ptr->records);
       //is_valid？ 本地的节点如何验证 is valid？？   不用验证 ？
     }
-    else{
+//    else
+{
       is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   
       bp_node = (InternalBuffer *)buffer_buffer;
           //3.1 check partial key
@@ -1180,12 +1182,13 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     bool is_match;
     auto buffer_buffer =  (dsm->get_rbuf(coro_id)).get_buffer_buffer();
     GlobalAddress addr = bp.addr();
-    if(buffer_from_cache_flag)
+  //  if(buffer_from_cache_flag)
     {
       bp_node =new InternalBuffer(entry_ptr->depth,entry_ptr->records);
       //is_valid？
     }
-    else{
+   // else
+   {
       is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   
       bp_node = (InternalBuffer *)buffer_buffer;
           //3.1 check partial key
