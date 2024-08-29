@@ -752,10 +752,11 @@ k_v = (int)key2int(k);
       }
       buffer_from_cache_flag = true;
     }
-    bp.partial = p.partial;
-    bp.node_type = p.child_type;
-    bp.leaf_type = p.node_type;
-    bp.packed_addr ={p.addr().nodeID, p.addr().offset >> ALLOC_ALLIGN_BIT} ;
+    bp = *(BufferEntry*)&cache_entry_parent->records[entry_idx];
+  //  bp.partial = p.partial;
+  //  bp.node_type = p.child_type;
+  //  bp.leaf_type = p.node_type;
+  //  bp.packed_addr ={p.addr().nodeID, p.addr().offset >> ALLOC_ALLIGN_BIT} ;
   }
   else {
     p_ptr = root_ptr_ptr;
@@ -801,7 +802,12 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     }
     dsm->write_batches_sync(rs, 2, cxt, coro_id);
     bool res = dsm->cas_sync(p_ptr, (uint64_t)p, (uint64_t)new_e, cas_buffer, cxt);
-    if(res)   index_cache->add_to_cache(k, 1,(InternalPage*)buffer, GADD(b_addr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
+    if(res)
+    {
+      if(buffer->rev_ptr.val == 88841248571392) printf("its meeeeeeeeeeeeeeeeeeeeeeee! %d\n",cnt);
+      index_cache->add_to_cache(k, 1,(InternalPage*)buffer, GADD(b_addr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
+    }
+
     delete[] rs;
 
     // cas fail, retry
@@ -845,6 +851,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
     bhdr=bp_node->hdr;
     if (depth == bhdr.depth) {
+      if(bp_node->rev_ptr.val == 88841248571392) printf("its meeeeeeeeeeeeeeeeeeeeeeee! %d\n",cnt);
       index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
 
@@ -1061,6 +1068,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       index_cache->invalidate(entry_ptr_ptr, entry_ptr);
   }
   if (depth == hdr.depth) {
+
     index_cache->add_to_cache(k, 0,p_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header)));
   }
 
@@ -1208,6 +1216,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
 
     bhdr=bp_node->hdr;
     if (depth == bhdr.depth) {
+            if(bp_node->rev_ptr.val == 88841248571392) printf("its meeeeeeeeeeeeeeeeeeeeeeee! %d\n",cnt);
     index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
     if (depth > bhdr.depth) {
@@ -2399,6 +2408,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
     for (int i = 0; i < new_node_num; ++ i) {
       index_cache->add_to_cache(k, 0,node_pages[i], GADD(node_addrs[i], sizeof(GlobalAddress) + sizeof(Header)));
     }
+          if(buffernode->rev_ptr.val == 88841248571392) printf("its meeeeeeeeeeeeeeeeeeeeeeee! %d\n",cnt);
     index_cache->add_to_cache(k, 1,(InternalPage *)buffernode, GADD(bnode_addr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
   }
 
@@ -2518,6 +2528,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
     for (int i = 0; i < new_node_num; ++ i) {
       index_cache->add_to_cache(k, 0,node_pages[i], GADD(node_addrs[i], sizeof(GlobalAddress) + sizeof(Header)));
     }
+          if(buffernode->rev_ptr.val == 88841248571392) printf("its meeeeeeeeeeeeeeeeeeeeeeee! %d\n",cnt);
     index_cache->add_to_cache(k, 1,(InternalPage *)buffernode, GADD(bnode_addr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
   }
 
@@ -2934,8 +2945,9 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   {
     index_cache->invalidate(entry_ptr_ptr, entry_ptr);
   }
-  index_cache->add_to_cache(k, 1,(InternalPage*)old_bnode, GADD(e_ptr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
+//  index_cache->add_to_cache(k, 1,(InternalPage*)old_bnode, GADD(e_ptr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
   for (int i = 0; i < new_bnode_num; ++ i) {
+          if(new_bnodes[i]->rev_ptr.val == 88841248571392) printf("its meeeeeeeeeeeeeeeeeeeeeeee! %d\n",cnt);
       index_cache->add_to_cache(k,1,(InternalPage*)new_bnodes[i], GADD(bnode_addrs[i], sizeof(GlobalAddress) + sizeof(BufferHeader)));
   }
   return true;
