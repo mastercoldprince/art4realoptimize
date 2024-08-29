@@ -752,7 +752,7 @@ k_v = (int)key2int(k);
       }
       buffer_from_cache_flag = true;
     }
-    bp = *(BufferEntry*)&cache_entry_parent->records[entry_idx];
+    bp = *(BufferEntry*)&p;
   //  bp.partial = p.partial;
   //  bp.node_type = p.child_type;
   //  bp.leaf_type = p.node_type;
