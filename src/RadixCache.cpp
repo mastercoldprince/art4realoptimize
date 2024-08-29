@@ -23,10 +23,6 @@ void RadixCache::add_to_cache(const Key& k, const InternalPage* p_node, const Gl
   for (int i = 0; i < (int)p_node->hdr.partial_len; ++ i) byte_array.push_back(p_node->hdr.partial[i]);  //再存下新的内部节点的partialkey  也就是 byte_arry里面存放由根节点到这个内部节点的所有键（包括内部节点本身的部分键）
 
   auto new_entry = new CacheEntry(p_node,node_type,node_addr);
-  if (new_entry == 0)
-  {
-    printf("000 1!\n");
-  }
   
   _insert(byte_array, new_entry);
 #ifndef CACHE_ENABLE_ART
@@ -181,7 +177,7 @@ bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_pt
           }
 
         }
-        else{          //如果是最接近叶节点的缓冲节点直接返回该缓冲节点  或者返回多个槽？
+        else{       //如果是最接近叶节点的缓冲节点直接返回该缓冲节点  或者返回多个槽？
             for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {  //一个个查看slot
                BufferEntry e = *((BufferEntry*)&cache_entry->records[i]);
             if (e != BufferEntry::Null() && e.partial == next_partial) {       //找到部分键匹配的了  应该返回这个缓冲节点本身 而不是缓冲节点的槽  所以需要在上一个entry里面去找buffer对应的slot的位置  现在是buffer 上一级起码还有一个节点
