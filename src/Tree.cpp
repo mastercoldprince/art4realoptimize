@@ -688,7 +688,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   }
 cnt ++;
 k_v = (int)key2int(k);
-  if(cnt > 22656000)printf("%d thread %d insert kv: %d\n",cnt ,(int)dsm->getMyThreadID( ),(int)key2int(k));
+  if(cnt > 60000000)printf("%d thread %d insert kv: %d\n",cnt ,(int)dsm->getMyThreadID( ),(int)key2int(k));
   // traversal
   GlobalAddress p_ptr;
   InternalEntry p;
@@ -760,7 +760,7 @@ k_v = (int)key2int(k);
     p_ptr = root_ptr_ptr;
     p = get_root_ptr(cxt, coro_id);
     depth = 0;
-//  }
+  }
 
 
   depth ++;  // partial key in entry is matched
