@@ -22,7 +22,7 @@ void RadixCache::clear() {
 }
 
 void RadixCache::add_to_cache(const Key& k, int node_type, const InternalPage* p_node, const GlobalAddress &node_addr) {
-if(p_node->rev_ptr.val == 88841248571392) printf("its meeeeeeeeeeeeeeeeeeeeeeee!\n");
+//if(p_node->rev_ptr.val == 88841248571392) printf("its meeeeeeeeeeeeeeeeeeeeeeee!\n");
   auto depth = p_node->hdr.depth - 1;
   if (depth == 0) return;   //如果是基数树根节点指向的第一个内部节点不放在cache？
 
@@ -229,9 +229,11 @@ bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, Cac
   return false;
 }
 
-bool RadixCache::_search(const CacheKey& byte_array, SearchRetStk& ret) {
+bool RadixCache::_search(const CacheKey& byte_array, SearchRetStk& ret) {  //找到缓冲节点的时候判断一下是不是叶节点 是叶节点就停止啦啦啦
   CacheNode* node = cache_root;
   int idx = 0;  //和depth作用一样
+  CacheEntry* parent = nullptr;
+  bool parent_type = false;  // 是否是缓冲节点
 
 next:
   if (idx >= (int)byte_array.size()) {  // exit
@@ -250,12 +252,21 @@ next:
   // 2. parse_node
   auto& cache_map = node->records;
   auto partial = byte_array[idx];   //共同前缀的后一个字节 
+  if(parent && parent_type) //上一个entry是缓冲节点  看一下再上一层的slot中是不是叶节点 是叶节点直接返回？
+  {
+    for(int i =0;i<(int)parent->records.size();i++)
+    {
+      if(parent->records[i].partial == partial && parent->records[i].node_type == 0) return !ret.empty();
+    }
+  }
 
   CacheMap::const_iterator r_entry = cache_map.find(partial);  //直接map过去的
   if (r_entry != cache_map.end()) {
     auto cache_entry = (CacheEntry *)r_entry->second.cache_entry;
+    parent_type = cache_entry->node_type;
     // ret.push(std::make_pair(std::make_pair(&(r_entry->second.cache_entry), cache_entry), idx + 1));
     ret.push(SearchRet(&(r_entry->second.cache_entry), cache_entry, idx + 1));//存下来的是CacheEntry  相当于存下来了一整个内部节点或者缓冲节点 idx存的是
+    parent=cache_entry;
     node = (CacheNode *)(r_entry->second.next);  //看下一层还能不能继续往下 应该是在插入函数修改的  next应该指向的是和该内部节点所指向的所有内部节点
     if (node) {
       idx ++;
