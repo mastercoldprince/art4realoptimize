@@ -1192,7 +1192,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     GlobalAddress addr = bp.addr();
   //  if(buffer_from_cache_flag)
     {
-      bp_node =new InternalBuffer(entry_ptr->depth,entry_ptr->records);
+    //  bp_node =new InternalBuffer(entry_ptr->depth,entry_ptr->records);
       //is_valid？
     }
    // else
