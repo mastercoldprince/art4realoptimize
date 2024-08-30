@@ -253,6 +253,7 @@ next:
   CacheMap::const_iterator r_entry = cache_map.find(partial);  //直接map过去的
   if (r_entry != cache_map.end()) {
     auto cache_entry = (CacheEntry *)r_entry->second.cache_entry;
+    if(cache_entry == 0) return !ret.empty();
     parent_type = cache_entry->node_type;
     // ret.push(std::make_pair(std::make_pair(&(r_entry->second.cache_entry), cache_entry), idx + 1));
     ret.push(SearchRet(&(r_entry->second.cache_entry), cache_entry, idx + 1));//存下来的是CacheEntry  相当于存下来了一整个内部节点或者缓冲节点 idx存的是
