@@ -63,7 +63,7 @@ public:
   {
     crc_processor.reset();
     crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
-    if(crc_processor.checksum() != checksum) printf("it is % " PRIu64" \n",key2int(key));
+
     return crc_processor.checksum() == checksum;
   }
 
