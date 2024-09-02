@@ -1568,9 +1568,10 @@ re_read:
 
 bool Tree::read_leaves(GlobalAddress* leaf_addrs, char *leaf_buffer,int leaf_cnt, GlobalAddress* p_ptr, bool from_cache,CoroContext *cxt, int coro_id) {  //read_batch  !!!问题在哪里！
   try_read_leaf[dsm->getMyThreadID()] ++;
+  std::vector<RdmaOpRegion> rs;
 re_read:
   std::memset(leaf_buffer, 0, leaf_cnt*sizeof(Leaf_kv));
-    std::vector<RdmaOpRegion> rs;
+  rs.clear();
     Leaf_kv * leaf;
     // 2.3.1 read the leaf
 //    auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaves_buffer(leaf_cnt); 
