@@ -87,7 +87,7 @@ thread_local CoroCall Tree::worker[MAX_CORO_NUM];
 thread_local CoroCall Tree::master;
 thread_local CoroQueue Tree::busy_waiting_queue;
 int cnt = 0;
-int k_v = 0;
+
 
 
 
@@ -687,7 +687,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   else {leaf_type += 4;leaf_size += 1024;}
   }
 cnt ++;
-k_v = (int)key2int(k);
+
   printf("%d thread %d insert kv: %d\n",cnt ,(int)dsm->getMyThreadID( ),(int)key2int(k));
   // traversal
   GlobalAddress p_ptr;
@@ -735,7 +735,7 @@ k_v = (int)key2int(k);
     depth = entry_ptr->depth;
     parent_type  = entry_ptr->node_type;
     if(entry_ptr->node_type == 1)   //如果cache找到的缓冲节点则直接去读吧！！！  后面如果是从cache来的 并且类型就是一个缓冲节点就不用再读一遍了 还是再读一次吧、、、
-    {
+    { 
       if(first_buffer) 
       {
         p_ptr = root_ptr_ptr;
@@ -804,7 +804,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     bool res = dsm->cas_sync(p_ptr, (uint64_t)p, (uint64_t)new_e, cas_buffer, cxt);
     if(res)
     {
-      if(buffer->rev_ptr.val == 88841248571392) printf("its meeeeeeeeeeeeeeeeeeeeeeee! %d\n",cnt);
+    
       index_cache->add_to_cache(k, 1,(InternalPage*)buffer, GADD(b_addr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
 
@@ -851,9 +851,9 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
     bhdr=bp_node->hdr;
     if (depth == bhdr.depth) {
-      if(bp_node->rev_ptr.val == 88841248571392) printf("its meeeeeeeeeeeeeeeeeeeeeeee! %d\n",cnt);
       index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
+    if(depth >bhdr.depth) printf("noooooooooooooo!!!!!!!");
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂   新建一个共同前缀的内部节点
     if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {     //
