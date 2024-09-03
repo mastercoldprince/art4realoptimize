@@ -108,7 +108,7 @@ constexpr int kIndexCacheSize = 600;
 // KV
 constexpr uint32_t maxkeyLen = 128;   
 constexpr uint32_t simulatedValLen = 1024;//value 用array存，在第一个位置记录value长度
-constexpr uint32_t allocAlignKVLeafSize = ROUND_UP(maxkeyLen + simulatedValLen +8 + 8 + 8 + 1 + 2 + 2, ALLOC_ALLIGN_BIT);   
+constexpr uint32_t allocAlignKVLeafSize = ROUND_UP(maxkeyLen + simulatedValLen +8 + 8 + 1 + 2 + 2, ALLOC_ALLIGN_BIT);   
 constexpr uint32_t allocAlignPTRLeafSize= ROUND_UP(8 + 8 + 8 + 1 + 2 + 2, ALLOC_ALLIGN_BIT);   
 constexpr uint32_t keybuffer   =1024;
 constexpr uint32_t valuebuffer =512*MB;

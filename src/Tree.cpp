@@ -853,7 +853,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     if (depth == bhdr.depth) {
       index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
-    if(depth >bhdr.depth) printf("noooooooooooooo!!!!!!!");
+    if(depth >bhdr.depth) printf("noooooooooooooooooooooooooooooooooooooooooooooo1!!!!!!!");
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂   新建一个共同前缀的内部节点
     if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {     //
@@ -1216,12 +1216,9 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
 
     bhdr=bp_node->hdr;
     if (depth == bhdr.depth) {
-            if(bp_node->rev_ptr.val == 88841248571392) printf("its meeeeeeeeeeeeeeeeeeeeeeee! %d\n",cnt);
     index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
-    if (depth > bhdr.depth) {
-    printf("noo! %d\n",cnt);
-    }
+    if(depth >bhdr.depth) printf("noooooooooooooooooooooooooooooooooooooooooooooo2!!!!!!!");
 
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂   新建一个共同前缀的内部节点
