@@ -11,7 +11,7 @@ private:
   static const int kCasBufferCnt    = 256;
   static const int kPageBufferCnt   = 256;  // big enough to hold batch internal node write in out_of_place_write_node
   static const int kBufferBufferCnt = 256;
-  static const int kKVLeafBufferCnt   = 32;    //分配32 *最大的叶节点
+  static const int kKVLeafBufferCnt   = 256;    //分配32 *最大的叶节点
   static const int kPTRLeafBufferCnt   = 32;    //分配32 *最大的叶节点
   static const int kHeaderBufferCnt = 32;
   static const int kEntryBufferCnt  = 32;
