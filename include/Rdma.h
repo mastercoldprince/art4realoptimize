@@ -26,7 +26,7 @@
 
 constexpr int kWriteOroMax = 100;
 constexpr int kReadOroMax = 1024;
-constexpr int kQPMaxDepth = 5120;
+constexpr int kQPMaxDepth = 4096;
 constexpr int kInlineDataMax = 220;
 
 struct RdmaOpRegion {
