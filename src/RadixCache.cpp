@@ -25,7 +25,11 @@ void RadixCache::clear() {
 void RadixCache::add_to_cache(const Key& k, int node_type, const InternalPage* p_node, const GlobalAddress &node_addr) {
 //if(p_node->rev_ptr.val == 88841248571392) printf("its meeeeeeeeeeeeeeeeeeeeeeee!\n");
 InternalPage * page = const_cast<InternalPage*>(p_node);
-if((uint64_t)page->hdr  == 0) printf("noooooooooooooooooooooooooooooooooooooooooooooooo!!!!!!!!!!\n");
+if((uint64_t)page->hdr  == 0)
+{
+  printf("noooooooooooooooooooooooooooooooooooooooooooooooo!!!!!!!!!!\n");
+  return;
+} 
 v = (uint64_t)page->hdr;
   auto depth = p_node->hdr.depth - 1;
   if (depth == 0) return;   //如果是基数树根节点指向的第一个内部节点不放在cache？
