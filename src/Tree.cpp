@@ -2802,7 +2802,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   static const uint64_t lock_cas_offset = ROUND_DOWN(STRUCT_OFFSET(InternalBuffer, lock_byte), 3);  //8B对齐
   static const uint64_t lock_mask       = 1UL << ((STRUCT_OFFSET(InternalBuffer, lock_byte) - lock_cas_offset) * 8);
   auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
-  auto acquire_lock = dsm->cas_mask_sync(GADD(e_ptr, lock_cas_offset), 0UL, ~0UL, cas_buffer, lock_mask, cxt);
+  auto acquire_lock = dsm->cas_mask_sync(GADD(old_e.addr(), lock_cas_offset), 0UL, ~0UL, cas_buffer, lock_mask, cxt);
   if(!acquire_lock) return false;
 
   depth ++;
@@ -2964,7 +2964,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
 
   dsm->write_batches_sync(rs_write, new_bnode_num + 2, cxt, coro_id);
   auto cas_node_type_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
-  InternalEntry new_entry(p);
+  InternalEntry new_entry(old_e);
   new_entry.child_type = 2;
   new_entry.node_type = static_cast<uint8_t>(NODE_256);
   new (cas_node_type_buffer) InternalEntry(new_entry);
@@ -2994,7 +2994,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   static const uint64_t lock_cas_offset = ROUND_DOWN(STRUCT_OFFSET(InternalBuffer, lock_byte), 3);  //8B对齐
   static const uint64_t lock_mask       = 1UL << ((STRUCT_OFFSET(InternalBuffer, lock_byte) - lock_cas_offset) * 8);
   auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
-  auto acquire_lock = dsm->cas_mask_sync(GADD(e_ptr, lock_cas_offset), 0UL, ~0UL, cas_buffer, lock_mask, cxt);
+  auto acquire_lock = dsm->cas_mask_sync(GADD(old_e.addr(), lock_cas_offset), 0UL, ~0UL, cas_buffer, lock_mask, cxt);
   if(!acquire_lock) return false;
 
   depth ++;
@@ -3156,7 +3156,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
 
   dsm->write_batches_sync(rs_write, new_bnode_num + 2, cxt, coro_id);
   auto cas_node_type_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
-  BufferEntry new_entry(p);
+  BufferEntry new_entry(old_e);
   new_entry.node_type = 2;
   new_entry.leaf_type = static_cast<uint8_t>(NODE_256);
   new (cas_node_type_buffer) InternalEntry(new_entry);
