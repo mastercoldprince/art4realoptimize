@@ -1131,7 +1131,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
     for (int i = 0; i < new_node_num; ++ i) {
       index_cache->add_to_cache(k, 0,node_pages[i], GADD(node_addrs[i], sizeof(GlobalAddress) + sizeof(Header)));
     }
-          if(buffernode->rev_ptr.val == 88841248571392) printf("its meeeeeeeeeeeeeeeeeeeeeeee! %d\n",cnt);
+
     index_cache->add_to_cache(k, 1,(InternalPage *)buffernode, GADD(bnode_addr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
   }
 
