@@ -2881,7 +2881,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   for (int i = 0; i < new_bnode_num ; ++ i) {    //会涉及到多次cas 开销 --->上锁
     auto bnode_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
     std::vector<Key> leaf_key;
-    GlobalAddress rev_ptr = GADD(e_ptr, sizeof(GlobalAddress) + sizeof(Header) + bnodes_entry_index[i][1] * sizeof(BufferEntry));
+    GlobalAddress rev_ptr = GADD(old_e.addr(), sizeof(GlobalAddress) + sizeof(Header) + bnodes_entry_index[i][1] * sizeof(BufferEntry));
     new_bnodes[i] = new (bnode_buffer) InternalBuffer();
     for(int j =0;j<bnodes_entry_index[i][0];j++)
     {
@@ -2956,7 +2956,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   //  dsm->write((const char*)leaf_buffer, leaf_addr, sizeof(Leaf_kv), false, cxt);
 
     rs_write[new_bnode_num +1].source     = (uint64_t)old_page_buffer;
-    rs_write[new_bnode_num +1].dest       = e_ptr;
+    rs_write[new_bnode_num +1].dest       = old_e.addr();
     rs_write[new_bnode_num +1].size       = sizeof(InternalBuffer);
     rs_write[new_bnode_num +1].is_on_chip = false;
   //  dsm->write((const char*)old_bnode_buffer, e_ptr, sizeof(InternalBuffer), false, cxt);
@@ -3073,7 +3073,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   for (int i = 0; i < new_bnode_num ; ++ i) {    //会涉及到多次cas 开销 --->上锁
     auto bnode_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
     std::vector<Key> leaf_key;
-    GlobalAddress rev_ptr = GADD(e_ptr, sizeof(GlobalAddress) + sizeof(Header) + bnodes_entry_index[i][1] * sizeof(BufferEntry));
+    GlobalAddress rev_ptr = GADD(old_e.addr(), sizeof(GlobalAddress) + sizeof(Header) + bnodes_entry_index[i][1] * sizeof(BufferEntry));
     new_bnodes[i] = new (bnode_buffer) InternalBuffer();
     for(int j =0;j<bnodes_entry_index[i][0];j++)
     {
@@ -3148,7 +3148,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   //  dsm->write((const char*)leaf_buffer, leaf_addr, sizeof(Leaf_kv), false, cxt);
 
     rs_write[new_bnode_num +1].source     = (uint64_t)old_page_buffer;
-    rs_write[new_bnode_num +1].dest       = e_ptr;
+    rs_write[new_bnode_num +1].dest       = old_e.addr();
     rs_write[new_bnode_num +1].size       = sizeof(InternalBuffer);
     rs_write[new_bnode_num +1].is_on_chip = false;
   //  dsm->write((const char*)old_bnode_buffer, e_ptr, sizeof(InternalBuffer), false, cxt);
