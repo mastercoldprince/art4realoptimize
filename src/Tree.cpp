@@ -1877,7 +1877,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   BufferEntry new_entry(old_e);
   new_entry.node_type = 2;
   new_entry.leaf_type = static_cast<uint8_t>(NODE_256);
-  new (cas_node_type_buffer) InternalEntry(new_entry);
+  new (cas_node_type_buffer) BufferEntry(new_entry);
   bool res = dsm->cas_sync(old_e.addr(), (uint64_t)old_e, (uint64_t)new_entry, cas_node_type_buffer, cxt);
 
 
