@@ -687,6 +687,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   else {leaf_type += 4;leaf_size += 1024;}
   }
 cnt ++;
+ uint64_t k_v = key2int(k);
 
   printf("%d thread %d insert kv: %d\n",cnt ,(int)dsm->getMyThreadID( ),(int)key2int(k));
   // traversal
