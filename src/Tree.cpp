@@ -907,7 +907,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     }
     if(leaf_cnt !=0)   //将所有的叶子读过来 看有没有重复的 
     {
-        auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaves_buffer(leaf_cnt); 
+        auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_range_buffer(); 
     
         is_valid = read_leaves(leaf_addrs, leaf_buffer,leaf_cnt,leaves_ptr,from_cache,cxt,coro_id);
 
@@ -1289,7 +1289,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     }
     if(leaf_cnt !=0)   //将所有的叶子读过来 看有没有重复的 
     {
-        auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaves_buffer(leaf_cnt); 
+        auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_range_buffer(); 
     
         is_valid = read_leaves(leaf_addrs, leaf_buffer,leaf_cnt,leaves_ptr,from_cache,cxt,coro_id);
 
@@ -1606,7 +1606,7 @@ re_read:
     {
       RdmaOpRegion r;
       memset(&r,0,sizeof(RdmaOpRegion));
-      r.source     = (uint64_t)leaf_buffer + i * define::allocAlignKVLeafSize;
+      r.source     = (uint64_t)leaf_buffer + i * define::allocationPageSize;
       r.dest       = leaf_addrs[i];
       r.size       = sizeof(Leaf_kv);
       r.is_on_chip = false;
@@ -1616,7 +1616,7 @@ re_read:
 
     for(int i =0;i<leaf_cnt;i++)
     {
-      leaf = (Leaf_kv *)(leaf_buffer + i*define::allocAlignKVLeafSize);
+      leaf = (Leaf_kv *)(leaf_buffer + i*define::allocationPageSize);
       printf("leaf key is %d %d\n",(int)key2int(leaf->key),cnt);
  //     printf("leaf value is %d\n",(int)key2int(leaf->value));
       if (!from_cache && leaf->rev_ptr != p_ptr[i]) {
