@@ -1142,7 +1142,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   {
     for(int j = 0;j<node_type_to_num(p.type());j++)
     {
-      if(p_node->records[i]!=InternalEntry::Null() && p_node->records[i].partial == p_node->records[i].partial)
+      if(p_node->records[i]!=InternalEntry::Null() && p_node->records[i].partial == p_node->records[j].partial)
       {
         internal_node_repeat = true;
       }
@@ -1516,7 +1516,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
   {
     for(int j = 0;j<node_type_to_num(p.type());j++)
     {
-      if(p_node->records[i]!=InternalEntry::Null() && p_node->records[i].partial == p_node->records[i].partial)
+      if(p_node->records[i]!=InternalEntry::Null() && p_node->records[i].partial == p_node->records[j].partial)
       {
         internal_node_repeat = true;
       }
