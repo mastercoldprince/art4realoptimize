@@ -76,8 +76,8 @@ public:
     buffer_entry_buffer = (uint64_t *)((char *)entry_buffer  + sizeof(uint64_t)   * kEntryBufferCnt);
     zero_byte           = (char     *)((char *)buffer_entry_buffer  + sizeof(uint64_t)   * kBufferEntryBufferCnt);
     range_buffer        = (char     *)((char *)zero_byte     + sizeof(char));
-    key_buffer          = (char     *)((char *)range_buffer  + define::keybuffer);
-    value_buffer        = (char     *)((char *)key_buffer    + define::valuebuffer);
+  //  key_buffer          = (char     *)((char *)range_buffer  + define::keybuffer);
+  //  value_buffer        = (char     *)((char *)key_buffer    + define::valuebuffer);
     *zero_byte          = '\0';
 
     assert(range_buffer - buffer < define::kPerCoroRdmaBuf);
@@ -131,7 +131,7 @@ public:
   char *get_zero_byte() {
     return zero_byte;
   }
-  char *get_key_buffer(int size) {
+/*  char *get_key_buffer(int size) {
     key_buffer_cur = (key_buffer_cur + size) % define::keybuffer;
     return key_buffer + key_buffer_cur;
   }
@@ -139,7 +139,7 @@ public:
   char *get_value_buffer(int size) {
     value_buffer_cur = (value_buffer_cur + size) % define::valuebuffer;
     return value_buffer + value_buffer_cur;
-  }
+  }*/
 };
 
 #endif // _RDMA_BUFFER_H_
