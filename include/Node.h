@@ -69,8 +69,10 @@ public:
 
   void set_consistent() 
   {
+    uint64_t check;
     crc_processor.reset();
     crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
+    check = crc_processor.checksum();
     checksum = crc_processor.checksum();
   }
   void set_value(const Value& val) { value = val; }
