@@ -62,8 +62,8 @@ public:
   bool is_consistent() const 
   {
     crc_processor.reset();
-    crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
-
+   // crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
+    crc_processor.process_bytes((char *)&key, sizeof(Key));
     return crc_processor.checksum() == checksum;
   }
 
@@ -71,7 +71,8 @@ public:
   {
     uint64_t check;
     crc_processor.reset();
-    crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
+ //   crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
+    crc_processor.process_bytes((char *)&key, sizeof(Key));
     check = crc_processor.checksum();
     checksum = crc_processor.checksum();
   }
