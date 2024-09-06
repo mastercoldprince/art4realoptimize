@@ -75,6 +75,7 @@ public:
     crc_processor.process_bytes((char *)&key, sizeof(Key));
     check = crc_processor.checksum();
     crc_processor.reset();
+    crc_processor.process_bytes((char *)&key, sizeof(Key));
     checksum = crc_processor.checksum();
   }
   void set_value(const Value& val) { value = val; }
