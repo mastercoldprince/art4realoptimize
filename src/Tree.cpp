@@ -1618,6 +1618,7 @@ re_read:
     for(int i =0;i<leaf_cnt;i++)
     {
       leaf = (Leaf_kv *)(leaf_buffer + i*define::allocationPageSize);
+      uint64_t kk_v =  key2int(leaf->key);
       printf("leaf key is %d %d\n",(int)key2int(leaf->key),cnt);
  //     printf("leaf value is %d\n",(int)key2int(leaf->value));
       if (!from_cache && leaf->rev_ptr != p_ptr[i]) {
