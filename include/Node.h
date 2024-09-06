@@ -74,6 +74,7 @@ public:
  //   crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
     crc_processor.process_bytes((char *)&key, sizeof(Key));
     check = crc_processor.checksum();
+    crc_processor.reset();
     checksum = crc_processor.checksum();
   }
   void set_value(const Value& val) { value = val; }
