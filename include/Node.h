@@ -17,7 +17,7 @@ struct PackedGAddr {  // 48-bit, used by node addr/leaf addr (not entry addr)
 
 static_assert(sizeof(PackedGAddr) == 6);
 
-static CRCProcessor crc_processor;
+static CRCProcessor crc_processor; //多个线程使用？但是是静态变量呀呀呀！！！  导致结果不一样？
 
 /*
   Leaf Node
@@ -27,7 +27,7 @@ public:
   // for invalidation
   GlobalAddress rev_ptr;
   // TODO: add key len & value len for out-of-place updates
-
+  uint8_t front_version;
   union {
   struct {
   uint8_t f_padding   : 2;
@@ -43,7 +43,7 @@ public:
 
   Key key;
   Value value;
-
+  uint8_t rear_version;
     union {
     struct {
       uint8_t w_lock    : 1;
@@ -61,14 +61,17 @@ public:
   bool is_valid(const GlobalAddress& p_ptr, bool from_cache) { return valid && (!from_cache || p_ptr == rev_ptr); }
   bool is_consistent() const 
   {
+    /*
     crc_processor.reset();
    // crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
     crc_processor.process_bytes((char *)&key, sizeof(Key));
-    return crc_processor.checksum() == checksum;
+    return crc_processor.checksum() == checksum;*/
+    if (front_version == rear_version) return true;
   }
 
   void set_consistent() 
   {
+    /*
     uint64_t check;
     crc_processor.reset();
  //   crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
@@ -76,9 +79,14 @@ public:
     check = crc_processor.checksum();
     crc_processor.reset();
     crc_processor.process_bytes((char *)&key, sizeof(Key));
-    checksum = crc_processor.checksum();
+    checksum = crc_processor.checksum();*/
+    front_version = 0;
+    rear_version = front_version;
   }
-  void set_value(const Value& val) { value = val; }
+  void set_value(const Value& val) { 
+    value = val;
+    front_version++;
+    rear_version = front_version; }
 
   void unlock() { w_lock = 0; };
   void lock() { w_lock = 1; };
