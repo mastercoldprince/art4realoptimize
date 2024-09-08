@@ -1139,16 +1139,22 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   }
   // 3.4 node is full, switch node type
   int internal_node_repeat = false;
+  int i_1,j_1;
   for(int i = 0;i < node_type_to_num(p.type());i++)
   {
     for(int j = 0;j<node_type_to_num(p.type());j++)
     {
       if(p_node->records[i]!=InternalEntry::Null() && p_node->records[i].partial == p_node->records[j].partial)
       {
+        i_1 =i;
+        j_1 =j;
         internal_node_repeat = true;
+        break;
       }
     }
+    if (internal_node_repeat) break;
   }
+
 
 
   int slot_id;
