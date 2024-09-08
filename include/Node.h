@@ -36,14 +36,14 @@ public:
   };
   uint8_t type_valid_byte;
   };
-  uint64_t checksum;  // checksum(kv)
+//  uint64_t checksum;  // checksum(kv)
 
   uint16_t keylen;
   uint16_t valen;
 
   Key key;
   Value value;
-  uint8_t rear_version;
+
     union {
     struct {
       uint8_t w_lock    : 1;
@@ -51,6 +51,7 @@ public:
     };
     uint8_t lock_byte;
     };
+  uint8_t rear_version;
 
 public:
   Leaf_kv() {}
