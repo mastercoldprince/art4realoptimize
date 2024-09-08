@@ -17,7 +17,7 @@ struct PackedGAddr {  // 48-bit, used by node addr/leaf addr (not entry addr)
 
 static_assert(sizeof(PackedGAddr) == 6);
 
-static CRCProcessor crc_processor;
+static CRCProcessor crc_processor; //多个线程使用？但是是静态变量呀呀呀！！！  导致结果不一样？
 
 /*
   Leaf Node
@@ -27,7 +27,7 @@ public:
   // for invalidation
   GlobalAddress rev_ptr;
   // TODO: add key len & value len for out-of-place updates
-
+  uint8_t front_version;
   union {
   struct {
   uint8_t f_padding   : 2;
@@ -64,7 +64,8 @@ public:
     crc_processor.reset();
    // crc_processor.process_bytes((char *)&key, sizeof(Key) + sizeof(uint8_t) * define::simulatedValLen);
     crc_processor.process_bytes((char *)&key, sizeof(Key));
-    return crc_processor.checksum() == checksum;
+    return crc_processor.checksum() == checksum;*/
+    if (front_version == rear_version) return true;
   }
 
   void set_value(const Value& val) { value = val; }
