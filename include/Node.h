@@ -997,8 +997,8 @@ class InternalBuffer {
 public:
   // for invalidation
   GlobalAddress rev_ptr;
-
   BufferHeader hdr;
+
   BufferEntry records[256];
   union {
   struct {
@@ -1018,6 +1018,7 @@ public:
       {
         records[i] = bnode.records[i];
       }
+      w_lock = bnode.w_lock;
   
     }
 
