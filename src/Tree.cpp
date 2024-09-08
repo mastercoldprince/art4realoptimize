@@ -1603,6 +1603,7 @@ re_read:
 bool Tree::read_leaves(GlobalAddress* leaf_addrs, char *leaf_buffer,int leaf_cnt, GlobalAddress* p_ptr, bool from_cache,CoroContext *cxt, int coro_id) {  //read_batch  !!!问题在哪里！
   try_read_leaf[dsm->getMyThreadID()] ++;
   std::vector<RdmaOpRegion> rs;
+  int retry_time = 0;
 re_read:
   std::memset(leaf_buffer, 0, leaf_cnt*define::allocationPageSize);
   rs.clear();
@@ -1638,6 +1639,7 @@ re_read:
       return false;
       }
       if (!leaf->is_consistent()) {   //判断校验和的时候 ？？？  
+      retry_time ++;
       read_leaf_retry[dsm->getMyThreadID()] ++;
       goto re_read;
       }
