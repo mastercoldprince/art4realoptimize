@@ -2959,16 +2959,11 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   }
 */
   bnode.unlock();
-  auto old_page_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
-  InternalPage * old_page;
-  old_page = new (old_page_buffer) InternalPage();
+  auto old_page_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
+  InternalBuffer * old_page;
+  old_page = new (old_page_buffer) InternalBuffer(bnode);
   Header new_hdr(bnode.hdr);
-  old_page->hdr = new_hdr;
-  old_page->rev_ptr=bnode.rev_ptr;
-  for(int i =0;i<new_bnode_num;i++)
-  {
-    old_page->records[i] = *(InternalEntry*)&bnode.records[i];
-  }
+  old_page->hdr.val = new_hdr.val;
 
 
   //整一个write_batch  写所有的缓冲节点和叶节点 还有写旧的叶节点
@@ -3151,16 +3146,11 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   }
 */
   bnode.unlock();
-  auto old_page_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
-  InternalPage * old_page;
-  old_page = new (old_page_buffer) InternalPage();
+  auto old_page_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
+  InternalBuffer * old_page;
+  old_page = new (old_page_buffer) InternalBuffer(bnode);
   Header new_hdr(bnode.hdr);
-  old_page->hdr = new_hdr;
-  old_page->rev_ptr=bnode.rev_ptr;
-  for(int i =0;i<new_bnode_num;i++)
-  {
-    old_page->records[i] = *(InternalEntry*)&bnode.records[i];
-  }
+  old_page->hdr.val = new_hdr.val;
 
 
   //整一个write_batch  写所有的缓冲节点和叶节点 还有写旧的叶节点
