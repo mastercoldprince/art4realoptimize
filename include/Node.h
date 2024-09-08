@@ -67,6 +67,7 @@ public:
     crc_processor.process_bytes((char *)&key, sizeof(Key));
     return crc_processor.checksum() == checksum;*/
     if (front_version == rear_version) return true;
+    else return false;
   }
 
   void set_consistent() 
