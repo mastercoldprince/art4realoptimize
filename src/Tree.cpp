@@ -1616,7 +1616,7 @@ bool Tree::read_leaves(GlobalAddress* leaf_addrs, char *leaf_buffer,int leaf_cnt
   std::vector<RdmaOpRegion> rs;
   int retry_time = 0;
 re_read:
-  std::memset(leaf_buffer, 0, leaf_cnt*define::allocationPageSize);
+  std::memset(leaf_buffer, 0, leaf_cnt*define::allocAlignPageSize);
   rs.clear();
     Leaf_kv * leaf;
     // 2.3.1 read the leaf
@@ -1625,7 +1625,7 @@ re_read:
     {
       RdmaOpRegion r;
       memset(&r,0,sizeof(RdmaOpRegion));
-      r.source     = (uint64_t)leaf_buffer + i * define::allocationPageSize;
+      r.source     = (uint64_t)leaf_buffer + i * define::allocAlignPageSize;
       r.dest       = leaf_addrs[i];
       r.size       = sizeof(Leaf_kv);
       r.is_on_chip = false;
@@ -1635,7 +1635,7 @@ re_read:
 
     for(int i =0;i<leaf_cnt;i++)
     {
-      leaf = (Leaf_kv *)(leaf_buffer + i*define::allocationPageSize);
+      leaf = (Leaf_kv *)(leaf_buffer + i*define::allocAlignPageSize);
       uint64_t kk_v =  key2int(leaf->key);
     //  printf("leaf key is %d %d\n",(int)key2int(leaf->key),cnt);
  //     printf("leaf value is %d\n",(int)key2int(leaf->value));
@@ -2902,10 +2902,10 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
 
   bnode_addrs = new GlobalAddress[new_bnode_num];
   dsm->alloc_bnodes(new_bnode_num, bnode_addrs);
-  auto leaves_buffer = (dsm->get_rbuf(coro_id)).get_kvleaves_buffer(leaf_cnt);
+  auto leaves_buffer =(dsm->get_rbuf(0)).get_range_buffer();
   for(int i =0;i<(int) rs.size();i++)
   {
-    rs[i].source = (uint64_t)leaves_buffer + i * define::allocAlignKVLeafSize;
+    rs[i].source = (uint64_t)leaves_buffer + i * define::allocAlignPageSize;
   }
   //读需要放在下一层的叶节点 read_batch
   dsm->read_batches_sync(rs);
@@ -2919,7 +2919,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   //读到了leaves_buffer
   for(int i = 0;i<leaf_cnt;i++)
   {
-    leaves[i] = (Leaf_kv *)(leaves_buffer + i * define::allocationPageSize);
+    leaves[i] = (Leaf_kv *)(leaves_buffer + i * define::allocAlignPageSize);
   }
   leaf_cnt = 0;
   InternalBuffer **new_bnodes = new InternalBuffer* [new_bnode_num +1]; 
@@ -2929,6 +2929,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     std::vector<Key> leaf_key;
     GlobalAddress rev_ptr = GADD(old_e.addr(), sizeof(GlobalAddress) + sizeof(Header) + bnodes_entry_index[i][1] * sizeof(BufferEntry));
     new_bnodes[i] = new (bnode_buffer) InternalBuffer();
+    new_bnodes[i]->rev_ptr.val = rev_ptr.val;
     for(int j =0;j<bnodes_entry_index[i][0];j++)
     {
       new_bnodes[i]->records[j] = leaf_addrs[i][j];
@@ -2952,7 +2953,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     if(com_par_len >2) com_par_len = 2;
     BufferHeader  bhdr(leaf_key[0], com_par_len, depth , bnodes_entry_index[i][0], 0);
     new_bnodes[i]->hdr.val = bhdr.val;
-
+    
     for(int j =0;j<bnodes_entry_index[i][0];j++)
     {
       new_bnodes[i]->records[j].partial = get_partial(leaf_key.at(leaf_cnt),depth + com_par_len);
@@ -3092,10 +3093,10 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
 
   bnode_addrs = new GlobalAddress[new_bnode_num];
   dsm->alloc_bnodes(new_bnode_num, bnode_addrs);
-  auto leaves_buffer = (dsm->get_rbuf(coro_id)).get_kvleaves_buffer(leaf_cnt);
+  auto leaves_buffer = (dsm->get_rbuf(0)).get_range_buffer();
   for(int i =0;i<(int) rs.size();i++)
   {
-    rs[i].source = (uint64_t)leaves_buffer + i * define::allocAlignKVLeafSize;
+    rs[i].source = (uint64_t)leaves_buffer + i * define::allocAlignPageSize;
   }
   //读需要放在下一层的叶节点 read_batch
   dsm->read_batches_sync(rs);
@@ -3109,7 +3110,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   //读到了leaves_buffer
   for(int i = 0;i<leaf_cnt;i++)
   {
-    leaves[i] = (Leaf_kv *)(leaves_buffer + i * define::allocationPageSize);
+    leaves[i] = (Leaf_kv *)(leaves_buffer + i * define::allocAlignPageSize);
   }
   leaf_cnt = 0;
   InternalBuffer **new_bnodes = new InternalBuffer* [new_bnode_num +1]; 
