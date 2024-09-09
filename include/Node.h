@@ -975,10 +975,11 @@ public:
 
   Header hdr;
   InternalEntry records[256];
+  uint8_t l_padding;
 
 public:
   InternalPage() { std::fill(records, records + 256, InternalEntry::Null()); }
-  InternalPage(const Key &k, int partial_len, int depth, NodeType node_type, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), hdr(k, partial_len, depth, node_type) {
+  InternalPage(const Key &k, int partial_len, int depth, NodeType node_type, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), hdr(k, partial_len, depth, node_type) ,l_padding(0){
     std::fill(records, records + 256, InternalEntry::Null());
   }
 
