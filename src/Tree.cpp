@@ -771,7 +771,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
 
   UNUSED(is_update);  // is_update is only used in ROWEX_ART baseline
 
-
+  int retry_read_buffer = 0;
 next:
 if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空槽 生成新的缓冲节点 3.内部节点分裂 分裂之后生成新的缓冲节点 4.内部节点满了扩展  并生成新的缓冲节点  
 {
@@ -1218,7 +1218,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       //is_valid？
     }
    // else
-   {
+   {  retry_read_buffer ++;
       is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   
       bp_node = (InternalBuffer *)buffer_buffer;
           //3.1 check partial key
