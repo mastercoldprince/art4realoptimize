@@ -1544,10 +1544,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
       count_index[(int)bnode.records[i].partial][0] ++;
       count_index[(int)bnode.records[i].partial][count_index[(int)bnode.records[i].partial][0]] = i;
   //  if(count_index[(int)bnode.records[i].partial][0] > 1) printf("partial is %d \n",i);
-
     }
-
-
   }
 
   for(int i=0; i <256 ;i++)
@@ -1580,18 +1577,18 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     rs[i].source = (uint64_t)leaves_buffer + i * define::allocAlignPageSize;
   }
   //读需要放在下一层的叶节点 read_batch
-  dsm->read_batches_sync(rs);
+  dsm->read_batches_sync(rs);   //没读过来？？？
   //写叶节点
   auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaf_buffer();
 
   leaf_addr = dsm->alloc(sizeof(Leaf_kv));
 
 
-  Leaf_kv **leaves = new Leaf_kv* [leaf_cnt];
+  Leaf_kv *leaves = new Leaf_kv [leaf_cnt];
   //读到了leaves_buffer
   for(int i = 0;i<leaf_cnt;i++)
   {
-    leaves[i] = (Leaf_kv *)(leaves_buffer + i * define::allocAlignPageSize);
+    leaves[i] = *(Leaf_kv *)(leaves_buffer + i * define::allocAlignPageSize);
   }
   leaf_cnt = 0;
   InternalBuffer **new_bnodes = new InternalBuffer* [new_bnode_num +1]; 
@@ -1778,11 +1775,11 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   leaf_addr = dsm->alloc(sizeof(Leaf_kv));
 
 
-  Leaf_kv **leaves = new Leaf_kv* [leaf_cnt];
+  Leaf_kv *leaves = new Leaf_kv [leaf_cnt];
   //读到了leaves_buffer
   for(int i = 0;i<leaf_cnt;i++)
   {
-    leaves[i] = (Leaf_kv *)(leaves_buffer + i * define::allocAlignPageSize);
+    leaves[i] = *(Leaf_kv *)(leaves_buffer + i * define::allocAlignPageSize);
   }
   leaf_cnt = 0;
   InternalBuffer **new_bnodes = new InternalBuffer* [new_bnode_num +1]; 
