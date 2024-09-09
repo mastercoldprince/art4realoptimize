@@ -722,7 +722,8 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   int parent_parent_type = -1;
   bool buffer_from_cache_flag = 0;
   int first_buffer = 0;
-
+  InternalPage parent_page;
+  InternalBuffer parent_buffer;
 
 
   //search from cache
@@ -1050,6 +1051,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   page_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
   is_valid = read_node(p, type_correct, page_buffer, p_ptr, depth,from_cache,cxt, coro_id);
   p_node = (InternalPage *)page_buffer;
+
 
   if (!is_valid) {
   update_retry_flag[dsm->getMyThreadID()]=1;
@@ -1434,7 +1436,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
   page_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
   is_valid = read_node_from_buffer(bp, type_correct,page_buffer,p_ptr,depth, from_cache,cxt,coro_id);
   p_node = (InternalPage *)page_buffer;
-
+  
   if (!is_valid) {  // node deleted || outdated cache entry in cached node
 
     // invalidate the old node cache
