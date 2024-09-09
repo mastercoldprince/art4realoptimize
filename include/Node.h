@@ -986,7 +986,7 @@ public:
   bool is_valid(const GlobalAddress& p_ptr, int depth, bool from_cache) const { return hdr.type() != NODE_DELETED && hdr.depth <= depth && (!from_cache || p_ptr == rev_ptr); }
 } __attribute__((packed));
 
-
+ 
 //static_assert(sizeof(InternalPage) == 8 + 8 + 256 * 8);
 
 
