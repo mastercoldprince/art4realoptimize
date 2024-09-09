@@ -103,7 +103,7 @@ constexpr int64_t kPerThreadRdmaBuf  = rdmaBufferSize * define::GB / MAX_APP_THR
 constexpr int64_t kPerCoroRdmaBuf    = kPerThreadRdmaBuf / MAX_CORO_NUM;
 
 // Cache (MB)
-constexpr int kIndexCacheSize = 600;
+constexpr int kIndexCacheSize = 800;
 
 // KV
 constexpr uint32_t maxkeyLen = 128;   
@@ -118,7 +118,7 @@ constexpr uint64_t kRootPointerStoreOffest = kChunkSize / 2;
 static_assert(kRootPointerStoreOffest % sizeof(uint64_t) == 0);
 
 // Internal Node
-constexpr uint32_t allocationPageSize = 8 + 8 + 256 * 8;
+constexpr uint32_t allocationPageSize = 8 + 8 + 256 * 8 + 1;
 constexpr uint32_t allocAlignPageSize = ROUND_UP(allocationPageSize, ALLOC_ALLIGN_BIT);
 
 // Internal Entry

@@ -68,7 +68,7 @@ public:
     this->buffer        = buffer;
     cas_buffer          = (uint64_t *)buffer;
     page_buffer         = (char     *)((char *)cas_buffer    + sizeof(uint64_t)   * kCasBufferCnt);
-    buffer_buffer       = (char     *)((char *)page_buffer   + define::allocationPageSize * kPageBufferCnt);
+    buffer_buffer       = (char     *)((char *)page_buffer   + define::allocAlignPageSize * kPageBufferCnt);
     kvleaf_buffer         = (char     *)((char *)buffer_buffer   + define::allocAlignBufferSize * kBufferBufferCnt);
     ptrleaf_buffer         = (char     *)((char *)kvleaf_buffer   + define::allocAlignKVLeafSize * kKVLeafBufferCnt);    
     header_buffer       = (uint64_t *)((char *)ptrleaf_buffer   + define::allocAlignPTRLeafSize * kPTRLeafBufferCnt);   //待解决、、、、
@@ -90,7 +90,7 @@ public:
 
   char *get_page_buffer() {
     page_buffer_cur = (page_buffer_cur + 1) % kPageBufferCnt;
-    return page_buffer + page_buffer_cur * define::allocationPageSize;
+    return page_buffer + page_buffer_cur * define::allocAlignPageSize;
   }
   char *get_buffer_buffer() {
     buffer_buffer_cur = (buffer_buffer_cur + 1) % kPageBufferCnt;
