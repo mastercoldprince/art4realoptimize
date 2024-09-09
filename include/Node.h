@@ -1011,7 +1011,7 @@ public:
 
 
 public:
-  InternalBuffer() { std::fill(records, records + (define::count_1 + define::count_2) -2, BufferEntry::Null()); }
+  InternalBuffer() { std::fill(records, records + 256, BufferEntry::Null()); }
   InternalBuffer(const InternalBuffer &bnode)
    {  rev_ptr = bnode.rev_ptr;
       hdr = bnode.hdr;
