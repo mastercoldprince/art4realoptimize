@@ -1037,7 +1037,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
           }
           else{ */ //有重复的 需要将重复的拿下来到下一级缓冲节点   depth 已加partial len
-          bool res=out_of_place_write_buffer_node(k, v,depth,*bp_node,leaf_type,klen,vlen,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p, cxt,coro_id);
+          bool res=out_of_place_write_buffer_node(k, v,depth,*bp_node,leaf_type,klen,vlen,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p, p_ptr,cxt,coro_id);
           if (!res) {  //获取锁失败
           //  p = *(InternalEntry*) cas_buffer;
           //  retry_flag = SPLIT_HEADER;
@@ -1420,7 +1420,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
             }
           }
           else{*/  //有重复的 需要将重复的拿下来到下一级缓冲节点
-          bool res=out_of_place_write_buffer_node_from_buffer(k, v,depth,*bp_node,leaf_type,klen,vlen,leaf_addr,entry_ptr_ptr, entry_ptr,from_cache,bp, cxt,coro_id);
+          bool res=out_of_place_write_buffer_node_from_buffer(k, v,depth,*bp_node,leaf_type,klen,vlen,leaf_addr,entry_ptr_ptr, entry_ptr,from_cache,bp, p_ptr,cxt,coro_id);
 
           if (!res) {
           //  bp = *(BufferEntry*) cas_buffer;
@@ -2843,7 +2843,7 @@ re_switch:
   }
 }
 //新建很多个缓冲节点 有重复的往里面放  
-bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,InternalBuffer bnode,int leaf_type,int klen,int vlen,GlobalAddress leaf_addr,CacheEntry**&entry_ptr_ptr,CacheEntry*& entry_ptr,bool from_cache,InternalEntry old_e, CoroContext *cxt, int coro_id) {
+bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,InternalBuffer bnode,int leaf_type,int klen,int vlen,GlobalAddress leaf_addr,CacheEntry**&entry_ptr_ptr,CacheEntry*& entry_ptr,bool from_cache,InternalEntry old_e, GlobalAddress p_ptr,CoroContext *cxt, int coro_id) {
   //先获取锁 再修改 否则不修改
   static const uint64_t lock_cas_offset = ROUND_DOWN(STRUCT_OFFSET(InternalBuffer, lock_byte), 3);  //8B对齐
   static const uint64_t lock_mask       = 1UL << ((STRUCT_OFFSET(InternalBuffer, lock_byte) - lock_cas_offset) * 8);
@@ -3012,7 +3012,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   new_entry.child_type = 2;
   new_entry.node_type = static_cast<uint8_t>(NODE_256);
   new (cas_node_type_buffer) InternalEntry(new_entry);
-  bool res =dsm->cas_sync(old_e.addr(), (uint64_t)old_e, (uint64_t)new_entry, cas_node_type_buffer, cxt);
+  bool res =dsm->cas_sync(p_ptr, (uint64_t)old_e, (uint64_t)new_entry, cas_node_type_buffer, cxt);
 
 
   //先失效 再加
@@ -3033,7 +3033,7 @@ return false;
 }
 
 //新建很多个缓冲节点 有重复的往里面放  
-bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, int depth,InternalBuffer bnode,int leaf_type,int klen,int vlen,GlobalAddress leaf_addr,CacheEntry**&entry_ptr_ptr,CacheEntry*& entry_ptr,bool from_cache,BufferEntry old_e, CoroContext *cxt, int coro_id) {
+bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, int depth,InternalBuffer bnode,int leaf_type,int klen,int vlen,GlobalAddress leaf_addr,CacheEntry**&entry_ptr_ptr,CacheEntry*& entry_ptr,bool from_cache,BufferEntry old_e, GlobalAddress p_ptr,CoroContext *cxt, int coro_id) {
   //先获取锁 再修改 否则不修改
   static const uint64_t lock_cas_offset = ROUND_DOWN(STRUCT_OFFSET(InternalBuffer, lock_byte), 3);  //8B对齐
   static const uint64_t lock_mask       = 1UL << ((STRUCT_OFFSET(InternalBuffer, lock_byte) - lock_cas_offset) * 8);
@@ -3202,7 +3202,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   new_entry.node_type = 2;
   new_entry.leaf_type = static_cast<uint8_t>(NODE_256);
   new (cas_node_type_buffer) BufferEntry(new_entry);
-  bool res = dsm->cas_sync(old_e.addr(), (uint64_t)old_e, (uint64_t)new_entry, cas_node_type_buffer, cxt);
+  bool res = dsm->cas_sync(p_ptr, (uint64_t)old_e, (uint64_t)new_entry, cas_node_type_buffer, cxt);
 
 
   //先失效 再加
