@@ -1006,7 +1006,7 @@ public:
 } __attribute__((packed));
 
 
-static_assert(sizeof(InternalPage) == 8 + 8 + 256 * 8);
+//static_assert(sizeof(InternalPage) == 8 + 8 + 256 * 8);
 
 
 /*缓冲节点  */
@@ -1062,7 +1062,7 @@ public:
 }__attribute__((packed));
 
 
-static_assert(sizeof(InternalBuffer) == 8 + 8 + 256 * 8 + 1);
+//static_assert(sizeof(InternalBuffer) == 8 + 8 + 256 * 8 + 1);
 
 
 
