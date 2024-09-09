@@ -858,7 +858,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
     if(depth >bhdr.depth) 
-    printf("noooooooooooooooooooooooooooooooooooooooooooooo1!!!!!!!");
+  //  printf("noooooooooooooooooooooooooooooooooooooooooooooo1!!!!!!!");
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂   新建一个共同前缀的内部节点
     if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {     //
@@ -1250,7 +1250,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
     if(depth >bhdr.depth)
-     printf("noooooooooooooooooooooooooooooooooooooooooooooo2!!!!!!!");
+  //   printf("noooooooooooooooooooooooooooooooooooooooooooooo2!!!!!!!");
 
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂   新建一个共同前缀的内部节点
@@ -2932,6 +2932,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     for(int j =0;j<bnodes_entry_index[i][0];j++)
     {
       new_bnodes[i]->records[j] = leaf_addrs[i][j];
+      assert(new_bnodes[i]->records[j].packed_addr.mn_id == 0);
       leaf_key.push_back(leaves[leaf_cnt]->get_key());
       leaf_cnt ++;
     }
@@ -3121,6 +3122,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
     for(int j =0;j<bnodes_entry_index[i][0];j++)
     {
       new_bnodes[i]->records[j] = leaf_addrs[i][j];
+      assert(new_bnodes[i]->records[j].packed_addr.mn_id == 0);
       leaf_key.push_back(leaves[leaf_cnt]->get_key());
       leaf_cnt ++;
     }
