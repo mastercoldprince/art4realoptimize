@@ -1051,7 +1051,7 @@ public:
     hdr.depth = depth;
     for(int i=0;i<(int)records.size();i++)
     {
-      this->records[i] = *((BufferEntry*)&records[i]);
+      this->records[i].val = records[i].val;
     }
   }
 
