@@ -1632,7 +1632,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     bnode.records[bnodes_entry_index[i][1]].packed_addr={bnode_addrs[i].nodeID, bnode_addrs[i].offset >> ALLOC_ALLIGN_BIT};
     bnode.records[bnodes_entry_index[i][1]].node_type = 1;
    // printf("thread  %d 15 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)(new_bnodes[i]->hdr));
-   assert(new_bnodes[i].hdr.val != 0);
+   assert(new_bnodes[i]->hdr.val != 0);
   }
   //修改原来的buffer node 为一个internal node  要上锁 
   bnode.hdr.count_1 = new_bnode_num;
@@ -1820,7 +1820,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
     bnode.records[bnodes_entry_index[i][1]].packed_addr={bnode_addrs[i].nodeID, bnode_addrs[i].offset >> ALLOC_ALLIGN_BIT};
     bnode.records[bnodes_entry_index[i][1]].node_type = 1;
   //  printf("thread  %d 15 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)(new_bnodes[i]->hdr));
-       assert(new_bnodes[i].hdr.val != 0);
+       assert(new_bnodes[i]->hdr.val != 0);
   }
   //修改原来的buffer node 为一个internal node  要上锁 
   bnode.hdr.count_1 = new_bnode_num;
