@@ -13,7 +13,7 @@
 #include <random>
 
 
-#define TEST_EPOCH 1000
+#define TEST_EPOCH 10
 // #define NO_WRITE_CONFLICT
 // #define TEST_INSERT
 
@@ -305,7 +305,7 @@ printf("Cache \n");
 #else 
 printf("No cache\n");
 #endif
-    usleep(10000);
+    sleep(0.5);
     clock_gettime(CLOCK_REALTIME, &e);
     int microseconds = (e.tv_sec - s.tv_sec) * 1000000 +
                        (double)(e.tv_nsec - s.tv_nsec) / 1000;

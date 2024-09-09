@@ -86,7 +86,7 @@ uint64_t insert_type_cnt[MAX_APP_THREAD][6];
 thread_local CoroCall Tree::worker[MAX_CORO_NUM];
 thread_local CoroCall Tree::master;
 thread_local CoroQueue Tree::busy_waiting_queue;
-int cnt = 0;
+std::atomic<int> cnt = 0;
 
 
 
@@ -686,10 +686,10 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   else if (256<vlen && vlen <= 512 ) {leaf_type += 3;leaf_size += 512;}
   else {leaf_type += 4;leaf_size += 1024;}
   }
-cnt ++;
- uint64_t k_v = key2int(k);
+  int cnt_res=cnt.fetch_add(1);
+  uint64_t k_v = key2int(k);
 
-  printf("%d thread %d insert kv: %d\n",cnt ,(int)dsm->getMyThreadID( ),(int)key2int(k));
+  printf("%d thread %d insert kv: %d\n",cnt_res ,(int)dsm->getMyThreadID( ),(int)key2int(k));
   // traversal
   GlobalAddress p_ptr;
   InternalEntry p;
@@ -722,11 +722,11 @@ cnt ++;
   int parent_parent_type = -1;
   bool buffer_from_cache_flag = 0;
   int first_buffer = 0;
- 
+
 
 
   //search from cache
-  
+
   from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, parent_parent_type,entry_idx,cache_entry_parent,first_buffer);   //check   直接从cache里面找到一个 
   if (from_cache) { // cache hit
     assert(entry_idx >= 0);
