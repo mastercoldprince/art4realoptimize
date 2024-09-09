@@ -876,8 +876,8 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       auto header_buffer = (dsm->get_rbuf(coro_id)).get_header_buffer();
       auto new_hdr = BufferHeader::split_header(bhdr, i);
 
-      bool res = dsm->cas_sync(GADD(p.addr(), sizeof(GlobalAddress)), (uint64_t)bhdr, (uint64_t)new_hdr, header_buffer,false, cxt);
-      if(!res)
+      bool res_d = dsm->cas_sync(GADD(p.addr(), sizeof(GlobalAddress)), (uint64_t)bhdr, (uint64_t)new_hdr, header_buffer,false, cxt);
+      if(!res_d)
       printf("Shiffffffffffffffffffffffft!!!!!!!!!!!!\n");
       goto insert_finish;
     }
@@ -1265,8 +1265,8 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       auto header_buffer = (dsm->get_rbuf(coro_id)).get_header_buffer();
       auto new_hdr = BufferHeader::split_header(bhdr, i);
 
-      bool res=dsm->cas_sync(GADD(bp.addr(), sizeof(GlobalAddress)), (uint64_t)bhdr, (uint64_t)new_hdr, header_buffer, false, cxt);
-            if(!res)
+      bool res_d=dsm->cas_sync(GADD(bp.addr(), sizeof(GlobalAddress)), (uint64_t)bhdr, (uint64_t)new_hdr, header_buffer, false, cxt);
+            if(!res_d)
       printf("Shiffffffffffffffffffffffft!!!!!!!!!!!!\n");
       goto insert_finish;
     }
