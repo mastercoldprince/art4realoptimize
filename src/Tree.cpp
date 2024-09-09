@@ -1604,6 +1604,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     for(int j =0;j<bnodes_entry_index[i][0];j++)
     {
       new_bnodes[i]->records[j] = leaf_addrs[i][j];
+      assert(new_bnodes[i]->records[j].packed_addr.mn_id == 0);
       leaf_key.push_back(leaves[leaf_cnt]->get_key());
       leaf_cnt ++;
     }
@@ -1793,6 +1794,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
     for(int j =0;j<bnodes_entry_index[i][0];j++)
     {
       new_bnodes[i]->records[j] = leaf_addrs[i][j];
+      assert(new_bnodes[i]->records[j].packed_addr.mn_id == 0);
       leaf_key.push_back(leaves[leaf_cnt]->get_key());
       leaf_cnt ++;
     }
