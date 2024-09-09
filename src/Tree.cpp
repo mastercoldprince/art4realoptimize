@@ -887,6 +887,8 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     auto partial = get_partial(k, depth);  //获取需要匹配的关键字 应该是缓冲节点的深度再加上partial len
     GlobalAddress leaf_addrs[256];
     GlobalAddress leaves_ptr[256];
+    memset(leaf_addrs,0,256*sizeof(GlobalAddress));
+    memset(leaves_ptr,0,256*sizeof(GlobalAddress));
     int leaf_cnt = 0;
     //3.3 search an exists slot first 
     for(int i=0;i < 256;i++)   //bp node 全空？
@@ -2948,7 +2950,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     int com_par_len = get_2B_partial(leaf_key,depth);
     if(com_par_len >2) com_par_len = 2;
     BufferHeader  bhdr(leaf_key[0], com_par_len, depth , bnodes_entry_index[i][0], 0);
-    new_bnodes[i]->hdr = bhdr;
+    new_bnodes[i]->hdr.val = bhdr.val;
 
     for(int j =0;j<bnodes_entry_index[i][0];j++)
     {
@@ -2958,6 +2960,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     bnode.records[bnodes_entry_index[i][1]].packed_addr={bnode_addrs[i].nodeID, bnode_addrs[i].offset >> ALLOC_ALLIGN_BIT};
     bnode.records[bnodes_entry_index[i][1]].node_type = 1;
    // printf("thread  %d 15 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)(new_bnodes[i]->hdr));
+   assert(new_bnodes[i].hdr.val != 0);
   }
   //修改原来的buffer node 为一个internal node  要上锁 
   bnode.hdr.count_1 = new_bnode_num;
@@ -3145,6 +3148,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
     bnode.records[bnodes_entry_index[i][1]].packed_addr={bnode_addrs[i].nodeID, bnode_addrs[i].offset >> ALLOC_ALLIGN_BIT};
     bnode.records[bnodes_entry_index[i][1]].node_type = 1;
   //  printf("thread  %d 15 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)(new_bnodes[i]->hdr));
+       assert(new_bnodes[i].hdr.val != 0);
   }
   //修改原来的buffer node 为一个internal node  要上锁 
   bnode.hdr.count_1 = new_bnode_num;
