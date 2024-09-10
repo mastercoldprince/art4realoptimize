@@ -3092,12 +3092,12 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
       {
         bnodes_entry_index[new_bnode_num - 1][j+1] = count_index[i][j+1];
         leaf_addrs[new_bnode_num - 1][j].val = bnode.records[count_index[i][j + 1]].val;
-        if(j > 0 )  bnode.records[count_index[i][j + 1]] = BufferEntry::Null();
         RdmaOpRegion r;
         r.dest       = bnode.records[count_index[i][j + 1]].addr();
         r.size       = sizeof(Leaf_kv);
         r.is_on_chip = false;
         rs.push_back(r);
+        if(j > 0 )  bnode.records[count_index[i][j + 1]] = BufferEntry::Null();
       }
     }
   }
