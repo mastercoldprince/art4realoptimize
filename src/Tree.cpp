@@ -2919,7 +2919,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   {
     for(int j =0;j<count_index[i][0];j++)
     {
-      dsm->read_sync(one_leaf_buffer, leaf_addrs[i][j], sizeof(Leaf_kv), cxt); 
+      dsm->read_sync(one_leaf_buffer, leaf_addrs[i][j].addr(), sizeof(Leaf_kv), cxt); 
       leaves[leaf_cnt ++] = *(Leaf_kv *)(one_leaf_buffer);
     }
 
