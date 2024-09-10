@@ -2905,7 +2905,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     rs[i].source = (uint64_t)leaves_buffer + i * define::allocAlignPageSize;
   }
   //读需要放在下一层的叶节点 read_batch
-  dsm->read_batches_sync(rs);   //没读过来？？？
+  dsm->read_batches_sync(rs);   //没读过来？？？搞成单次读呢？
   //写叶节点
   auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaf_buffer();
 
@@ -2913,10 +2913,13 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
 
 
   Leaf_kv *leaves = new Leaf_kv [leaf_cnt];
+  auto one_leaf_buffer=(dsm->get_rbuf(0)).get_kvleaf_buffer();
   //读到了leaves_buffer
   for(int i = 0;i<leaf_cnt;i++)
   {
+    dsm->read_sync(one_leaf_buffer, leaf_addrs[i], sizeof(Leaf_kv), cxt);
     leaves[i] = *(Leaf_kv *)(leaves_buffer + i * define::allocAlignPageSize);
+    leaves[i] = *(Leaf_kv *)(one_leaf_buffer);
   }
   leaf_cnt = 0;
   InternalBuffer **new_bnodes = new InternalBuffer* [new_bnode_num +1]; 
