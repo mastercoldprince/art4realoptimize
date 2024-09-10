@@ -2917,7 +2917,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   //读到了leaves_buffer
   for(int i = 0;i<leaf_cnt;i++)
   {
-    dsm->read_sync(one_leaf_buffer, leaf_addrs[i], sizeof(Leaf_kv), cxt);
+    dsm->read_sync(one_leaf_buffer, leaves_addrs[i], sizeof(Leaf_kv), cxt);  
     leaves[i] = *(Leaf_kv *)(leaves_buffer + i * define::allocAlignPageSize);
     leaves[i] = *(Leaf_kv *)(one_leaf_buffer);
   }
