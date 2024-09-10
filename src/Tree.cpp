@@ -2931,7 +2931,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     {
       new_bnodes[i]->records[j] = leaf_addrs[i][j];
       assert(new_bnodes[i]->records[j].packed_addr.mn_id == 0);
-      leaf_key.push_back(leaves[leaf_cnt]->get_key());
+      leaf_key.push_back(leaves[leaf_cnt].get_key());
       leaf_cnt ++;
     }
     if(leaf_flag && bnode.records[bnodes_entry_index[i][1]].partial == new_leaf_partial)
@@ -3121,7 +3121,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
     {
       new_bnodes[i]->records[j] = leaf_addrs[i][j];
       assert(new_bnodes[i]->records[j].packed_addr.mn_id == 0);
-      leaf_key.push_back(leaves[leaf_cnt]->get_key());
+      leaf_key.push_back(leaves[leaf_cnt].get_key());
       leaf_cnt ++;
     }
     if(leaf_flag && bnode.records[bnodes_entry_index[i][1]].partial == new_leaf_partial)
