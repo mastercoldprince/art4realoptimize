@@ -8,15 +8,8 @@
 
 
 struct PackedGAddr {  // 48-bit, used by node addr/leaf addr (not entry addr)
-  union{
-  struct 
-  {
   uint64_t mn_id     : define::mnIdBit;
   uint64_t offset    : define::offsetBit;
-  };
-  uint64_t val : 48;
-  };
-
 
   operator uint64_t() { return (offset << define::mnIdBit) | mn_id; }
 } __attribute__((packed));
