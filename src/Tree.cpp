@@ -959,7 +959,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 //      {
         for(int i=0;i < 256;i++)
         {
-          if(bp_node->records[i] == BufferEntry::Null()) //If we are at a  buffer  empty and partial key match
+          if(bp_node->records[i] == BufferEntry::Null()|| bp_node->records[i].val == 0) //If we are at a  buffer  empty and partial key match
           {
            depth ++;
            old_be = bp_node->records[i];
@@ -1345,7 +1345,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     //  uint8_t partial;
         for(int i=0;i < 256;i++)
         {
-          if(bp_node->records[i] == BufferEntry::Null()) //If we are at a  buffer  empty and partial key match
+          if(bp_node->records[i] == BufferEntry::Null()||bp_node->records[i].val ==0) //If we are at a  buffer  empty and partial key match
           {
            depth ++;
            old_be = bp_node->records[i];
