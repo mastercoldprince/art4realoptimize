@@ -1037,7 +1037,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
           }
           else{ */ //有重复的 需要将重复的拿下来到下一级缓冲节点   depth 已加partial len
-          bool res=out_of_place_write_buffer_node(k, v,depth,*bp_node,leaf_type,klen,vlen,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p, p_ptr,cxt,coro_id);
+          bool res=out_of_place_write_buffer_node(k, v,depth,bp_node,leaf_type,klen,vlen,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p, p_ptr,cxt,coro_id);
           if (!res) {  //获取锁失败
           //  p = *(InternalEntry*) cas_buffer;
           //  retry_flag = SPLIT_HEADER;
