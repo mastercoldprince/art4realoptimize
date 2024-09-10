@@ -58,6 +58,7 @@ public:
   Leaf_kv(const GlobalAddress& rev_ptr,const int& leaf_type,const int& keylen,const int& valen,const Key& key, const Value& value) : rev_ptr(rev_ptr), f_padding(0), leaf_type(leaf_type), valid(1), key(key), value(value),  lock_byte(0)
    { 
     set_consistent(); 
+    assert(valid == 1);
     }
  
   const Key& get_key() const { return key; }
