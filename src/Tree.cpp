@@ -857,8 +857,8 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     //  printf("thread  %d 3 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)bp_node->hdr);
       index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
-    if(depth >bhdr.depth) 
-  //  printf("noooooooooooooooooooooooooooooooooooooooooooooo1!!!!!!!");
+/*    if(depth >bhdr.depth) 
+    printf("noooooooooooooooooooooooooooooooooooooooooooooo1!!!!!!!");*/
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂   新建一个共同前缀的内部节点
     if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {     //
@@ -1249,7 +1249,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     //      printf("thread  %d 5 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)bp_node->hdr);
     index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
-    if(depth >bhdr.depth)
+    //if(depth >bhdr.depth)
   //   printf("noooooooooooooooooooooooooooooooooooooooooooooo2!!!!!!!");
 
 
