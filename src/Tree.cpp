@@ -1549,7 +1549,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
 
   for(int i=0; i <256 ;i++)
   {
-    if(count_index[i][0] == 1 ||count_index[i][0] > 1 || (count_index[i][0] == 1 && i == (int)new_leaf_partial))
+    if(count_index[i][0] >= 1)
     {
       if(i == (int)get_partial(k,depth)) leaf_flag =1;
       new_bnode_num ++;
@@ -1753,7 +1753,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
 
   for(int i=0; i <256 ;i++)
   {
-    if(count_index[i][0] == 1 ||count_index[i][0] > 1 || (count_index[i][0] == 1 && i == (int)new_leaf_partial))
+    if(count_index[i][0] > =1 )
     {
       if(i == (int)get_partial(k,depth)) leaf_flag =1;
       new_bnode_num ++;
