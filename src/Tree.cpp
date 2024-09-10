@@ -1617,6 +1617,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
       new_bnodes[i]->records[bnodes_entry_index[i][0]].leaf_type = leaf_type;
       new_bnodes[i]->records[bnodes_entry_index[i][0]].node_type = 0;
       new_bnodes[i]->records[bnodes_entry_index[i][0]].prefix_type = 0;
+      new_bnodes[i]->records[bnodes_entry_index[i][0]].packed_addr={leaf_addr.nodeID,leaf_addr.offset >> ALLOC_ALLIGN_BIT};
       new (leaf_buffer) Leaf_kv(GADD(bnode_addrs[i],sizeof(GlobalAddress)+sizeof(BufferHeader)+bnodes_entry_index[i][0]*sizeof(BufferEntry)),leaf_type,klen,vlen,k,v);   //修改  叶节点的反向指针应该指向槽的地址 
       bnodes_entry_index[i][0] ++;
     }
@@ -1807,6 +1808,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
       new_bnodes[i]->records[bnodes_entry_index[i][0]].leaf_type = leaf_type;
       new_bnodes[i]->records[bnodes_entry_index[i][0]].node_type = 0;
       new_bnodes[i]->records[bnodes_entry_index[i][0]].prefix_type = 0;
+      new_bnodes[i]->records[bnodes_entry_index[i][0]].packed_addr={leaf_addr.nodeID,leaf_addr.offset >> ALLOC_ALLIGN_BIT};
       new (leaf_buffer) Leaf_kv(GADD(bnode_addrs[i],sizeof(GlobalAddress)+sizeof(BufferHeader)+bnodes_entry_index[i][0]*sizeof(BufferEntry)),leaf_type,klen,vlen,k,v);   //修改  叶节点的反向指针应该指向槽的地址 
       bnodes_entry_index[i][0] ++;
     }
