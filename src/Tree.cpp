@@ -1330,6 +1330,9 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
 
           // 2.3 Check if it is the key we search
           if (_k == k) {
+            if (is_load) {
+               goto insert_finish;
+                }
               in_place_update_leaf(k,v,leaf_addrs[i],leaf_type,leaf,cxt,coro_id);   
               goto insert_finish;
           }
