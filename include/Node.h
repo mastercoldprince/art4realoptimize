@@ -8,8 +8,15 @@
 
 
 struct PackedGAddr {  // 48-bit, used by node addr/leaf addr (not entry addr)
+  union{
+  struct 
+  {
   uint64_t mn_id     : define::mnIdBit;
   uint64_t offset    : define::offsetBit;
+  };
+  uint64_t val;
+  }
+
 
   operator uint64_t() { return (offset << define::mnIdBit) | mn_id; }
 } __attribute__((packed));
@@ -918,22 +925,26 @@ public:
   BufferEntry() : val(0) 
       {
         int v=val;
+        assert(packed_addr.mn_id == 0);
         
       }
   BufferEntry(uint8_t node_type, uint8_t partial,uint8_t prefix_type,uint8_t leaf_type,const GlobalAddress &addr) :
                 partial(partial),node_type(node_type), prefix_type(prefix_type),leaf_type(leaf_type),packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT}
                  {
         int v=val;
+                assert(packed_addr.mn_id == 0);
                  }
   BufferEntry(const BufferEntry& e) :
                 partial(e.partial),node_type(e.node_type), prefix_type(e.prefix_type), leaf_type(e.leaf_type),packed_addr(e.packed_addr) 
                 {
         int v=val;
+                assert(packed_addr.mn_id == 0);
                 }
   BufferEntry(NodeType node_type, const BufferEntry& e) :
                 partial(e.partial),node_type(e.node_type),prefix_type(e.prefix_type),leaf_type(static_cast<uint8_t>(node_type)),packed_addr(e.packed_addr)
                  {
         int v=val;
+                assert(packed_addr.mn_id == 0);
                  }
   operator uint64_t() const { return val; }
 
