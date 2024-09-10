@@ -1020,9 +1020,10 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
 */
 
 //新建一个内部节点、缓冲节点和叶节点
-bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len,uint8_t diff_partial,
+bool Tree::out_of_place_write_node(const Key &k, Value &v,const int depth_i, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len,uint8_t diff_partial,
                                    const GlobalAddress &e_ptr, const InternalEntry &old_e,const GlobalAddress& node_addr,
                                    uint64_t *ret_buffer, CoroContext *cxt, int coro_id) {                               
+  int depth = depth_i;
   int new_node_num = partial_len / (define::hPartialLenMax + 1) + 1;
   auto leaf_unwrite = (leaf_addr == GlobalAddress::Null());
 
@@ -1143,10 +1144,10 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
 }
 
 
-bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len,uint8_t diff_partial,
+bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v,const int depth_i, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len,uint8_t diff_partial,
                                    const GlobalAddress &e_ptr, const BufferEntry &old_e, const GlobalAddress& node_addr,
                                    uint64_t *ret_buffer, CoroContext *cxt, int coro_id) {
-                                
+  int depth = depth_i;                           
   int new_node_num = partial_len / (define::hPartialLenMax + 1) + 1;
   auto leaf_unwrite = (leaf_addr == GlobalAddress::Null());
 
