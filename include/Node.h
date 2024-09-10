@@ -916,22 +916,23 @@ public:
 public:
   BufferEntry() : val(0) 
       {
+        int v=val;
         
       }
   BufferEntry(uint8_t node_type, uint8_t partial,uint8_t prefix_type,uint8_t leaf_type,const GlobalAddress &addr) :
                 partial(partial),node_type(node_type), prefix_type(prefix_type),leaf_type(leaf_type),packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT}
                  {
-
+        int v=val;
                  }
   BufferEntry(const BufferEntry& e) :
                 partial(e.partial),node_type(e.node_type), prefix_type(e.prefix_type), leaf_type(e.leaf_type),packed_addr(e.packed_addr) 
                 {
-
+        int v=val;
                 }
   BufferEntry(NodeType node_type, const BufferEntry& e) :
                 partial(e.partial),node_type(e.node_type),prefix_type(e.prefix_type),leaf_type(static_cast<uint8_t>(node_type)),packed_addr(e.packed_addr)
                  {
-
+        int v=val;
                  }
   operator uint64_t() const { return val; }
 
