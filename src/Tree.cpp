@@ -3258,8 +3258,8 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   dsm->write_batches_sync(rs_write, new_bnode_num + 2, cxt, coro_id);
   auto cas_node_type_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
   BufferEntry new_entry(old_e);
-  new_entry.child_type = 2;
-  new_entry.node_type = static_cast<uint8_t>(NODE_256);
+  new_entry.node_type = 2;
+  new_entry.leaf_type = static_cast<uint8_t>(NODE_256);
   new (cas_node_type_buffer) BufferEntry(new_entry);
   bool res =dsm->cas_sync(p_ptr, (uint64_t)old_e, (uint64_t)new_entry, cas_node_type_buffer, cxt);
 
