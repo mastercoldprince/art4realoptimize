@@ -671,11 +671,11 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   assert(dsm->is_register());
   int leaf_type=-1;
   int leaf_size =0;
-  int klen=0,vlen=0;
+  int klen=128,vlen=1024;   //应该从后往前找！
   {
   int i=0,j=0;
-  while(k[i++] != 0) klen ++;
-  while(v[j++] != 0) vlen ++;
+  while(k[i++] == 0) klen --;
+  while(v[j++] == 0) vlen --;
   if(klen<=8) {leaf_type = 1; leaf_size = 8;}
   else if ( 8< klen&& klen <=16) {leaf_type = 5;leaf_size = 16;}
   else if (16<klen && klen <= 32 ) {leaf_type = 9;leaf_size = 32;}
