@@ -1037,6 +1037,8 @@ public:
         records[i] = bnode.records[i];
       }
       w_lock = bnode.w_lock;
+      assert(rev_ptr.val!=0);
+      assert(hdr.val!=0);
   
     }
 
