@@ -884,6 +884,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       goto insert_finish;
     }
     }
+    assert(bhdr.depth ! =0);
     depth = bhdr.depth + bhdr.partial_len;
     auto partial = get_partial(k, depth);  //获取需要匹配的关键字 应该是缓冲节点的深度再加上partial len
     GlobalAddress leaf_addrs[256];
@@ -1110,7 +1111,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       goto insert_finish;
     }
   }
-  
+      assert(hdr.depth ! =0);
   depth = hdr.depth + hdr.partial_len;
 #ifdef TREE_TEST_ROWEX_ART
   if (!is_update) unlock_node(node_ptr, cxt, coro_id);
@@ -1279,6 +1280,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       goto insert_finish;
     }
     }
+        assert(bhdr.depth ! =0);
     depth = bhdr.depth + bhdr.partial_len;
     auto partial = get_partial(k, depth);
     GlobalAddress leaf_addrs[256];
@@ -1498,7 +1500,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       goto insert_finish;
     }
   }
-  
+      assert(hdr.depth ! =0);
   depth = hdr.depth + hdr.partial_len;
 #ifdef TREE_TEST_ROWEX_ART
   if (!is_update) unlock_node(node_ptr, cxt, coro_id);
