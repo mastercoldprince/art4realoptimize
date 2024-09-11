@@ -727,7 +727,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
 
 
   //search from cache
-/*
+
   from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, parent_parent_type,entry_idx,cache_entry_parent,first_buffer);   //check   直接从cache里面找到一个 
   if (from_cache) { // cache hit
     assert(entry_idx >= 0);
@@ -754,13 +754,13 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
       }
       buffer_from_cache_flag = true;
     }
-    bp = *(BufferEntry*)&p;
+    bp.val = p.val;
   //  bp.partial = p.partial;
   //  bp.node_type = p.child_type;
   //  bp.leaf_type = p.node_type;
   //  bp.packed_addr ={p.addr().nodeID, p.addr().offset >> ALLOC_ALLIGN_BIT} ;
   }
-  else {*/
+  else {
     p_ptr = root_ptr_ptr;
     p = get_root_ptr(cxt, coro_id);
     depth = 0;
@@ -2984,6 +2984,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   old_page = new (old_page_buffer) InternalBuffer(*bnode);
   Header new_hdr(bnode->hdr);
   old_page->hdr.val = new_hdr.val;
+  assert(old_page->hdr.val ! =0);
 
 
   //整一个write_batch  写所有的缓冲节点和叶节点 还有写旧的叶节点
@@ -3175,6 +3176,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   old_page = new (old_page_buffer) InternalBuffer(*bnode);
   Header new_hdr(bnode->hdr);
   old_page->hdr.val = new_hdr.val;
+  assert(old_page->hdr.val ! =0);
 
 
   //整一个write_batch  写所有的缓冲节点和叶节点 还有写旧的叶节点
