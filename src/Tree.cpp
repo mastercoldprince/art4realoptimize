@@ -839,7 +839,7 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
 
 bool Tree::read_node(InternalEntry &p, bool& type_correct, char *node_buffer, const GlobalAddress& p_ptr, int depth, bool from_cache,
                      CoroContext *cxt, int coro_id) {
-  auto read_size = sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(p.type()) * sizeof(InternalEntry);
+  auto read_size = sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(p.type()) * sizeof(InternalEntry) + 1;
   dsm->read_sync(node_buffer, p.addr(), read_size, cxt);
   auto p_node = (InternalPage *)node_buffer;
   auto& hdr = p_node->hdr;
