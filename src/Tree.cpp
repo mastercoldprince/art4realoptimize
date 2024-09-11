@@ -2916,8 +2916,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
 //  if(!leaf_flag) new_bnode_num ++;
 
   bnode_addrs = new GlobalAddress[new_bnode_num + 1];
-  if (leaf_flag)  alloc_bnodes(new_bnode_num+1, bnode_addrs)
-  else alloc_bnodes(new_bnode_num, bnode_addrs);
+  leaf_flag?  dsm->alloc_bnodes(new_bnode_num+1, bnode_addrs) :dsm->alloc_bnodes(new_bnode_num, bnode_addrs);
   auto leaves_buffer =(dsm->get_rbuf(0)).get_range_buffer();
   for(int i =0;i<(int) rs.size();i++)
   {
@@ -2988,7 +2987,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   if(!leaf_flag)  //多搞一个缓冲节点
   { 
     auto bnode_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
-    new_bnodes[new_bnode_num] =new(bnode_buffer)  InternalBuffer(k,2,depth,1,0,GADD(p.addr(),sizeof(GlobalAddress)+sizeof(BufferHeader)+first_empty*sizeof(BufferEntry)));
+    new_bnodes[new_bnode_num] =new(bnode_buffer)  InternalBuffer(k,2,depth,1,0,GADD(old_e.addr(),sizeof(GlobalAddress)+sizeof(BufferHeader)+first_empty*sizeof(BufferEntry)));
     new_bnodes[new_bnode_num]->records[0].leaf_type = leaf_type;
     new_bnodes[new_bnode_num]->records[0].node_type = 0;
     new_bnodes[new_bnode_num]->records[0].prefix_type = 0;
