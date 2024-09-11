@@ -1653,6 +1653,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   old_page = new (old_page_buffer) InternalBuffer(*bnode);
   Header new_hdr(bnode->hdr);
   old_page->hdr.val = new_hdr.val;
+  assert(old_page->hdr.val ! =0);
 
 
   //整一个write_batch  写所有的缓冲节点和叶节点 还有写旧的叶节点
@@ -1844,6 +1845,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   old_page = new (old_page_buffer) InternalBuffer(*bnode);
   Header new_hdr(bnode->hdr);
   old_page->hdr.val = new_hdr.val;
+  assert(old_page->hdr.val ! =0);
 
 
   //整一个write_batch  写所有的缓冲节点和叶节点 还有写旧的叶节点
