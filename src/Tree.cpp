@@ -837,6 +837,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 {
       is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   
       bp_node = (InternalBuffer *)buffer_buffer;
+      page_buffer = *bp_node;
           //3.1 check partial key
       if (!is_valid) {  // node deleted || outdated cache entry in cached node
         if (from_cache) {
@@ -1054,6 +1055,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   page_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
   is_valid = read_node(p, type_correct, page_buffer, p_ptr, depth,from_cache,cxt, coro_id);
   p_node = (InternalPage *)page_buffer;
+  parent_page = *p_node;
 
 
   if (!is_valid) {
@@ -1229,6 +1231,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
    {  retry_read_buffer ++;
       is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   
       bp_node = (InternalBuffer *)buffer_buffer;
+      parent_buffer =*bp_node;
           //3.1 check partial key
       if (!is_valid) {  // node deleted || outdated cache entry in cached node
         if (from_cache) {
@@ -1442,7 +1445,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
   page_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
   is_valid = read_node_from_buffer(bp, type_correct,page_buffer,p_ptr,depth, from_cache,cxt,coro_id);
   p_node = (InternalPage *)page_buffer;
-
+  parent_page =*bp_node;
   if (!is_valid) {  // node deleted || outdated cache entry in cached node
 
     // invalidate the old node cache
@@ -2854,8 +2857,10 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
   auto acquire_lock = dsm->cas_mask_sync(GADD(old_e.addr(), lock_cas_offset), 0UL, ~0UL, cas_buffer, lock_mask, cxt);
   if(!acquire_lock) return false;
-
+  
   depth ++;
+  int first_empty=0;
+  bool first_empty_set = false;
   int count_index[256][256];  //[][0] -> count  [1~] ->index
   int leaf_cnt = 0;
   BufferEntry leaf_addrs[256][256];
@@ -2883,7 +2888,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   {
     if(count_index[i][0] >= 1)
     {
-      if(i == (int)get_partial(k,depth)) leaf_flag =1;
+      if(i == (int)get_partial(k,depth)) leaf_flag =1;  //往下拿的时候有叶节点的 没有的话多生成一个新的缓冲节点
       new_bnode_num ++;
       leaf_cnt += count_index[i][0];
       bnodes_entry_index[new_bnode_num - 1][0] = count_index[i][0];
@@ -2897,13 +2902,21 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
         r.size       = sizeof(Leaf_kv);
         r.is_on_chip = false;
         rs.push_back(r);
-        if(j > 0 )  bnode->records[count_index[i][j + 1]] = BufferEntry::Null();
+        if(j > 0 ) 
+        {
+          if(!first_empty_set)
+          {
+            first_empty = count_index[i][j + 1];first_empty_set = true;
+          } 
+         bnode->records[count_index[i][j + 1]] = BufferEntry::Null();
+         }
       }
     }
   }
+//  if(!leaf_flag) new_bnode_num ++;
 
-  bnode_addrs = new GlobalAddress[new_bnode_num];
-  dsm->alloc_bnodes(new_bnode_num, bnode_addrs);
+  bnode_addrs = new GlobalAddress[new_bnode_num + 1];
+  leaf_flag? alloc_bnodes(new_bnode_num+1, bnode_addrs):alloc_bnodes(new_bnode_num, bnode_addrs);
   auto leaves_buffer =(dsm->get_rbuf(0)).get_range_buffer();
   for(int i =0;i<(int) rs.size();i++)
   {
@@ -2926,7 +2939,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
 
   }
   leaf_cnt = 0;
-  InternalBuffer **new_bnodes = new InternalBuffer* [new_bnode_num +1]; 
+  InternalBuffer **new_bnodes = new InternalBuffer* [new_bnode_num +1];  //预留一个 可能需要给叶节点 
 
   for (int i = 0; i < new_bnode_num ; ++ i) {    //会涉及到多次cas 开销 --->上锁
     auto bnode_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
@@ -2970,6 +2983,19 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
    assert(bnode->records[bnodes_entry_index[i][1]].packed_addr.mn_id == 0);
    assert(new_bnodes[i]->hdr.val != 0);
   }
+
+  if(!leaf_flag)  //多搞一个缓冲节点
+  { 
+    auto bnode_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
+    new_bnodes[new_bnode_num] =new(bnode_buffer)  InternalBuffer(k,2,depth,1,0,GADD(p.addr(),sizeof(GlobalAddress)+sizeof(BufferHeader)+first_empty*sizeof(BufferEntry)));
+    new_bnodes[new_bnode_num]->records[0].leaf_type = leaf_type;
+    new_bnodes[new_bnode_num]->records[0].node_type = 0;
+    new_bnodes[new_bnode_num]->records[0].prefix_type = 0;
+    new_bnodes[new_bnode_num]->records[0].packed_addr={leaf_addr.nodeID,leaf_addr.offset >> ALLOC_ALLIGN_BIT};
+    new (leaf_buffer) Leaf_kv(GADD(bnode_addrs[new_bnode_num],sizeof(GlobalAddress)+sizeof(BufferHeader)),leaf_type,klen,vlen,k,v); 
+    new_bnode_num ++;
+  }
+
   //修改原来的buffer node 为一个internal node  要上锁 
   bnode->hdr.count_1 = new_bnode_num;
 /*
