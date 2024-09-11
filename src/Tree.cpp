@@ -837,7 +837,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 {
       is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   
       bp_node = (InternalBuffer *)buffer_buffer;
-      page_buffer = *bp_node;
+      parent_buffer = *bp_node;
           //3.1 check partial key
       if (!is_valid) {  // node deleted || outdated cache entry in cached node
         if (from_cache) {
@@ -1445,7 +1445,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
   page_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
   is_valid = read_node_from_buffer(bp, type_correct,page_buffer,p_ptr,depth, from_cache,cxt,coro_id);
   p_node = (InternalPage *)page_buffer;
-  parent_page =*bp_node;
+  parent_buffer =*bp_node;
   if (!is_valid) {  // node deleted || outdated cache entry in cached node
 
     // invalidate the old node cache
@@ -2916,7 +2916,8 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
 //  if(!leaf_flag) new_bnode_num ++;
 
   bnode_addrs = new GlobalAddress[new_bnode_num + 1];
-  leaf_flag? alloc_bnodes(new_bnode_num+1, bnode_addrs):alloc_bnodes(new_bnode_num, bnode_addrs);
+  if (leaf_flag)  alloc_bnodes(new_bnode_num+1, bnode_addrs)
+  else alloc_bnodes(new_bnode_num, bnode_addrs);
   auto leaves_buffer =(dsm->get_rbuf(0)).get_range_buffer();
   for(int i =0;i<(int) rs.size();i++)
   {
