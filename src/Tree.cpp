@@ -764,7 +764,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
     p_ptr = root_ptr_ptr;
     p = get_root_ptr(cxt, coro_id);
     depth = 0;
-  //}
+  }
 
 
   depth ++;  // partial key in entry is matched
