@@ -1374,7 +1374,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth
   return res;
 }
 */
-void Tree::cas_node_type(NodeType next_type, GlobalAddress p_ptr, InternalEntry p, Header hdr,
+void Tree::cas_node_type(NodeType next_type, GlobalAddress p_ptr, InternalEntry p, Header hdr,   //在这里没cas成功？？？？
                          CoroContext *cxt, int coro_id) {
   auto node_addr = p.addr();
   auto header_addr = GADD(node_addr, sizeof(GlobalAddress));
