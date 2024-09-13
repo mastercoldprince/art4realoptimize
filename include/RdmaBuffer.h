@@ -10,7 +10,7 @@ private:
   // async, buffer safty
   static const int kCasBufferCnt    = 256;
   static const int kPageBufferCnt   = 256;  // big enough to hold batch internal node write in out_of_place_write_node
-  static const int kBufferBufferCnt = 2048;
+  static const int kBufferBufferCnt = 256;
   static const int kKVLeafBufferCnt   = 256;    //分配32 *最大的叶节点
   static const int kPTRLeafBufferCnt   = 32;    //分配32 *最大的叶节点
   static const int kHeaderBufferCnt = 32;
@@ -32,7 +32,7 @@ private:
   char   *zero_byte;
   char   *key_buffer;
   char   *value_buffer;
-  
+
 
   int cas_buffer_cur;
   int page_buffer_cur;
@@ -98,15 +98,15 @@ public:
   }
 
   char *get_kvleaf_buffer( ) {
-    kvleaf_buffer_cur = (kvleaf_buffer_cur + 1)  % ( kKVLeafBufferCnt * define::allocAlignKVLeafSize);
+    kvleaf_buffer_cur = (kvleaf_buffer_cur + 1)  %kKVLeafBufferCnt;
     return kvleaf_buffer + kvleaf_buffer_cur * define::allocAlignKVLeafSize;
   }
   char *get_kvleaves_buffer(int k ) {
-    kvleaf_buffer_cur = (kvleaf_buffer_cur + k)  % ( kKVLeafBufferCnt * define::allocAlignKVLeafSize);
+    kvleaf_buffer_cur = (kvleaf_buffer_cur + k)  %  kKVLeafBufferCnt ;
     return kvleaf_buffer + kvleaf_buffer_cur * define::allocAlignKVLeafSize ;
   }
   char *get_ptrleaf_buffer( ) {
-    ptrleaf_buffer_cur = (ptrleaf_buffer_cur + 1)  % ( kPTRLeafBufferCnt * define::allocAlignPTRLeafSize);
+    ptrleaf_buffer_cur = (ptrleaf_buffer_cur + 1)  %  kPTRLeafBufferCnt ;
     return ptrleaf_buffer + ptrleaf_buffer_cur ;
   }
 
