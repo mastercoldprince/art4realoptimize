@@ -3041,6 +3041,24 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   //  dsm->write((const char*)old_bnode_buffer, e_ptr, sizeof(InternalBuffer), false, cxt);
   }
 
+  int internal_node_repeat = false;
+  int i_1,j_1;
+  for(int i = 0;i < 256;i++)
+  {
+    for(int j = 0;j< 256;j++)
+    {
+      if(i!= j && bnode->records[i]!=BufferEntry::Null() && bnode->records[i].partial == bnode->records[j].partial)
+      {
+        i_1 =i;
+        j_1 =j;
+        internal_node_repeat = true;
+        break;
+      }
+    }
+    if (internal_node_repeat) break;
+  }
+
+
   dsm->write_batches_sync(rs_write, new_bnode_num + 2, cxt, coro_id);
   auto cas_node_type_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
   InternalEntry new_entry(old_e);
@@ -3255,6 +3273,23 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
     rs_write[new_bnode_num +1].size       = sizeof(InternalBuffer);
     rs_write[new_bnode_num +1].is_on_chip = false;
   //  dsm->write((const char*)old_bnode_buffer, e_ptr, sizeof(InternalBuffer), false, cxt);
+  }
+
+    int internal_node_repeat = false;
+  int i_1,j_1;
+  for(int i = 0;i < 256;i++)
+  {
+    for(int j = 0;j< 256;j++)
+    {
+      if(i!= j && bnode->records[i]!=BufferEntry::Null() && bnode->records[i].partial == bnode->records[j].partial)
+      {
+        i_1 =i;
+        j_1 =j;
+        internal_node_repeat = true;
+        break;
+      }
+    }
+    if (internal_node_repeat) break;
   }
 
   dsm->write_batches_sync(rs_write, new_bnode_num + 2, cxt, coro_id);
