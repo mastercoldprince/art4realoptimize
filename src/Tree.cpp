@@ -689,7 +689,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   int cnt_res=cnt.fetch_add(1);
   uint64_t k_v = key2int(k);
 
-  if(cnt_res >22653500)printf("%d thread %d insert kv: %d\n",cnt_res ,(int)dsm->getMyThreadID( ),(int)key2int(k));
+ // if(cnt_res >22653500)printf("%d thread %d insert kv: %d\n",cnt_res ,(int)dsm->getMyThreadID( ),(int)key2int(k));
   // traversal
   GlobalAddress p_ptr;
   InternalEntry p;
@@ -1276,7 +1276,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
 
       bool res_d=dsm->cas_sync(GADD(bp.addr(), sizeof(GlobalAddress)), (uint64_t)bhdr, (uint64_t)new_hdr, header_buffer,cxt);
             if(!res_d)
-      printf("Shiffffffffffffffffffffffft!!!!!!!!!!!!\n");
+   //   printf("Shiffffffffffffffffffffffft!!!!!!!!!!!!\n");
       goto insert_finish;
     }
     }
