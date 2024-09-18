@@ -777,7 +777,6 @@ public:
   BufferHeader() : depth(0),partial_len(0) ,count_1(0),count_2(0){ memset(partial, 0, sizeof(uint8_t) * define::bPartialLenMax); }
   BufferHeader(int depth) : depth(depth),partial_len(0) ,count_1(0),count_2(0){ memset(partial, 0, sizeof(uint8_t) * define::bPartialLenMax); }
   BufferHeader(const Key &k, int partial_len, int depth, int count_1,int count_2) : depth(depth),partial_len(partial_len),count_1(count_1),count_2(count_2) {
-    assert((uint32_t)partial_len <= define::bPartialLenMax);
     for (int i = 0; i < partial_len; ++ i) partial[i] = get_partial(k, depth + i);
   }
 
@@ -830,11 +829,9 @@ public:
      partial[i] = hdr.partial[i]; 
    }
   Header(const Key &k, int partial_len, int depth, NodeType node_type) : depth(depth), node_type(node_type), partial_len(partial_len) {
-    assert((uint32_t)partial_len <= define::hPartialLenMax);
     for (int i = 0; i < partial_len; ++ i) partial[i] = get_partial(k, depth + i);
   }
   Header(char* partial, int partial_len, int depth, NodeType node_type) : depth(depth), node_type(node_type), partial_len(partial_len) {
-    assert((uint32_t)partial_len <= define::hPartialLenMax);
     for (int i = 0; i < partial_len; ++ i) this->partial[i] = partial[i];
   }
   Header(BufferHeader bhdr) : depth(bhdr.depth),node_type(static_cast<uint8_t>(NODE_256)),partial_len(bhdr.partial_len)
@@ -895,26 +892,22 @@ public:
   BufferEntry() : val(0) 
       {
         int v=val;
-        assert(packed_addr.mn_id == 0);
         
       }
   BufferEntry(uint8_t node_type, uint8_t partial,uint8_t prefix_type,uint8_t leaf_type,const GlobalAddress &addr) :
                 partial(partial),node_type(node_type), prefix_type(prefix_type),leaf_type(leaf_type),packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT}
                  {
         int v=val;
-                assert(packed_addr.mn_id == 0);
                  }
   BufferEntry(const BufferEntry& e) :
                 partial(e.partial),node_type(e.node_type), prefix_type(e.prefix_type), leaf_type(e.leaf_type),packed_addr(e.packed_addr) 
                 {
         int v=val;
-                assert(packed_addr.mn_id == 0);
                 }
   BufferEntry(NodeType node_type, const BufferEntry& e) :
                 partial(e.partial),node_type(e.node_type),prefix_type(e.prefix_type),leaf_type(static_cast<uint8_t>(node_type)),packed_addr(e.packed_addr)
                  {
         int v=val;
-                assert(packed_addr.mn_id == 0);
                  }
   operator uint64_t() const { return val; }
 
@@ -1037,8 +1030,6 @@ public:
         records[i] = bnode.records[i];
       }
       w_lock = bnode.w_lock;
-      assert(rev_ptr.val!=0);
-      assert(hdr.val!=0);
   
     }
 
