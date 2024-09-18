@@ -1662,7 +1662,7 @@ re_read:
   return true;
 }
 
-bool out_of_place_write_buffer_n_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr,int leaf_type,int klen,int vlen,const GlobalAddress &p_ptr, const InternalEntry &p, const GlobalAddress& node_addr, uint64_t *ret_buffer,CoroContext *cxt, int coro_id)
+bool Tree::out_of_place_write_buffer_n_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr,int leaf_type,int klen,int vlen,const GlobalAddress &p_ptr, const InternalEntry &p, const GlobalAddress& node_addr, uint64_t *ret_buffer,CoroContext *cxt, int coro_id)
 {
     GlobalAddress b_addr;
     b_addr = dsm->alloc(sizeof(InternalBuffer));   
