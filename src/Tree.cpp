@@ -2256,6 +2256,7 @@ bool Tree::search(const Key &k, Value &v, CoroContext *cxt, int coro_id) {   ///
     assert(entry_idx >= 0);
     p_ptr = GADD(entry_ptr->addr, sizeof(InternalEntry) * entry_idx);
     p = entry_ptr->records[entry_idx];
+    node_ptr = entry_ptr->addr;
     depth = entry_ptr->depth;
   }
   else {
@@ -2273,7 +2274,7 @@ next:
   // 1. If we are at a NULL node
 
 
-  if(parent_type == 0)   //一个内部节点 
+  if(parent_type == 0)   //一个内部节点 顺着往下找
   {
   if (p == InternalEntry::Null()) {
     search_res = false;
@@ -2586,17 +2587,10 @@ else{   //parent是一个buffernode
       index_cache->invalidate(entry_ptr_ptr, entry_ptr);
     }
     // re-read node entry
-    if(parent_type == 0)
-    {
-    auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
-    dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
-    p = *(InternalEntry *)entry_buffer;
-    }
-    else{
+
     auto entry_buffer = (dsm->get_rbuf(coro_id)).get_buffer_entry_buffer();
     dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(BufferEntry), cxt);
     bp = *(BufferEntry *)entry_buffer;
-    }
     goto next;
   }
 
@@ -2620,7 +2614,7 @@ else{   //parent是一个buffernode
   for (int i = 0; i < max_num; ++ i) {
     auto old_e = p_node->records[i];
     if (old_e != InternalEntry::Null() && old_e.partial == get_partial(k, hdr.depth + hdr.partial_len)) {
-      p_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(InternalEntry));
+      p_ptr = GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(InternalEntry));
       p = old_e;
       depth ++;
       parent_type = 0;
