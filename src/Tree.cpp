@@ -847,8 +847,6 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       auto new_hdr = BufferHeader::split_header(bhdr, i);
 
       bool res_d = dsm->cas_sync(GADD(p.addr(), sizeof(GlobalAddress)), (uint64_t)bhdr, (uint64_t)new_hdr, header_buffer, cxt);
-      if(!res_d)
-      printf("Shiffffffffffffffffffffffft!!!!!!!!!!!!\n");
       goto insert_finish;
     }
     }
@@ -1131,24 +1129,6 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     }
   }
   // 3.4 node is full, switch node type
-  int internal_node_repeat = false;
-  int i_1,j_1;
-  for(int i = 0;i < node_type_to_num(p.type());i++)
-  {
-    for(int j = 0;j<node_type_to_num(p.type());j++)
-    {
-      if(i!= j && p_node->records[i]!=InternalEntry::Null() && p_node->records[i].partial == p_node->records[j].partial)
-      {
-        i_1 =i;
-        j_1 =j;
-        internal_node_repeat = true;
-        break;
-      }
-    }
-    if (internal_node_repeat) break;
-  }
-
-
 
   int slot_id;
   cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();  //可能存了一样的partial
@@ -1235,9 +1215,6 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     //      printf("thread  %d 5 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)bp_node->hdr);
     index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
-    //if(depth >bhdr.depth)
-  //   printf("noooooooooooooooooooooooooooooooooooooooooooooo2!!!!!!!");
-
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {    //缓冲节点分裂   新建一个共同前缀的内部节点
     if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {
@@ -1257,12 +1234,9 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       auto new_hdr = BufferHeader::split_header(bhdr, i);
 
       bool res_d=dsm->cas_sync(GADD(bp.addr(), sizeof(GlobalAddress)), (uint64_t)bhdr, (uint64_t)new_hdr, header_buffer,cxt);
-            if(!res_d)
-   //   printf("Shiffffffffffffffffffffffft!!!!!!!!!!!!\n");
       goto insert_finish;
     }
     }
-        assert(bhdr.depth !=0);
     depth = bhdr.depth + bhdr.partial_len;
     auto partial = get_partial(k, depth);
     GlobalAddress leaf_addrs[256];
@@ -1529,18 +1503,6 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       depth++;  
       goto next;
       }
-      }
-    }
-  }
-
-    int internal_node_repeat = false;
-  for(int i = 0;i < node_type_to_num(p.type());i++)
-  {
-    for(int j = 0;j<node_type_to_num(p.type());j++)
-    {
-      if(i != j &&p_node->records[i]!=InternalEntry::Null() && p_node->records[i].partial == p_node->records[j].partial)
-      {
-        internal_node_repeat = true;
       }
     }
   }
