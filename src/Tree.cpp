@@ -1689,7 +1689,7 @@ bool out_of_place_write_buffer_n_leaf(const Key &k, Value &v, int depth, GlobalA
       rs[1].is_on_chip = false;
     }
     dsm->write_batches_sync(rs, 2, cxt, coro_id);
-    bool res = dsm->cas_sync(p_ptr, (uint64_t)p, (uint64_t)new_e, cas_buffer, cxt);
+    bool res = dsm->cas_sync(p_ptr, (uint64_t)p, (uint64_t)new_e, ret_buffer, cxt);
     if(res)
     {
     //  printf("thread  %d 2 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)buffer->hdr);
