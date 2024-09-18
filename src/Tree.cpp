@@ -2256,7 +2256,6 @@ bool Tree::search(const Key &k, Value &v, CoroContext *cxt, int coro_id) {   ///
     assert(entry_idx >= 0);
     p_ptr = GADD(entry_ptr->addr, sizeof(InternalEntry) * entry_idx);
     p = entry_ptr->records[entry_idx];
-    node_ptr = entry_ptr->addr;
     depth = entry_ptr->depth;
   }
   else {
