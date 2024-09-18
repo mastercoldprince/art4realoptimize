@@ -78,9 +78,8 @@ private:
 
   bool read_leaf(GlobalAddress &leaf_addr, char *leaf_buffer, int leaf_size, const GlobalAddress &p_ptr, bool from_cache, CoroContext *cxt, int coro_id);
   bool read_leaves(GlobalAddress* leaf_addr, char *leaf_buffer,int leaf_cnt, GlobalAddress* p_ptr, bool from_cache,CoroContext *cxt, int coro_id);
-  bool out_of_place_write_buffer_n_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr,int leaf_type,int klen,int vlen,
-                                   const GlobalAddress &p_ptr, const InternalEntry &p, const GlobalAddress& node_addr, uint64_t *ret_buffer,
-                                   CoroContext *cxt, int coro_id);
+  bool out_of_place_write_buffer_n_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr,int leaf_type,int klen,int vlen,const GlobalAddress &p_ptr, const InternalEntry &p,
+                             const GlobalAddress& node_addr, uint64_t *ret_buffer,CoroContext *cxt, int coro_id);
   void in_place_update_leaf(const Key &k, Value &v, const GlobalAddress &leaf_addr, int leaf_type,Leaf_kv* leaf,
                                CoroContext *cxt, int coro_id);
   bool out_of_place_update_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, const GlobalAddress &e_ptr, InternalEntry &old_e, const GlobalAddress& node_addr,
