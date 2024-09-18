@@ -1185,7 +1185,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       auto new_be = BufferEntry(0,get_partial(k,depth-1), 1,leaf_type,leaf_addr);
 
       dsm->write_sync(leaf_buffer, leaf_addr, sizeof(Leaf_kv), cxt);
-      bool res = dsm->cas_sync(bp.addr(), (uint64_t)bp, (uint64_t)new_be, cas_buffer, cxt);
+      bool res = dsm->cas_sync(p_ptr, (uint64_t)bp, (uint64_t)new_be, cas_buffer, cxt);
 
       // cas fail, retry
       if (!res) {
