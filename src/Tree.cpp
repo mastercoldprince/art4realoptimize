@@ -3630,7 +3630,6 @@ bool Tree::search(const Key &k, Value &v, CoroContext *cxt, int coro_id) {   ///
     assert(entry_idx >= 0);
     p_ptr = GADD(entry_ptr->addr, sizeof(InternalEntry) * entry_idx);
     p = entry_ptr->records[entry_idx];
-    node_ptr = entry_ptr->addr;
     depth = entry_ptr->depth;
     parent_type  = entry_ptr->node_type;
     if(entry_ptr->node_type == 1)   //如果cache找到的缓冲节点则直接去读吧！！！  后面如果是从cache来的 并且类型就是一个缓冲节点就不用再读一遍了 还是再读一次吧、、、
