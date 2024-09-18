@@ -727,7 +727,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
 
 
   //search from cache
-/*
+
   from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, parent_parent_type,entry_idx,cache_entry_parent,first_buffer);   //check   直接从cache里面找到一个 
   if (from_cache) { // cache hit
     assert(entry_idx >= 0);
@@ -760,11 +760,11 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   //  bp.leaf_type = p.node_type;
   //  bp.packed_addr ={p.addr().nodeID, p.addr().offset >> ALLOC_ALLIGN_BIT} ;
   }
-  else {*/
+  else {
     p_ptr = root_ptr_ptr;
     p = get_root_ptr(cxt, coro_id);
     depth = 0;
- // }
+  }
 
 
   depth ++;  // partial key in entry is matched
@@ -779,45 +779,13 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   if (p == InternalEntry::Null()) {
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
     //新建一个缓冲节点 和叶节点 一起写过去 最后cas
-    GlobalAddress b_addr;
-    b_addr = dsm->alloc(sizeof(InternalBuffer));   
-    auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaf_buffer();
-    Leaf_kv *leaf = new (leaf_buffer) Leaf_kv(GADD(b_addr,sizeof(GlobalAddress)+sizeof(BufferHeader)),leaf_type,klen,vlen,k, v);
-    leaf_addr = dsm->alloc(sizeof(Leaf_kv));
-    auto b_buffer=(dsm->get_rbuf(coro_id)).get_buffer_buffer();
-   // if(p.addr().val == 0)printf("0002!\n");
-    InternalBuffer* buffer = new (b_buffer) InternalBuffer(k,2,depth,1,0,p_ptr);  // 暂时定初始2B作为partial key buffer地址
-   // printf("thread  %d 1 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)buffer->hdr);
-    buffer->records[0] = BufferEntry(0,get_partial(k,depth+buffer->hdr.partial_len),1,leaf_type,leaf_addr);
-    auto new_e = InternalEntry(get_partial(k,depth-1), 1, b_addr);
-    RdmaOpRegion *rs =  new RdmaOpRegion[2];
-    {
-      rs[0].source     = (uint64_t)b_buffer;
-      rs[0].dest       = b_addr;
-      rs[0].size       = sizeof(InternalBuffer);
-      rs[0].is_on_chip = false;
-    }
-    {
-      rs[1].source     = (uint64_t)leaf_buffer;
-      rs[1].dest       = leaf_addr;
-      rs[1].size       = sizeof(Leaf_kv);
-      rs[1].is_on_chip = false;
-    }
-    dsm->write_batches_sync(rs, 2, cxt, coro_id);
-    bool res = dsm->cas_sync(p_ptr, (uint64_t)p, (uint64_t)new_e, cas_buffer, cxt);
-    if(res)
-    {
-    //  printf("thread  %d 2 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)buffer->hdr);
-      index_cache->add_to_cache(k, 1,(InternalPage*)buffer, GADD(b_addr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
-    }
-
-    delete[] rs;
+    bool res = out_of_place_write_buffer_n_leaf(k,v,depth,leaf_addr,leaf_type,klen,vlen,p_ptr,p,node_ptr, cas_buffer,cxt,coro_id);
 
     // cas fail, retry
     if (!res) {
       update_retry_flag[dsm->getMyThreadID()]=1;
-      p = *(InternalEntry*) cas_buffer;
       retry_flag = CAS_NULL;
+      p = *(InternalEntry*) cas_buffer;
       goto next;
     }
     goto insert_finish;
@@ -1141,11 +1109,25 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   for (int i = 0; i < max_num; ++ i) {
     auto old_e = p_node->records[i];
     if (old_e == InternalEntry::Null()) {
-      p_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(InternalEntry));
+      auto e_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(InternalEntry));
+      auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
+      bool res = out_of_place_write_buffer_n_leaf(k,v,depth +1,leaf_addr,leaf_type,klen,vlen,e_ptr,old_e,node_ptr,cas_buffer,cxt,coro_id);
+      // cas success, return
+      if (res) {
+        goto insert_finish;
+      }
+      else{
+      auto e = *(InternalEntry*) cas_buffer;
+      if (e.partial == get_partial(k, depth))
+      {
       p = old_e;
+      p_ptr = e_ptr;
       parent_type = 0;
-      depth++;  //找到了一个槽depth 就要加1
+      from_cache = false;
+      depth++;  
       goto next;
+      }
+      }
     }
   }
   // 3.4 node is full, switch node type
@@ -1529,11 +1511,25 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
   for (int i = 0; i < max_num; ++ i) {
     auto old_e = p_node->records[i];
     if (old_e == InternalEntry::Null()) {
-      depth ++;
-      p_ptr = GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(InternalEntry));
+      auto e_ptr = GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader) + i * sizeof(BufferEntry));
+      auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
+      bool res = out_of_place_write_buffer_n_leaf(k,v,depth +1,leaf_addr,leaf_type,klen,vlen,e_ptr,old_e,node_ptr,cas_buffer,cxt,coro_id);
+      // cas success, return
+      if (res) {
+        goto insert_finish;
+      }
+      else{
+      auto e = *(InternalEntry*) cas_buffer;
+      if (e.partial == get_partial(k, depth))
+      {
       p = old_e;
+      p_ptr = e_ptr;
       parent_type = 0;
+      from_cache = false;
+      depth++;  
       goto next;
+      }
+      }
     }
   }
 
@@ -1666,7 +1662,45 @@ re_read:
   return true;
 }
 
+bool out_of_place_write_buffer_n_leaf(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr,int leaf_type,int klen,int vlen,
+                                   const GlobalAddress &p_ptr, const InternalEntry &p, const GlobalAddress& node_addr, uint64_t *ret_buffer,
+                                   CoroContext *cxt, int coro_id)
+{
+    GlobalAddress b_addr;
+    b_addr = dsm->alloc(sizeof(InternalBuffer));   
+    auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaf_buffer();
+    Leaf_kv *leaf = new (leaf_buffer) Leaf_kv(GADD(b_addr,sizeof(GlobalAddress)+sizeof(BufferHeader)),leaf_type,klen,vlen,k, v);
+    leaf_addr = dsm->alloc(sizeof(Leaf_kv));
+    auto b_buffer=(dsm->get_rbuf(coro_id)).get_buffer_buffer();
+   // if(p.addr().val == 0)printf("0002!\n");
+    InternalBuffer* buffer = new (b_buffer) InternalBuffer(k,2,depth,1,0,p_ptr);  // 暂时定初始2B作为partial key buffer地址
+   // printf("thread  %d 1 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)buffer->hdr);
+    buffer->records[0] = BufferEntry(0,get_partial(k,depth+buffer->hdr.partial_len),1,leaf_type,leaf_addr);
+    auto new_e = InternalEntry(get_partial(k,depth-1), 1, b_addr);
+    RdmaOpRegion *rs =  new RdmaOpRegion[2];
+    {
+      rs[0].source     = (uint64_t)b_buffer;
+      rs[0].dest       = b_addr;
+      rs[0].size       = sizeof(InternalBuffer);
+      rs[0].is_on_chip = false;
+    }
+    {
+      rs[1].source     = (uint64_t)leaf_buffer;
+      rs[1].dest       = leaf_addr;
+      rs[1].size       = sizeof(Leaf_kv);
+      rs[1].is_on_chip = false;
+    }
+    dsm->write_batches_sync(rs, 2, cxt, coro_id);
+    bool res = dsm->cas_sync(p_ptr, (uint64_t)p, (uint64_t)new_e, cas_buffer, cxt);
+    if(res)
+    {
+    //  printf("thread  %d 2 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)buffer->hdr);
+      index_cache->add_to_cache(k, 1,(InternalPage*)buffer, GADD(b_addr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
+    }
 
+    delete[] rs;
+
+}
 
 /*
 void Tree::in_place_update_leaf(const Key &k, Value &v, const GlobalAddress &leaf_addr, Leaf* leaf,
