@@ -51,7 +51,7 @@
 
 
 // app thread
-#define MAX_APP_THREAD 12    // one additional thread for data statistics(main thread)  [config]
+#define MAX_APP_THREAD 65    // one additional thread for data statistics(main thread)  [config]
 #define APP_MESSAGE_NR 96
 #define POLL_CQ_MAX_CNT_ONCE 8
 
@@ -94,7 +94,7 @@ constexpr uint64_t GB = 1024ull * MB;
 constexpr uint16_t kCacheLineSize = 64;
 
 // Remote Allocation
-constexpr uint64_t dsmSize           = 4;        // GB  [CONFIG]
+constexpr uint64_t dsmSize           = 150;        // GB  [CONFIG]
 constexpr uint64_t kChunkSize        = 16 * MB;   // B
 
 // Rdma Buffer
@@ -103,7 +103,7 @@ constexpr int64_t kPerThreadRdmaBuf  = rdmaBufferSize * define::GB / MAX_APP_THR
 constexpr int64_t kPerCoroRdmaBuf    = kPerThreadRdmaBuf / MAX_CORO_NUM;
 
 // Cache (MB)
-constexpr int kIndexCacheSize = 600;
+constexpr int kIndexCacheSize = 800;
 
 // KV
 constexpr uint32_t keyLen = 8;
