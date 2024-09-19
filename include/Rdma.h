@@ -24,8 +24,8 @@
 #define MLX_PORT 1                // [CONFIG]
 #define ON_CHIP_SIZE 128
 
-constexpr int kWriteOroMax = 1024;
-constexpr int kReadOroMax = 1024;
+constexpr int kWriteOroMax = 500;
+constexpr int kReadOroMax = 500;
 constexpr int kQPMaxDepth = 4096;
 constexpr int kInlineDataMax = 220;
 
