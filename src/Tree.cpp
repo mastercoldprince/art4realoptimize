@@ -776,13 +776,13 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
 next:
 if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空槽 生成新的缓冲节点 3.内部节点分裂 分裂之后生成新的缓冲节点 4.内部节点满了扩展  并生成新的缓冲节点  
 {
-  if (p == InternalEntry::Null()) {
+  if (p == InternalEntry::Null()) {  //只有可能是根节点
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
     //新建一个缓冲节点 和叶节点 一起写过去 最后cas
-    bool res = out_of_place_write_buffer_n_leaf(k,v,depth,leaf_addr,leaf_type,klen,vlen,p_ptr,p,node_ptr, cas_buffer,cxt,coro_id);
+    bool res = out_of_place_write_buffer_n_leaf(k,v,depth,leaf_addr,leaf_type,klen,vlen,p_ptr,p,node_ptr, cas_buffer,cxt,coro_id); //partial key正确
 
     // cas fail, retry
-    if (!res) {
+    if (!res) {   //只会发生一次 所以一定会成功匹配上
       update_retry_flag[dsm->getMyThreadID()]=1;
       retry_flag = CAS_NULL;
       p = *(InternalEntry*) cas_buffer;
@@ -834,8 +834,8 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       //3.2 partial key not match, need split
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
       int partial_len = bhdr.depth + i - depth;  // hdr.depth may be outdated, so use partial_len wrt. depth
-      bool res = out_of_place_write_node(k, v, depth, leaf_addr, leaf_type,  klen,vlen,partial_len,bhdr.partial[i], p_ptr, p, node_ptr, cas_buffer, cxt, coro_id);   
-      if (!res) {
+      bool res = out_of_place_write_node(k, v, depth, leaf_addr, leaf_type,  klen,vlen,partial_len,bhdr.partial[i], p_ptr, p, node_ptr, cas_buffer, cxt, coro_id);   //partial key正确
+      if (!res) {  //失败的话一定是对同一个缓冲节点做分裂
         p = *(InternalEntry*) cas_buffer;
         goto next;
       }
@@ -1004,7 +1004,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
             
 
           }
-          else{ */ //有重复的 需要将重复的拿下来到下一级缓冲节点   depth 已加partial len
+          else{ */ //有重复的 需要将重复的拿下来到下一级缓冲节点   depth 已加partial len  partial key没问题
           bool res=out_of_place_write_buffer_node(k, v,depth,bp_node,leaf_type,klen,vlen,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p, p_ptr,cxt,coro_id);
           if (!res) {  //获取锁失败
           //  p = *(InternalEntry*) cas_buffer;
@@ -1057,7 +1057,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       // need split
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
       int partial_len = hdr.depth + i - depth;  // hdr.depth may be outdated, so use partial_len wrt. depth
-      bool res = out_of_place_write_node(k, v,depth,leaf_addr,leaf_type,klen,vlen,partial_len,hdr.partial[i], p_ptr, p, node_ptr, cas_buffer, cxt, coro_id);   //内部节点分裂  分裂后往新的内部节点下申请一个新的缓冲节点和叶节点
+      bool res = out_of_place_write_node(k, v,depth,leaf_addr,leaf_type,klen,vlen,partial_len,hdr.partial[i], p_ptr, p, node_ptr, cas_buffer, cxt, coro_id);   //内部节点分裂  分裂后往新的内部节点下申请一个新的缓冲节点和叶节点 partial key没问题
 
       // cas fail, retry
       if (!res) {

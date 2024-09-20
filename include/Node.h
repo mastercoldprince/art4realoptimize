@@ -968,7 +968,7 @@ public:
 public:
   InternalEntry() : val(0) {}
   InternalEntry(uint8_t partial, uint8_t child_type,const GlobalAddress &addr) :
-                partial(partial), child_type(child_type), packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
+                partial(partial), child_type(child_type), empty(0),node_type(0),packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
   InternalEntry(uint8_t partial, uint8_t child_type,NodeType node_type, const GlobalAddress &addr) :
                 partial(partial),child_type(child_type), empty(0), node_type(static_cast<uint8_t>(node_type)),  packed_addr{addr.nodeID, addr.offset >> ALLOC_ALLIGN_BIT} {}
   InternalEntry(NodeType node_type, const InternalEntry& e) :
