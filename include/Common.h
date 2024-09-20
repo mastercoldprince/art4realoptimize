@@ -120,7 +120,7 @@ constexpr uint32_t allocAlignPageSize = ROUND_UP(allocationPageSize, ALLOC_ALLIG
 
 // Internal Entry
 constexpr uint32_t LeafCntBit      = 7;
-constexpr uint32_t nodeTypeNumBit  = 5;
+constexpr uint32_t nodeTypeNumBit  = 3;
 constexpr uint32_t mnIdBit         = 8;
 constexpr uint32_t offsetBit       = 48 - ALLOC_ALLIGN_BIT;
 constexpr uint32_t hPartialLenMax  = 6;
