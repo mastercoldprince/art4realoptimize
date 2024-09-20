@@ -884,7 +884,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     if(leaf_cnt !=0)   //将所有的叶子读过来 看有没有重复的 
     {
         auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_range_buffer(); 
-    
+
         is_valid = read_leaves(leaf_addrs, leaf_buffer,leaf_cnt,leaves_ptr,from_cache,cxt,coro_id);
 
         if (!is_valid) {
@@ -946,7 +946,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
               }
           }
         }
-      }
+        }
 /*      bool repeat_partial = false;
       for(int i = 0;i<256;i++)
       {
@@ -3050,6 +3050,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   old_page = new (old_page_buffer) InternalBuffer(*bnode);
   Header new_hdr(bnode->hdr);
   old_page->hdr.val = new_hdr.val;
+  old_page->lock_byte = 99;
   assert(old_page->hdr.val !=0);
 
 
