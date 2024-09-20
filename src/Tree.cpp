@@ -1129,8 +1129,10 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     }
   }
   // 3.4 node is full, switch node type
-  int internal_node_repeat = false;
-  int i_1,j_1;
+      int internal_node_repeat = false;
+  int i_1,j_1;        
+    auto page_buffer1 = (dsm->get_rbuf(coro_id)).get_page_buffer();
+      auto buffer_buffer1 = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
   for(int i = 0;i < node_type_to_num(p.type());i++)
   {
     for(int j = 0;j<node_type_to_num(p.type());j++)
@@ -1140,11 +1142,16 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
         i_1 =i;
         j_1 =j;
         internal_node_repeat = true;
+
+        read_node(p_node->records[i_1], type_correct,page_buffer1,p_ptr,depth, from_cache,cxt,coro_id);
+      
+        read_buffer_node(p_node->records[j_1], buffer_buffer1, p_ptr, depth, from_cache,cxt, coro_id);  
         break;
       }
     }
     if (internal_node_repeat) break;
   }
+  
   int slot_id;
   cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();  //可能存了一样的partial
   if (insert_behind(k, v, depth, leaf_addr,get_partial(k,depth), p.type(),leaf_type,klen, vlen,node_ptr,cas_buffer,slot_id,cxt,coro_id)){  // insert success
@@ -1524,8 +1531,6 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     // 3.4 node is full, switch node type
       int internal_node_repeat = false;
   int i_1,j_1;        
-    auto page_buffer1 = (dsm->get_rbuf(coro_id)).get_page_buffer();
-      auto buffer_buffer1 = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
   for(int i = 0;i < node_type_to_num(p.type());i++)
   {
     for(int j = 0;j<node_type_to_num(p.type());j++)
@@ -1535,10 +1540,6 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
         i_1 =i;
         j_1 =j;
         internal_node_repeat = true;
-
-        read_node(p_node->records[i_1], type_correct,page_buffer1,p_ptr,depth, from_cache,cxt,coro_id);
-      
-        read_buffer_node(p_node->records[j_1], buffer_buffer1, p_ptr, depth, from_cache,cxt, coro_id);  
         break;
       }
     }
