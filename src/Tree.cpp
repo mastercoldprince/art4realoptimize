@@ -1109,6 +1109,15 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     if (old_e == InternalEntry::Null()) {
       auto e_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(InternalEntry));
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
+      auto page_buffer1 = (dsm->get_rbuf(coro_id)).get_page_buffer();
+      read_node(p, type_correct, page_buffer1, p_ptr, depth,from_cache,cxt, coro_id);
+
+      for(int i =0;i<256;i++)
+      {
+        if(((InternalPage*)page_buffer1)->records[i].partial == get_partial(k,depth)) pritnf("nooooo!");
+      }
+
+
       bool res = out_of_place_write_buffer_n_leaf(k,v,depth +1,leaf_addr,leaf_type,klen,vlen,e_ptr,old_e,node_ptr,cas_buffer,cxt,coro_id);
       // cas success, return
       if (res) {
@@ -1131,8 +1140,6 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   // 3.4 node is full, switch node type
       int internal_node_repeat = false;
   int i_1,j_1;        
-    auto page_buffer1 = (dsm->get_rbuf(coro_id)).get_page_buffer();
-      auto buffer_buffer1 = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
   for(int i = 0;i < node_type_to_num(p.type());i++)
   {
     for(int j = 0;j<node_type_to_num(p.type());j++)
@@ -1142,10 +1149,6 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
         i_1 =i;
         j_1 =j;
         internal_node_repeat = true;
-
-        read_node(p_node->records[i_1], type_correct,page_buffer1,p_ptr,depth, from_cache,cxt,coro_id);
-      
-        read_buffer_node(p_node->records[j_1].addr(), buffer_buffer1, p_ptr, depth, from_cache,cxt, coro_id);  
         break;
       }
     }
