@@ -1089,8 +1089,9 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
   // 3.3 try get the next internalEntry
   max_num = node_type_to_num(p.type());
+  max_num = 256;
   // search a exists slot first
-  for (int i = 0; i < max_num; ++ i) {
+  for (int i = 0; i < max_num; ++ i) {   //可能是节点的类型没有cas成功？
     auto old_e = p_node->records[i];
     if (old_e != InternalEntry::Null() && old_e.partial == get_partial(k, depth)) {
       p_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(InternalEntry));
@@ -3050,7 +3051,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   old_page = new (old_page_buffer) InternalBuffer(*bnode);
   Header new_hdr(bnode->hdr);
   old_page->hdr.val = new_hdr.val;
-  old_page->lock_byte = 99;
+ // old_page->lock_byte = 99;
   assert(old_page->hdr.val !=0);
 
 
