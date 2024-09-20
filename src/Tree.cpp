@@ -1114,7 +1114,8 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
       for(int i =0;i<256;i++)
       {
-        if(((InternalPage*)page_buffer1)->records[i].partial == get_partial(k,depth)) printf("nooooo!");
+        if(((InternalPage*)page_buffer1)->records[i].partial == get_partial(k,depth)) 
+        printf("nooooo!");
       }
 
 
