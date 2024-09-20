@@ -1089,7 +1089,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
   // 3.3 try get the next internalEntry
   max_num = node_type_to_num(p.type());
-  max_num = 256;
+//  max_num = 256;
   // search a exists slot first
   for (int i = 0; i < max_num; ++ i) {   //可能是节点的类型没有cas成功？
     auto old_e = p_node->records[i];
@@ -1107,16 +1107,16 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   // if no match slot, then find an empty slot to insert leaf directly
   for (int i = 0; i < max_num; ++ i) {
     auto old_e = p_node->records[i];
-    if (old_e == InternalEntry::Null()) {
+    if (old_e == InternalEntry::Null()) {   
       auto e_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(InternalEntry));
       auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
       auto page_buffer1 = (dsm->get_rbuf(coro_id)).get_page_buffer();
       read_node(p, type_correct, page_buffer1, p_ptr, depth,from_cache,cxt, coro_id);
 
-      for(int j =0;j<256;j++)
+      for(int j =0;j<256;j++)   //可能只是后面的没有初始化？  初始化之后确实是0？？？？？ 后面为什么会有不为0的？？？？ 只能是类型cas没成功？
       {
         if(((InternalPage*)page_buffer1)->records[j] != InternalEntry::Null()&&((InternalPage*)page_buffer1)->records[j].partial == get_partial(k,depth)) 
-        printf("nooooo!");
+        printf("nooooo!");  
       }
 
 
@@ -2175,7 +2175,8 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
 
 bool Tree::read_node(InternalEntry &p, bool& type_correct, char *node_buffer, const GlobalAddress& p_ptr, int depth, bool from_cache,
                      CoroContext *cxt, int coro_id) {
-  auto read_size = sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(p.type()) * sizeof(InternalEntry) + 1;
+  //auto read_size = sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(p.type()) * sizeof(InternalEntry) ;
+  auto read_size = sizeof(GlobalAddress) + sizeof(Header) + 256 * sizeof(InternalEntry) + 1;
   dsm->read_sync(node_buffer, p.addr(), read_size, cxt);
 
   auto p_node = (InternalPage *)node_buffer;
