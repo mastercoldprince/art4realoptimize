@@ -1145,13 +1145,13 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
         read_node(p_node->records[i_1], type_correct,page_buffer1,p_ptr,depth, from_cache,cxt,coro_id);
       
-        read_buffer_node(p_node->records[j_1], buffer_buffer1, p_ptr, depth, from_cache,cxt, coro_id);  
+        read_buffer_node(p_node->records[j_1].addr(), buffer_buffer1, p_ptr, depth, from_cache,cxt, coro_id);  
         break;
       }
     }
     if (internal_node_repeat) break;
   }
-  
+
   int slot_id;
   cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();  //可能存了一样的partial
   if (insert_behind(k, v, depth, leaf_addr,get_partial(k,depth), p.type(),leaf_type,klen, vlen,node_ptr,cas_buffer,slot_id,cxt,coro_id)){  // insert success
