@@ -1112,9 +1112,9 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       auto page_buffer1 = (dsm->get_rbuf(coro_id)).get_page_buffer();
       read_node(p, type_correct, page_buffer1, p_ptr, depth,from_cache,cxt, coro_id);
 
-      for(int i =0;i<256;i++)
+      for(int j =0;j<256;j++)
       {
-        if(((InternalPage*)page_buffer1)->records[i].partial == get_partial(k,depth)) 
+        if(((InternalPage*)page_buffer1)->records[j] != InternalEntry::Null()&&((InternalPage*)page_buffer1)->records[j].partial == get_partial(k,depth)) 
         printf("nooooo!");
       }
 
