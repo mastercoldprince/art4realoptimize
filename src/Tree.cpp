@@ -1111,7 +1111,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
       for(int j =0;j<256;j++)   //可能只是后面的没有初始化？  初始化之后确实是0？？？？？ 后面为什么会有不为0的？？？？ 只能是类型cas没成功？
       {
-        if(((InternalPage*)page_buffer1)->records[j] != InternalEntry::Null()&&((InternalPage*)page_buffer1)->records[j].partial == get_partial(k,depth)&&((InternalPage*)page_buffer1)->records[j].child_type==2) 
+        if(((InternalPage*)page_buffer1)->records[j] != InternalEntry::Null()&&((InternalPage*)page_buffer1)->records[j].partial == get_partial(k,depth)) 
         printf("nooooo!");  
       }
 
