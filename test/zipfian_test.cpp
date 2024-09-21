@@ -153,7 +153,7 @@ void thread_load(int id) {
   printf("I am loader %lu\n", loader_id);
 
   uint64_t end_warm_key = kWarmRatio * kKeySpace;
-  for (uint64_t i = 1; i < end_warm_key; ++i) {
+  for (uint64_t i = 1; i < end_warm_key; ++i) {  //线程多起来之后会更加分散
     if (i % all_loader_thread == loader_id) {
       tree->insert(to_key(i), i * 2, nullptr, 0, false, true);
     }
