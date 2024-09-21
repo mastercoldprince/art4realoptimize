@@ -1079,13 +1079,9 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   }
       assert(hdr.depth !=0);
   depth = hdr.depth + hdr.partial_len;
-#ifdef TREE_TEST_ROWEX_ART
-  if (!is_update) unlock_node(node_ptr, cxt, coro_id);
+
   node_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header));
-  if (!is_update) lock_node(node_ptr, cxt, coro_id);
-#else
-  node_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header));
-#endif
+
 
   // 3.3 try get the next internalEntry
   max_num = node_type_to_num(p.type());
@@ -1155,6 +1151,11 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       }
     }
     if (internal_node_repeat) break;
+  }
+  for(int i=0;i<node_type_to_num(p.type());i++)
+  {
+    if(p_node->records[i].partial==get_partial(k,depth))
+    printf("shift!!!!!!!!!!!!!!!!!");
   }
 
   int slot_id;
@@ -3399,7 +3400,7 @@ bool Tree::insert_behind(const Key &k, Value &v, int depth, GlobalAddress& leaf_
         rs[1].is_on_chip = false;
     }
     dsm->write_batches_sync(rs, 2, cxt, coro_id);
-    bool res = dsm->cas_sync(e_ptr, InternalEntry::Null(), (uint64_t)new_e, cas_buffer, cxt);
+    bool res = dsm->cas_sync(e_ptr, InternalEntry::Null(), (uint64_t)new_e, cas_buffer, cxt);  //可能这里cas不成功？？？
     delete[] rs; 
 
     if (res) {
