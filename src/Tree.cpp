@@ -1161,6 +1161,10 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   int slot_id;
   cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();  //可能存了一样的partial
   if (insert_behind(k, v, depth, leaf_addr,get_partial(k,depth), p.type(),leaf_type,klen, vlen,node_ptr,cas_buffer,slot_id,cxt,coro_id)){  // insert success
+      auto page_buffer2 = (dsm->get_rbuf(coro_id)).get_page_buffer();
+      read_node(p, type_correct, page_buffer2, p_ptr, depth,from_cache,cxt, coro_id);
+    
+    
     auto next_type = num_to_node_type(slot_id);
     cas_node_type(next_type, p_ptr, p, hdr, cxt, coro_id);
     if (from_cache) {  // cache is outdated since node type is changed
@@ -2768,8 +2772,7 @@ void Tree::cas_node_type(NodeType next_type, GlobalAddress p_ptr, InternalEntry 
     rs[1].source     = (uint64_t)cas_buffer_2;
     rs[1].dest       = header_addr;
     rs[1].is_on_chip = false;
-    std::pair<bool, bool> res=dsm->two_cas_mask_sync(rs[0], (uint64_t)p, (uint64_t)new_e, ~0UL,
-                                  rs[1], hdr, Header(next_type,hdr), Header::node_type_mask, cxt);
+    std::pair<bool, bool> res=dsm->two_cas_mask_sync(rs[0], (uint64_t)p, (uint64_t)new_e, ~0UL,rs[1], hdr, Header(next_type,hdr), Header::node_type_mask, cxt);
 
     return res;
   };
