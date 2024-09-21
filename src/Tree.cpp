@@ -1113,6 +1113,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       {
         if(((InternalPage*)page_buffer1)->records[j] != InternalEntry::Null()&&((InternalPage*)page_buffer1)->records[j].partial == get_partial(k,depth)) 
         printf("nooooo!");  
+        break;
       }
 
 
@@ -1125,7 +1126,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       auto e = *(InternalEntry*) cas_buffer;
       if (e.partial == get_partial(k, depth))
       {
-      p = old_e;
+      p = e;
       p_ptr = e_ptr;
       parent_type = 0;
       from_cache = false;
