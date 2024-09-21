@@ -2024,7 +2024,7 @@ bool Tree::insert_behind(const Key &k, Value &v, int depth, GlobalAddress& leaf_
         rs[1].is_on_chip = false;
     }
     dsm->write_batches_sync(rs, 2, cxt, coro_id);
-    bool res = dsm->cas_sync(e_ptr, InternalEntry::Null(), (uint64_t)new_e, cas_buffer, cxt);
+    bool res = dsm->cas_sync(e_ptr, InternalEntry::Null(), (uint64_t)new_e, cas_buffer, cxt);  //可能这里cas不成功？？？
     delete[] rs; 
 
     if (res) {
