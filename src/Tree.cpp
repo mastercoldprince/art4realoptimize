@@ -1105,7 +1105,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   }
 
   // if no match slot, then find an empty slot to insert leaf directly
-  for (int i = 0; i < max_num; ++ i) {
+  for (int i = 0; i < max_num; ++ i) {   //怎么会在中间有空的？？？？
     auto old_e = p_node->records[i];
     if (old_e == InternalEntry::Null()) {   
       auto e_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(InternalEntry));
@@ -1115,7 +1115,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
       for(int j =0;j<256;j++)   //可能只是后面的没有初始化？  初始化之后确实是0？？？？？ 后面为什么会有不为0的？？？？ 只能是类型cas没成功？
       {
-        if(((InternalPage*)page_buffer1)->records[j] != InternalEntry::Null()&&((InternalPage*)page_buffer1)->records[j].partial == get_partial(k,depth)) 
+        if(((InternalPage*)page_buffer1)->records[j] != InternalEntry::Null()&&((InternalPage*)page_buffer1)->records[j].partial == get_partial(k,depth)&&((InternalPage*)page_buffer1)->records[j].child_type==2) 
         printf("nooooo!");  
       }
 
