@@ -1023,7 +1023,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
 //新建一个内部节点、缓冲节点和叶节点
 bool Tree::out_of_place_write_node(const Key &k, Value &v,const int depth_i, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len,uint8_t diff_partial,
                                    const GlobalAddress &e_ptr, const InternalEntry &old_e,const GlobalAddress& node_addr,
-                                   uint64_t *ret_buffer, CoroContext *cxt, int coro_id) {                               
+                                   uint64_t *ret_buffer, CoroContext *cxt, int coro_id) {
   int depth = depth_i;
   int new_node_num = partial_len / (define::hPartialLenMax + 1) + 1;
   auto leaf_unwrite = (leaf_addr == GlobalAddress::Null());
@@ -1524,7 +1524,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
   auto acquire_lock = dsm->cas_mask_sync(GADD(old_e.addr(), lock_cas_offset), 0UL, ~0UL, cas_buffer, lock_mask, cxt);
   if(!acquire_lock) return false;
-  
+
   depth ++;
   int first_empty=0;
   bool first_empty_set = false;
