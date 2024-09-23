@@ -1076,7 +1076,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v,const int depth_i, Glo
   auto b_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
  //   printf("buffer node buffer:  %d\n",b_buffer);
  // if(node_addrs[0].val == 0) printf("0003!\n");
-  InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,2,depth,1,0,node_addrs[0]);  // 暂时定初始2B作为partial key buffer地址
+  InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,2,depth,1,2,node_addrs[0]);  // 暂时定初始2B作为partial key buffer地址
       //    printf("thread  %d 8 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)(buffernode->hdr));
   buffernode->records[0] = BufferEntry(0,get_partial(k, depth+2 ),1,leaf_type,leaf_addr);
   
@@ -2004,7 +2004,7 @@ bool Tree::insert_behind(const Key &k, Value &v, int depth, GlobalAddress& leaf_
     leaf_addr = dsm->alloc(sizeof(Leaf_kv));
     auto b_buffer=(dsm->get_rbuf(coro_id)).get_buffer_buffer();
    // if(GADD(node_addr, slot_id * sizeof(InternalEntry)).val == 0) printf("0001!\n");
-    InternalBuffer* buffer = new (b_buffer) InternalBuffer(k,2,depth +1 ,1,0,GADD(node_addr, slot_id * sizeof(InternalEntry)));  // 暂时定初始2B作为partial key buffer地址
+    InternalBuffer* buffer = new (b_buffer) InternalBuffer(k,2,depth +1 ,1,3,GADD(node_addr, slot_id * sizeof(InternalEntry)));  // 暂时定初始2B作为partial key buffer地址
     buffer->records[0] = BufferEntry(0,get_partial(k,depth+3),1,leaf_type,leaf_addr);
   
   
