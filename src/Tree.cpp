@@ -1559,7 +1559,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
 
   int slot_id;
   cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
-  if (insert_behind(k, v, ,bp.addr(), leaf_addr,get_partial(k,depth), bp.type(),leaf_type,klen, vlen,node_ptr,cas_buffer,slot_id,cxt,coro_id)){  // insert success
+  if (insert_behind(k, v, bp.addr(), leaf_addr,get_partial(k,depth), bp.type(),leaf_type,klen, vlen,node_ptr,cas_buffer,slot_id,cxt,coro_id)){  // insert success
     auto next_type = num_to_node_type(slot_id);
     cas_node_type_from_buffer(next_type, p_ptr, bp, hdr, cxt, coro_id);
     if (from_cache) {  // cache is outdated since node type is changed
