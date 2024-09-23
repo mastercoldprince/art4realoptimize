@@ -2449,7 +2449,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v,const int depth_i, Glo
     node_pages[new_node_num -1] = new (node_buffer) InternalPage(k, partial_len, depth, nodes_type, rev_ptr);
     depth += partial_len + 1;
     node_pages[new_node_num -1]->records[0] = InternalEntry(diff_partial,old_e);   
-    node_pages[new_node_num -1]->records[1] = InternalEntry(get_partial(k,depth),1,bnode_addr);
+    node_pages[new_node_num -1]->records[1] = InternalEntry(get_partial(k,depth - 1),1,bnode_addr);
      //     printf("thread  %d 7 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)(node_pages[new_node_num -1]->hdr));
   }
   // init buffer nodes
@@ -3735,20 +3735,25 @@ next:
       uint8_t partial = get_partial(k, bhdr.depth + bhdr.partial_len);
       for(int i =0 ; i < 256 ;i++)
       {
-        if(partial ==  bp_node->records[i].partial && (bp_node->records[i].node_type == 1 || bp_node->records[i].node_type == 2))  
+      if(bp_node->records[i] != BufferEntry::Null()&&bp_node->records[i].partial == partial )
+      {
+      //  assert(bp_node->records[i].addr().nodeID == 0);
+        if(bp_node->records[i].node_type == 1 || bp_node->records[i].node_type == 2)   //是一个缓冲节点 或者内部节点 继续往下找 
         {
-          parent_type = 1;
-          bp = bp_node->records[i];  
-          p_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(BufferEntry));
+          bp = bp_node->records[i];
+          p_ptr = GADD(p.addr(), sizeof(GlobalAddress)+sizeof(BufferHeader) + i*sizeof(BufferEntry));
           depth ++;
-          goto next; 
+          parent_type = 1;
+          from_cache = false;
+          goto next;
         }
-        if( partial ==  bp_node->records[i].partial && bp_node->records[i].node_type == 0)  
-         {
+        else 
+        {
           leaf_addrs[leaf_cnt] = bp_node->records[i].addr();
-          leaves_ptr[leaf_cnt] = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(BufferEntry));
-          leaf_cnt ++;
-         }
+          leaves_ptr[leaf_cnt]  = GADD(p.addr(), sizeof(GlobalAddress)+sizeof(BufferHeader) + i*sizeof(BufferEntry));
+          leaf_cnt ++;   
+        }
+      }
       }
       if(leaf_cnt == 0)
       {
@@ -3934,19 +3939,25 @@ else{   //parent是一个buffernode
       uint8_t partial = get_partial(k, bhdr.depth + bhdr.partial_len);
       for(int i =0 ; i < 256 ;i++)
       {
-        if(partial ==  bp_node->records[i].partial && (bp_node->records[i].node_type == 1 || bp_node->records[i].node_type == 2))  
+      if(bp_node->records[i] != BufferEntry::Null()&&bp_node->records[i].partial == partial )
+      {
+      //  assert(bp_node->records[i].addr().nodeID == 0);
+        if(bp_node->records[i].node_type == 1 || bp_node->records[i].node_type == 2)   //是一个缓冲节点 或者内部节点 继续往下找 
         {
-          parent_type = 1;
-          bp = bp_node->records[i];  
-          leaves_ptr[i] = GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(BufferEntry));
+          bp = bp_node->records[i];
+          p_ptr = GADD(p.addr(), sizeof(GlobalAddress)+sizeof(BufferHeader) + i*sizeof(BufferEntry));
           depth ++;
-          goto next; 
+          parent_type = 1;
+          from_cache = false;
+          goto next;
         }
-        if( partial ==  bp_node->records[i].partial && bp_node->records[i].node_type == 0)  
-         {
+        else 
+        {
           leaf_addrs[leaf_cnt] = bp_node->records[i].addr();
-          leaf_cnt ++;
-         }
+          leaves_ptr[leaf_cnt]  = GADD(p.addr(), sizeof(GlobalAddress)+sizeof(BufferHeader) + i*sizeof(BufferEntry));
+          leaf_cnt ++;   
+        }
+      }
       }
       if(leaf_cnt == 0)
       {
