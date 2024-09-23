@@ -108,7 +108,7 @@ private:
   bool out_of_place_write_node_from_buffer(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, int leaf_type,int klen,int vlen,int partial_len, uint8_t partial,uint8_t diff_partial,
                                    const GlobalAddress &e_ptr, const BufferEntry &old_e, const GlobalAddress& node_addr,
                                    uint64_t *ret_buffer, CoroContext *cxt, int coro_id);*/
-  bool insert_behind(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, uint8_t partial_key, NodeType node_type,int leaf_type,int klen,int vlen,
+  bool insert_behind(const Key &k, Value &v, GlobalAddress addr,int depth, GlobalAddress& leaf_addr, uint8_t partial_key, NodeType node_type,int leaf_type,int klen,int vlen,
                          const GlobalAddress &node_addr, uint64_t *ret_buffer, int& inserted_idx,
                          CoroContext *cxt, int coro_id);
   void search_entries(const Key &from, const Key &to, int target_depth, std::vector<ScanContext> &res,

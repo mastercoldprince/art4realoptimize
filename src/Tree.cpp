@@ -1985,7 +1985,7 @@ return false;
 }
 
 
-bool Tree::insert_behind(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, uint8_t partial_key, NodeType node_type,int leaf_type,int klen,int vlen,
+bool Tree::insert_behind(const Key &k, Value &v, GlobalAddress p_ptr,int depth, GlobalAddress& leaf_addr, uint8_t partial_key, NodeType node_type,int leaf_type,int klen,int vlen,
                          const GlobalAddress &node_addr, uint64_t *ret_buffer, int& inserted_idx,
                          CoroContext *cxt, int coro_id) {
   int max_num, i;
@@ -2008,7 +2008,7 @@ bool Tree::insert_behind(const Key &k, Value &v, int depth, GlobalAddress& leaf_
     buffer->records[0] = BufferEntry(0,get_partial(k,depth+3),1,leaf_type,leaf_addr);
       bool type_correct = false;
       auto page_buffer1 = (dsm->get_rbuf(coro_id)).get_page_buffer();
-        dsm->read_sync(page_buffer1,GADD(node_addr,-(sizeof(GlobalAddress) + sizeof(Header))),sizeof(GlobalAddress) + sizeof(Header) + 256 * sizeof(InternalEntry) + 1 , cxt);
+  dsm->read_sync(page_buffer1,p_ptr,sizeof(GlobalAddress) + sizeof(Header) + 256 * sizeof(InternalEntry) + 1 , cxt);
 
       for(int j =0;j<256;j++)   //可能只是后面的没有初始化？  初始化之后确实是0？？？？？ 后面为什么会有不为0的？？？？ 只能是类型cas没成功？
       {
