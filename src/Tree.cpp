@@ -2006,7 +2006,18 @@ bool Tree::insert_behind(const Key &k, Value &v, int depth, GlobalAddress& leaf_
    // if(GADD(node_addr, slot_id * sizeof(InternalEntry)).val == 0) printf("0001!\n");
     InternalBuffer* buffer = new (b_buffer) InternalBuffer(k,2,depth +1 ,1,3,GADD(node_addr, slot_id * sizeof(InternalEntry)));  // 暂时定初始2B作为partial key buffer地址
     buffer->records[0] = BufferEntry(0,get_partial(k,depth+3),1,leaf_type,leaf_addr);
-  
+      bool type_correct = false;
+      auto page_buffer1 = (dsm->get_rbuf(coro_id)).get_page_buffer();
+      read_node(e_ptr,type_correct, page_buffer1, 0, depth,false,cxt, coro_id);
+
+      for(int j =0;j<256;j++)   //可能只是后面的没有初始化？  初始化之后确实是0？？？？？ 后面为什么会有不为0的？？？？ 只能是类型cas没成功？
+      {
+        if(((InternalPage*)page_buffer1)->records[j] != InternalEntry::Null()&&((InternalPage*)page_buffer1)->records[j].partial == partial_key) 
+        printf("nooooo!");  
+        break;
+      }
+
+
   
   
     auto new_e = InternalEntry(partial_key,1,b_addr);
