@@ -40,7 +40,7 @@ int kThreadCount;
 int kNodeCount;
 
 
-uint64_t kKeySpace = 600000;
+uint64_t kKeySpace = 6000000;
 //uint64_t kKeySpace = 2000;
 double kWarmRatio = 1;
 double zipfan = 0.99;
