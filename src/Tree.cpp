@@ -1160,7 +1160,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
   int slot_id;
   cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();  //可能存了一样的partial
-  if (insert_behind(k, v, depth, leaf_addr,get_partial(k,depth), p.type(),leaf_type,klen, vlen,node_ptr,cas_buffer,slot_id,cxt,coro_id)){  // insert success
+  if (insert_behind(k, v,p.addr(), depth, leaf_addr,get_partial(k,depth), p.type(),leaf_type,klen, vlen,node_ptr,cas_buffer,slot_id,cxt,coro_id)){  // insert success
       auto page_buffer2 = (dsm->get_rbuf(coro_id)).get_page_buffer();
       read_node(p, type_correct, page_buffer2, p_ptr, depth,from_cache,cxt, coro_id);
     
@@ -1559,7 +1559,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
 
   int slot_id;
   cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
-  if (insert_behind(k, v, depth, leaf_addr,get_partial(k,depth), bp.type(),leaf_type,klen, vlen,node_ptr,cas_buffer,slot_id,cxt,coro_id)){  // insert success
+  if (insert_behind(k, v, ,bp.addr(), leaf_addr,get_partial(k,depth), bp.type(),leaf_type,klen, vlen,node_ptr,cas_buffer,slot_id,cxt,coro_id)){  // insert success
     auto next_type = num_to_node_type(slot_id);
     cas_node_type_from_buffer(next_type, p_ptr, bp, hdr, cxt, coro_id);
     if (from_cache) {  // cache is outdated since node type is changed
@@ -3364,7 +3364,7 @@ return false;
 }
 
 
-bool Tree::insert_behind(const Key &k, Value &v, int depth, GlobalAddress& leaf_addr, uint8_t partial_key, NodeType node_type,int leaf_type,int klen,int vlen,
+bool Tree::insert_behind(const Key &k, Value &v, GlobalAddress p_ptr,int depth, GlobalAddress& leaf_addr, uint8_t partial_key, NodeType node_type,int leaf_type,int klen,int vlen,
                          const GlobalAddress &node_addr, uint64_t *ret_buffer, int& inserted_idx,
                          CoroContext *cxt, int coro_id) {
   int max_num, i;
@@ -3387,7 +3387,7 @@ bool Tree::insert_behind(const Key &k, Value &v, int depth, GlobalAddress& leaf_
     buffer->records[0] = BufferEntry(0,get_partial(k,depth+3),1,leaf_type,leaf_addr);
       bool type_correct = false;
       auto page_buffer1 = (dsm->get_rbuf(coro_id)).get_page_buffer();
-        dsm->read_sync(page_buffer1,GADD(node_addr,-(sizeof(GlobalAddress) + sizeof(Header))),sizeof(GlobalAddress) + sizeof(Header) + 256 * sizeof(InternalEntry) + 1 , cxt);
+  dsm->read_sync(page_buffer1,p_ptr,sizeof(GlobalAddress) + sizeof(Header) + 256 * sizeof(InternalEntry) + 1 , cxt);
 
       for(int j =0;j<256;j++)   //可能只是后面的没有初始化？  初始化之后确实是0？？？？？ 后面为什么会有不为0的？？？？ 只能是类型cas没成功？
       {
