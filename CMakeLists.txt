@@ -26,11 +26,11 @@ else()
     remove_definitions(-DSTATIC_ID_FROM_IP)
 endif()
 
-if(ENABLE_CORO)
-    add_definitions(-DUSE_CORO)
-else()
+#if(ENABLE_CORO)
+#    add_definitions(-DUSE_CORO)
+#else()
     remove_definitions(-DUSE_CORO)
-endif()
+#endif()
 
 
 if(ENABLE_CACHE)
