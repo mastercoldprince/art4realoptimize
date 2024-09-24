@@ -3138,7 +3138,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
   auto acquire_lock = dsm->cas_mask_sync(GADD(old_e.addr(), lock_cas_offset), 0UL, ~0UL, cas_buffer, lock_mask, cxt);
   if(!acquire_lock) return false;
-  
+
   depth ++;
   int first_empty=0;
   bool first_empty_set = false;
@@ -3252,7 +3252,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
     if(com_par_len >2) com_par_len = 2;
     BufferHeader  bhdr(leaf_key[0], com_par_len, depth , bnodes_entry_index[i][0], 0);
     new_bnodes[i]->hdr.val = bhdr.val;
-    
+
     for(int j =0;j<bnodes_entry_index[i][0];j++)
     {
       new_bnodes[i]->records[j].partial = get_partial(leaf_key.at(leaf_cnt),depth + com_par_len);
@@ -3374,7 +3374,7 @@ bool Tree::insert_behind(const Key &k, Value &v, GlobalAddress p_ptr,int depth, 
   for (i = 0; i < 256 - max_num; ++ i) {
     auto slot_id = max_num + i;
     GlobalAddress e_ptr = GADD(node_addr, slot_id * sizeof(InternalEntry));
-    auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
+  //  auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
     //新建一个缓冲节点 和叶节点 一起写过去 最后cas
     GlobalAddress b_addr;
     b_addr = dsm->alloc(sizeof(InternalBuffer));
@@ -3385,19 +3385,7 @@ bool Tree::insert_behind(const Key &k, Value &v, GlobalAddress p_ptr,int depth, 
    // if(GADD(node_addr, slot_id * sizeof(InternalEntry)).val == 0) printf("0001!\n");
     InternalBuffer* buffer = new (b_buffer) InternalBuffer(k,2,depth +1 ,1,3,GADD(node_addr, slot_id * sizeof(InternalEntry)));  // 暂时定初始2B作为partial key buffer地址
     buffer->records[0] = BufferEntry(0,get_partial(k,depth+3),1,leaf_type,leaf_addr);
-      bool type_correct = false;
-      auto page_buffer1 = (dsm->get_rbuf(coro_id)).get_page_buffer();
-  dsm->read_sync(page_buffer1,p_ptr,sizeof(GlobalAddress) + sizeof(Header) + 256 * sizeof(InternalEntry) + 1 , cxt);
 
-      for(int j =0;j<256;j++)   //可能只是后面的没有初始化？  初始化之后确实是0？？？？？ 后面为什么会有不为0的？？？？ 只能是类型cas没成功？
-      {
-        if(((InternalPage*)page_buffer1)->records[j] != InternalEntry::Null()&&((InternalPage*)page_buffer1)->records[j].partial == partial_key) 
-        printf("nooooo!");  
-        break;
-      }
-
-
-  
   
     auto new_e = InternalEntry(partial_key,1,b_addr);
     RdmaOpRegion *rs =  new RdmaOpRegion[2];
@@ -3414,7 +3402,7 @@ bool Tree::insert_behind(const Key &k, Value &v, GlobalAddress p_ptr,int depth, 
         rs[1].is_on_chip = false;
     }
     dsm->write_batches_sync(rs, 2, cxt, coro_id);
-    bool res = dsm->cas_sync(e_ptr, InternalEntry::Null(), (uint64_t)new_e, cas_buffer, cxt);  //可能这里cas不成功？？？
+    bool res = dsm->cas_sync(e_ptr, InternalEntry::Null(), (uint64_t)new_e, ret_buffer, cxt);  //可能这里cas不成功？？？
     delete[] rs; 
 
     if (res) {
@@ -3423,7 +3411,7 @@ bool Tree::insert_behind(const Key &k, Value &v, GlobalAddress p_ptr,int depth, 
     }
     // cas fail, check
     else {
-      auto e = *(InternalEntry*) ret_buffer;
+      auto e = *(InternalEntry*) ret_buffer;   //按理说e不应该为空呀 
       if (e.partial == partial_key) {  // same partial keys insert to the same empty slot
         inserted_idx = slot_id;
         return false;  // search next level
