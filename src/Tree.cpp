@@ -77,7 +77,6 @@ GlobalAddress Tree::get_root_ptr_ptr() {
   return addr;
 }
 
-/*
 InternalEntry Tree::get_root_ptr(CoroContext *cxt, int coro_id) {
   auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
   dsm->read_sync((char *)entry_buffer, root_ptr_ptr, sizeof(InternalEntry), cxt);
