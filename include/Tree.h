@@ -40,20 +40,24 @@ public:
   Tree
 */
 using GenFunc = std::function<RequstGen *(DSM*, Request*, int, int, int)>;
-#define MAX_FLAG_NUM 12
+#define MAX_FLAG_NUM 15
 enum {
-  FIRST_TRY,
-  CAS_NULL,
-  INVALID_LEAF,
-  CAS_LEAF,
-  INVALID_NODE,
-  SPLIT_HEADER,
+  FIRST_TRY,//尝试第一次
+  CAS_Internal_NULL,//cas 内部节点 空槽失败
+  INVALID_LEAF, //叶节点失效
+  INVALID_Internal_NODE, //内部结点失效
+  INVALID_Buffer_NODE, //缓冲结点失效
+  SPLIT_Internal_HEADER,  //内部节点头部分裂失效
+  SPLIT_Buffer_HEADER,  //缓冲节点头部分裂失效
   FIND_NEXT,
-  CAS_EMPTY,
-  INSERT_BEHIND_EMPTY,
-  INSERT_BEHIND_TRY_NEXT,
-  SWITCH_RETRY,
+  CAS_NULL,
+  CAS_Internal_EMPTY,   
+  CAS_Buffer_EMPTY,
+  INSERT_BEHIND_EMPTY,  //内部节点扩展
+  INSERT_BEHIND_TRY_NEXT, //内部节点扩展找下一个
+  SWITCH_RETRY,  
   SWITCH_FIND_TARGET,
+  Buffer_Switch_type,
 };
 
 class Tree {
