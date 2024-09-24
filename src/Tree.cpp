@@ -2281,7 +2281,7 @@ bool Tree::search(const Key &k, Value &v, CoroContext *cxt, int coro_id) {   ///
   assert(p != InternalEntry::Null());
 
 next:
-
+  retry_cnt[dsm->getMyThreadID()][retry_flag] ++;
   // 1. If we are at a NULL node
 
 
@@ -2309,7 +2309,7 @@ next:
     dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
     p = *(InternalEntry *)entry_buffer;
     from_cache = false;
-    retry_flag = INVALID_NODE;
+    retry_flag = INVALID_Buffer_NODE;
     goto next;
   }
     //2.1 check partial key
@@ -2348,6 +2348,7 @@ next:
           depth ++;
           parent_type = 1;
           from_cache = false;
+          retry_flag = FIND_NEXT;
           goto next;
         }
         else 
@@ -2364,26 +2365,7 @@ next:
         goto search_finish;
       }
       //read_batch 都读过来检查 
- //   }
- /*
-    else{
-     uint8_t partial = get_partial(k, bhdr.depth + bhdr.partial_len-1);
-      for(int i = (1UL << define::count_1 ) -1 ; i> = 0 ;i --)
-      {
-         if( partial ==  bp_node->records[i].partial)  
-         {
-          p = bp_node->records[i].addr();
-          leaf_type = bp_node->records[i].leaf_type; 
-          break;
-         }
-      }
-          search_res = false;
-          goto search_finish;
-    }
-    */
-    //2.3 a kv leaf
-//   if(leaf_type<20)
-//    {
+
 
     auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaves_buffer(leaf_cnt); 
     is_valid = read_leaves(leaf_addrs, leaf_buffer,leaf_cnt,leaves_ptr,from_cache,cxt,coro_id);
@@ -2396,6 +2378,8 @@ next:
       auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
       dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
       p = *(InternalEntry *)entry_buffer;
+      from_cache = false;
+      retry_flag = INVALID_LEAF;
       goto next;
     }
     for(int i =0;i<leaf_cnt;i++)
@@ -2414,38 +2398,6 @@ next:
 
     }
 
-  /*  //2.4 a kv leaf
-    else 
-    {
-    Leaf_ptr * leaf;
-    auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_ptrleaf_buffer( ); 
-    is_valid = read_leaf(p.addr(), leaf_buffer, sizeof(Leaf_ptr), p_ptr, cxt, coro_id);
-
-    if (!is_valid) {
-      // re-read leaf entry
-      auto buffer_entry_buffer = (dsm->get_rbuf(coro_id)).get_buffer_entry_buffer();
-      dsm->read_sync((char *)buffer_entry_buffer, p_ptr, sizeof(BufferEntry), cxt);
-      p = *(BufferEntry *)buffer_entry_buffer;
-      goto next;
-    }
-    leaf = (Leaf_ptr*) leaf_buffer;
-    auto _k_buffer = (dsm->get_rbuf(coro_id)).get_key_buffer(leaf->keylen);
-    dsm->read_sync((char *)_k_buffer, leaf->k_ptr, leaf->keylen, cxt);
-    auto _k = (uint8_t*)_k_buffer;
-
-    // 2.3 Check if it is the key we search
-    if (_k == k) {
-      v = leaf->get_value();       // ???????????????????????????
-      search_res = true;
-    }
-    else {
-      search_res = false;
-    }
-    goto search_finish;
-
-    }
-*/
-
   // 3. Find out a node
   // 3.1 read the node
 if(p.child_type == 2)
@@ -2462,6 +2414,8 @@ if(p.child_type == 2)
     auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
     dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
     p = *(InternalEntry *)entry_buffer;
+    from_cache = false;
+    retry_flag = INVALID_Internal_NODE;
     goto next;
   }
 
@@ -2490,6 +2444,8 @@ if(p.child_type == 2)
       p = old_e;
       parent_type = 0;
       depth ++;
+      from_cache = false;      
+      retry_flag = FIND_NEXT;
       goto next;  // search next level
     }
   }
@@ -2517,7 +2473,7 @@ else{   //parent是一个buffernode
     dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(BufferEntry), cxt);
     bp = *(BufferEntry *)entry_buffer;
     from_cache = false;
-    retry_flag = INVALID_NODE;
+    retry_flag = INVALID_Buffer_NODE;
     goto next;
   }
     //2.1 check partial key
@@ -2552,6 +2508,7 @@ else{   //parent是一个buffernode
           depth ++;
           parent_type = 1;
           from_cache = false;
+          retry_flag = FIND_NEXT;
           goto next;
         }
         else 
@@ -2580,7 +2537,7 @@ else{   //parent是一个buffernode
       auto entry_buffer = (dsm->get_rbuf(coro_id)).get_buffer_entry_buffer();
       dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(BufferEntry), cxt);
       bp = *(BufferEntry *)entry_buffer;
-
+      retry_flag = INVALID_LEAF;
       goto next;
     }
     for(int i =0;i<leaf_cnt;i++)
@@ -2613,6 +2570,8 @@ else{   //parent是一个buffernode
     auto entry_buffer = (dsm->get_rbuf(coro_id)).get_buffer_entry_buffer();
     dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(BufferEntry), cxt);
     bp = *(BufferEntry *)entry_buffer;
+    from_cache = false;
+    retry_flag = INVALID_Internal_NODE;
     goto next;
   }
 
@@ -2640,6 +2599,8 @@ else{   //parent是一个buffernode
       p = old_e;
       depth ++;
       parent_type = 0;
+      from_cache = false;
+      retry_flag = FIND_NEXT;
       goto next;  // search next level
     }
   }
