@@ -56,29 +56,7 @@ extern uint64_t MN_datas[MAX_APP_THREAD][MEMORY_NODE_NUM];
 extern uint64_t retry_time[MAX_APP_THREAD];
 extern uint64_t insert_time[MAX_APP_THREAD];
 
-extern uint64_t cache_update_time_total[MAX_APP_THREAD];
-extern uint64_t cache_update_cnt_total[MAX_APP_THREAD];
-extern uint64_t cache_invalid_time_total[MAX_APP_THREAD];
-extern uint64_t cache_invalid_cnt_total[MAX_APP_THREAD];
-extern uint64_t cache_search_time_total[MAX_APP_THREAD];
-extern uint64_t insert_empty_slot_total[MAX_APP_THREAD];
-extern uint64_t read_internal_node_time_total[MAX_APP_THREAD];
-extern uint64_t in_pl_update_time_total[MAX_APP_THREAD];
-extern uint64_t leaf_merge_time_total[MAX_APP_THREAD];
-extern uint64_t node_split_time_total[MAX_APP_THREAD];
-extern uint64_t node_extend_time_total[MAX_APP_THREAD];
 
-
-extern uint64_t insert_empty_slot_cas_total[MAX_APP_THREAD];
-extern uint64_t insert_empty_slot_write_total[MAX_APP_THREAD];
-extern uint64_t leaf_merge_write_total[MAX_APP_THREAD];
-extern uint64_t leaf_merge_cas_old_total[MAX_APP_THREAD];
-extern uint64_t leaf_merge_cas_rev_total[MAX_APP_THREAD];
-extern uint64_t leaf_merge_cache_update_total[MAX_APP_THREAD];
-extern uint64_t leaf_merge_other_total[MAX_APP_THREAD];
-extern uint64_t insert_empty_slot_other_total[MAX_APP_THREAD];
-
-extern uint64_t insert_type_cnt[MAX_APP_THREAD][6];
 
 
 int kThreadCount;
@@ -614,24 +592,6 @@ printf("total %lu", all_retry_cnt[0]);
         MN_data[j]=MN_d[j];
       }
 
-
-/*
-    if (dsm->getMyNodeID() == 0) {
-      printf("epoch %d passed!\n", count);
-      printf("cluster throughput %.3f Mops\n", cluster_tp / 1000.0);
-      printf("cache hit rate: %lf\n", hit * 1.0 / all);
-      printf("avg. lock/cas fail cnt: %lf\n", lock_fail_cnt * 1.0 / try_write_op_cnt);
-      printf("write combining rate: %lf\n", write_handover_cnt * 1.0 / try_write_op_cnt);
-      printf("read delegation rate: %lf\n", read_handover_cnt * 1.0 / try_read_op_cnt);
-      printf("read leaf retry rate: %lf\n", read_leaf_retry_cnt * 1.0 / try_read_leaf_cnt);
-      printf("read invalid leaf rate: %lf\n", leaf_cache_invalid_cnt * 1.0 / try_read_leaf_cnt);
-      printf("read node repair rate: %lf\n", read_node_repair_cnt * 1.0 / try_read_node_cnt);
-      printf("read invalid node rate: %lf\n", all_retry_cnt[INVALID_NODE] * 1.0 / try_read_node_cnt);
-      for (int i = 1; i < MAX_NODE_TYPE_NUM; ++ i) {
-        printf("node_type%d %lu   ", i, read_node_type_cnt[i]);
-      }
-      printf("\n\n");
-    }*/
     if (count >= TEST_EPOCH) {
       need_stop = true;
     }
@@ -644,61 +604,8 @@ printf("total %lu", all_retry_cnt[0]);
       retry_time_total+=retry_time[i];
     }
     printf("insert time: %" PRIu64"\n",insert_time_total);
-    uint64_t cache_update_time_all=0;
-    uint64_t cache_update_cnt_all=0;
-    uint64_t cache_invalid_time_all=0;
-    uint64_t cache_invalid_cnt_all=0;
-    uint64_t cache_search_time_all=0;
-    uint64_t insert_empty_slot_all=0;
-    uint64_t read_internal_node_time_all=0;
-    uint64_t in_pl_update_time_all=0;
-    uint64_t leaf_merge_time_all=0;
-    uint64_t node_split_time_all=0;
-    uint64_t node_extend_time_all =0;
-    uint64_t insert_empty_slot_cas_all=0;
-    uint64_t insert_empty_slot_write_all=0;
-    uint64_t leaf_merge_write_all=0;
-    uint64_t leaf_merge_cas_old_all=0;
-    uint64_t leaf_merge_cas_rev_all=0;
-    uint64_t leaf_merge_cache_update_all=0;
-    uint64_t leaf_merge_other_all=0;
-    uint64_t insert_empty_slot_other_all=0;
 
 
-
-    for(int i=0;i<MAX_APP_THREAD; ++ i)
-    {
-      cache_update_time_all += cache_update_time_total[i];
-      cache_update_cnt_all += cache_update_cnt_total[i];
-      cache_invalid_time_all += cache_invalid_time_total[i];
-      cache_invalid_cnt_all += cache_invalid_cnt_total[i];
-      cache_search_time_all += cache_search_time_total[i];
-      insert_empty_slot_all += insert_empty_slot_total[i];
-      read_internal_node_time_all += read_internal_node_time_total[i];
-      in_pl_update_time_all += in_pl_update_time_total[i];
-      leaf_merge_time_all += leaf_merge_time_total[i];
-      node_split_time_all += node_split_time_total[i];
-      node_extend_time_all += node_extend_time_total[i];
-      insert_empty_slot_cas_all += insert_empty_slot_cas_total[i];
-      insert_empty_slot_write_all +=insert_empty_slot_write_total[i];
-      leaf_merge_write_all += leaf_merge_write_total[i];
-      leaf_merge_cas_old_all += leaf_merge_cas_old_total[i];
-      leaf_merge_cas_rev_all += leaf_merge_cas_rev_total[i];
-      leaf_merge_cache_update_all += leaf_merge_cache_update_total[i];
-      leaf_merge_other_all += leaf_merge_other_total[i];
-      insert_empty_slot_other_all += insert_empty_slot_other_total[i];
-    }
-        printf("cache search time:%" PRIu64",internal node read time:%" PRIu64",insert empty slot time:%" PRIu64",leaf inplace update time:%" PRIu64" , leaf merge time:%" PRIu64", node split time:%" PRIu64", node extend time:%" PRIu64",cache invalid time:%" PRIu64"  ,cache update time:%" PRIu64" \n",cache_search_time_all,read_internal_node_time_all,insert_empty_slot_all,in_pl_update_time_all,leaf_merge_time_all,node_split_time_all,node_extend_time_all,cache_invalid_time_all,cache_update_time_all );    
-        printf("insert empty slot cas time:%" PRIu64",insert empty slot write time:%" PRIu64",insert empty slot other time:%" PRIu64",leaf merge write time:%" PRIu64",leaf merge cas old time:%" PRIu64" , leaf merge cas rev time:%" PRIu64",leaf merge cache update time:%" PRIu64",leaf merge other time:%" PRIu64"\n",insert_empty_slot_cas_all,insert_empty_slot_write_all,insert_empty_slot_other_all,leaf_merge_write_all,leaf_merge_cas_old_all,leaf_merge_cas_rev_all,leaf_merge_cache_update_all,leaf_merge_other_all);  
-uint64_t in_type_cnt[6];
-    memset(in_type_cnt,0,sizeof(uint64_t)*5);
-for(int i=0;i<MAX_APP_THREAD; ++i)
-{
-  for(int j=0;j<6; ++j)
-  {
-    in_type_cnt[j] += insert_type_cnt[i][j];
-  }
-}
 
 printf("isnert:%" PRIu64",insert empty slot:%" PRIu64",leaf update:%" PRIu64",leaf merge:%" PRIu64",node split:%" PRIu64",ndoe extend:%" PRIu64"\n",in_type_cnt[0],in_type_cnt[1],in_type_cnt[2],in_type_cnt[3],in_type_cnt[4],in_type_cnt[5]);
 #ifndef EPOCH_LAT_TEST
