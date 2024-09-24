@@ -605,9 +605,6 @@ printf("total %lu", all_retry_cnt[0]);
     }
     printf("insert time: %" PRIu64"\n",insert_time_total);
 
-
-
-printf("isnert:%" PRIu64",insert empty slot:%" PRIu64",leaf update:%" PRIu64",leaf merge:%" PRIu64",node split:%" PRIu64",ndoe extend:%" PRIu64"\n",in_type_cnt[0],in_type_cnt[1],in_type_cnt[2],in_type_cnt[3],in_type_cnt[4],in_type_cnt[5]);
 #ifndef EPOCH_LAT_TEST
 //  save_latency(1);
 #endif
