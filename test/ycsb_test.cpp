@@ -57,6 +57,15 @@ extern uint64_t retry_time[MAX_APP_THREAD];
 extern uint64_t insert_time[MAX_APP_THREAD];
 
 
+extern uint64_t insert_cnt[MAX_APP_THREAD];
+extern uint64_t internal_empty_entry[MAX_APP_THREAD];
+extern uint64_t internal_extend_empty_entry[MAX_APP_THREAD];
+extern uint64_t internal_header_split[MAX_APP_THREAD];
+extern uint64_t buffer_empty_entry[MAX_APP_THREAD];
+extern uint64_t buffer_header_split[MAX_APP_THREAD];
+extern uint64_t buffer_reconstruct[MAX_APP_THREAD];
+extern uint64_t in_place_update[MAX_APP_THREAD];
+
 
 
 int kThreadCount;
@@ -527,6 +536,42 @@ int main(int argc, char *argv[]) {
       {
         MN_cap[j]=MN_tps[j]-MN_tp[j];
       }  
+
+    uint64_t insert = 0;
+    for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      insert += insert_cnt[i]; 
+    }
+    uint64_t internal_empty = 0;
+    for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      internal_empty += internal_empty_entry[i]; 
+    }
+    uint64_t internal_extend_empty = 0;
+    for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      internal_extend_empty += internal_extend_empty_entry[i]; 
+    }
+    uint64_t internal_header_split_cnt = 0;
+    for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      internal_header_split_cnt += internal_header_split[i]; 
+    }
+    uint64_t buffer_empty = 0;
+    for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      buffer_empty += buffer_empty_entry[i]; 
+    }
+    uint64_t buffer_header_split_cnt = 0;
+    for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      buffer_header_split_cnt += buffer_header_split[i]; 
+    }
+    uint64_t buffer_reconstruct_cnt = 0;
+    for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      buffer_reconstruct_cnt += buffer_reconstruct[i]; 
+    }
+    uint64_t in_place_update_cnt = 0;
+    for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      in_place_update_cnt += in_place_update[i]; 
+    }
+    
+
+    
     tree->clear_debug_info();
 
 #ifdef EPOCH_LAT_TEST
@@ -571,7 +616,7 @@ printf("total %lu", all_retry_cnt[0]);
     }
 //    printf("insert time: %" PRIu64",update retry time:%" PRIu64" \n",insert_time_total,retry_time_total);
       
-    printf("op cnt: %" PRIu64 ",cas retry cnt: %" PRIu64" \n",total_cnt,cas_retry_cnt);
+//    printf("op cnt: %" PRIu64 ",cas retry cnt: %" PRIu64" \n",total_cnt,cas_retry_cnt);
     printf("%d, throughput %.4f ,duration %d ,cache hit rate: %lf conflict time rate:%lf \n", dsm->getMyNodeID(), per_node_tp, microseconds, hit * 1.0 / all,(retry_time_total-u_r_t)*1.0/(insert_time_total-u_t));
     u_t=insert_time_total;
     u_r_t=retry_time_total;
@@ -584,8 +629,8 @@ printf("total %lu", all_retry_cnt[0]);
       uint64_t MN_cluster_tp=dsm->sum_MN((uint64_t)(per_MN_tp[j] * 1000),j);
       if(dsm->getMyNodeID()==0) printf("MN %d all throughput %.3f \n",j,MN_cluster_tp/1000.0);
      }
-      if (dsm->getMyNodeID() == 0)  printf("cluster throughput %.3f Mops\n", cluster_tp / 1000.0);
-  
+    if (dsm->getMyNodeID() == 0)  printf("cluster throughput %.3f Mops\n", cluster_tp / 1000.0);
+    if (dsm->getMyNodeID() == 0)  printf("insert cnt : %" PRIu64",internal empty entry : %" PRIu64",internal extend empty entry : %" PRIu64",internal header split : %" PRIu64",buffer empty entry : %" PRIu64",buffer header split : %" PRIu64",buffer reconstruct : %" PRIu64" in place update : %" PRIu64"",insert,internal_empty,internal_extend_empty,internal_header_split_cnt,buffer_empty,buffer_header_split_cnt,buffer_reconstruct_cnt,in_place_update_cnt);
     for(int j=0;j<MEMORY_NODE_NUM;j++)
       {
         MN_tp[j]=MN_tps[j];
@@ -603,7 +648,7 @@ printf("total %lu", all_retry_cnt[0]);
       insert_time_total+=insert_time[i];
       retry_time_total+=retry_time[i];
     }
-    printf("insert time: %" PRIu64"\n",insert_time_total);
+//    printf("insert time: %" PRIu64"\n",insert_time_total);
 
 #ifndef EPOCH_LAT_TEST
 //  save_latency(1);

@@ -38,7 +38,14 @@ int update_retry_flag[MAX_APP_THREAD];
 uint64_t retry_time[MAX_APP_THREAD];
 uint64_t insert_time[MAX_APP_THREAD];
 
-
+uint64_t insert_cnt[MAX_APP_THREAD];
+uint64_t internal_empty_entry[MAX_APP_THREAD];
+uint64_t internal_extend_empty_entry[MAX_APP_THREAD];
+uint64_t internal_header_split[MAX_APP_THREAD];
+uint64_t buffer_empty_entry[MAX_APP_THREAD];
+uint64_t buffer_header_split[MAX_APP_THREAD];
+uint64_t buffer_reconstruct[MAX_APP_THREAD];
+uint64_t in_place_update[MAX_APP_THREAD];
 
 
 
@@ -156,7 +163,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   int first_buffer = 0;
   InternalPage parent_page;
   InternalBuffer parent_buffer;
-
+  insert_cnt[dsm->getMyThreadID()] ++ ;
 
   //search from cache
 
@@ -217,6 +224,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       p = *(InternalEntry*) cas_buffer;
       goto next;
     }
+    internal_empty_entry[dsm->getMyThreadID()] ++;
     goto insert_finish;
   }
   if(p.child_type == 1)   //找buffer node 看有没有空的
@@ -278,6 +286,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       auto new_hdr = BufferHeader::split_header(bhdr, i);
 
       bool res_d = dsm->cas_sync(GADD(p.addr(), sizeof(GlobalAddress)), (uint64_t)bhdr, (uint64_t)new_hdr, header_buffer, cxt);
+      buffer_header_split[dsm->getMyThreadID()] ++;
       goto insert_finish;
     }
     }
@@ -343,6 +352,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
                goto insert_finish;
                 }
               in_place_update_leaf(k,v,leaf_addrs[i],leaf_type,leaf,cxt,coro_id);   
+              in_place_update[dsm->getMyThreadID()]++;
               goto insert_finish;
           }
         }
@@ -367,7 +377,11 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
            be_ptr=GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader) + i * sizeof(BufferEntry));
            auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
            bool res = out_of_place_write_leaf(k,v,depth,leaf_addr,leaf_type ,klen,vlen,be_ptr,old_be,cas_buffer,cxt,coro_id);  //直接写空槽
-           if(res) goto insert_finish;
+           if(res) 
+           {
+            buffer_empty_entry[dsm->getMyThreadID()] ++;
+            goto insert_finish;
+           }
            else {
             auto e = *(BufferEntry*) cas_buffer;
             if (e.partial == get_partial(k, depth - 1)) {  // same partial keys insert to the same empty slot  再次查找本层 
@@ -388,7 +402,8 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
           from_cache = false;
           goto next;
         }
-          goto insert_finish;
+        buffer_reconstruct[dsm->getMyThreadID()]++;
+        goto insert_finish;
 
  //         }
   //  }
@@ -452,6 +467,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       auto header_buffer = (dsm->get_rbuf(coro_id)).get_header_buffer();
       auto new_hdr = Header::split_header(hdr, i);
       dsm->cas(GADD(p.addr(), sizeof(GlobalAddress)), (uint64_t)hdr, (uint64_t)new_hdr, header_buffer, false, cxt);
+      internal_header_split[dsm->getMyThreadID()] ++;
       goto insert_finish;
     }
   }
@@ -487,6 +503,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       bool res = out_of_place_write_buffer_n_leaf(k,v,depth +1,leaf_addr,leaf_type,klen,vlen,e_ptr,old_e,node_ptr,cas_buffer,cxt,coro_id);
       // cas success, return
       if (res) {
+        internal_empty_entry[dsm->getMyThreadID()] ++;
         goto insert_finish;
       }
       else{
@@ -518,7 +535,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     if (from_cache) {  // cache is outdated since node type is changed
       index_cache->invalidate(entry_ptr_ptr, entry_ptr);
     }
-
+    internal_extend_empty_entry[dsm->getMyThreadID()];
     goto insert_finish;
   }
   else {  // same partial keys insert to the same empty slot
@@ -555,7 +572,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
         from_cache = false;
         goto next;
       }
-
+      buffer_empty_entry[dsm->getMyThreadID()] ++;
       goto insert_finish;
     }
 
@@ -617,6 +634,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       auto new_hdr = BufferHeader::split_header(bhdr, i);
 
       bool res_d=dsm->cas_sync(GADD(bp.addr(), sizeof(GlobalAddress)), (uint64_t)bhdr, (uint64_t)new_hdr, header_buffer,cxt);
+      buffer_header_split[dsm->getMyThreadID()] ++;
       goto insert_finish;
     }
     }
@@ -679,6 +697,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
                goto insert_finish;
                 }
               in_place_update_leaf(k,v,leaf_addrs[i],leaf_type,leaf,cxt,coro_id);   
+              in_place_update[dsm->getMyThreadID()] ++;
               goto insert_finish;
           }
         }
@@ -700,7 +719,11 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
            be_ptr=GADD(bp.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(BufferEntry));
            auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
            bool res = out_of_place_write_leaf(k,v,depth,leaf_addr,leaf_type ,klen,vlen,be_ptr,old_be,cas_buffer,cxt,coro_id);
-           if(res) goto insert_finish;
+           if(res)
+           {
+            buffer_empty_entry[dsm->getMyThreadID()]++;
+            goto insert_finish;
+           } 
            else {
             auto e = *(BufferEntry*) cas_buffer;
             if (e.partial == get_partial(k, depth)) {  // same partial keys insert to the same empty slot  再次查找本层 
@@ -721,7 +744,8 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
             from_cache = false;
             goto next;
           }
-            goto insert_finish;
+          buffer_reconstruct[dsm->getMyThreadID()] ++;
+          goto insert_finish;
 
      //     }
    // }
@@ -783,6 +807,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       auto header_buffer = (dsm->get_rbuf(coro_id)).get_header_buffer();
       auto new_hdr = Header::split_header(hdr, i);
       dsm->cas(GADD(bp.addr(), sizeof(GlobalAddress)), (uint64_t)hdr, (uint64_t)new_hdr, header_buffer, false, cxt);
+      internal_header_split[dsm->getMyThreadID()] ++;
       goto insert_finish;
     }
   }
@@ -820,6 +845,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       bool res = out_of_place_write_buffer_n_leaf(k,v,depth +1,leaf_addr,leaf_type,klen,vlen,e_ptr,old_e,node_ptr,cas_buffer,cxt,coro_id);
       // cas success, return
       if (res) {
+        internal_empty_entry[dsm->getMyThreadID()] ++;
         goto insert_finish;
       }
       else{
@@ -847,6 +873,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
     if (from_cache) {  // cache is outdated since node type is changed
       index_cache->invalidate(entry_ptr_ptr, entry_ptr);
     }
+    internal_extend_empty_entry[dsm->getMyThreadID()] ++;
     goto insert_finish;
   }
   else {  // same partial keys insert to the same empty slot
