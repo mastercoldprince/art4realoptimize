@@ -2607,7 +2607,9 @@ else{   //parent是一个buffernode
 
   }
 search_finish:
-
+    auto hit = (cache_depth == 1 ? 0 : (double)cache_depth / depth);
+    cache_hit[dsm->getMyThreadID()] += hit;
+    cache_miss[dsm->getMyThreadID()] += (1 - hit);
   return search_res;
 }
 
