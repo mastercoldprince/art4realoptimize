@@ -178,6 +178,7 @@ next:
       retry_flag = CAS_NULL;
       goto next;
     }
+    internal_empty_entry[dsm->getMyThreadID()] ++;
     goto insert_finish;
   }
 
@@ -354,6 +355,7 @@ next:
       bool res = out_of_place_write_leaf(k, v, depth + 1, leaf_addr, get_partial(k, depth), e_ptr, old_e, node_ptr, cas_buffer, cxt, coro_id);
       // cas success, return
       if (res) {
+        internal_empty_entry[dsm->getMyThreadID()] ++;
         goto insert_finish;
       }
       // cas fail, check
