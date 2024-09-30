@@ -242,7 +242,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 {
       is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   
       bp_node = (InternalBuffer *)buffer_buffer;
-      parent_buffer = *bp_node;
+//      parent_buffer = *bp_node;
           //3.1 check partial key
       if (!is_valid) {  // node deleted || outdated cache entry in cached node
         if (from_cache) {
