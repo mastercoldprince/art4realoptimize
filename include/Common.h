@@ -126,7 +126,7 @@ constexpr uint32_t offsetBit       = 48 - ALLOC_ALLIGN_BIT;
 constexpr uint32_t hPartialLenMax  = 6;
 
 //Buffer ndoe
-constexpr uint32_t partial_len  = 0;
+constexpr uint32_t partial_len  = 2;
 constexpr uint32_t bPartialLenMax  = 2;
 constexpr uint32_t count_1  = 9;
 constexpr uint32_t count_2  = 9;
