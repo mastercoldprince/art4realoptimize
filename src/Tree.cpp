@@ -592,7 +592,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
    {  retry_read_buffer ++;
       is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   
       bp_node = (InternalBuffer *)buffer_buffer;
-      parent_buffer =*bp_node;
+ //     parent_buffer =*bp_node;
           //3.1 check partial key
       if (!is_valid) {  // node deleted || outdated cache entry in cached node
         if (from_cache) {
@@ -757,7 +757,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
   page_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
   is_valid = read_node_from_buffer(bp, type_correct,page_buffer,p_ptr,depth, from_cache,cxt,coro_id);
   p_node = (InternalPage *)page_buffer;
-  parent_buffer =*bp_node;
+//  parent_buffer =*bp_node;
   if (!is_valid) {  // node deleted || outdated cache entry in cached node
 
     // invalidate the old node cache
