@@ -829,19 +829,23 @@ public:
      partial[i] = hdr.partial[i]; 
 
      partial[define::hPartialLenMax -1] = 97;
+     assert(depth !=0);
    }
   Header(const Key &k, int partial_len, int depth, NodeType node_type) : depth(depth), node_type(node_type), partial_len(partial_len) {
     for (int i = 0; i < partial_len; ++ i) partial[i] = get_partial(k, depth + i);
     partial[define::hPartialLenMax -1] = 96;
+         assert(depth !=0);
   }
   Header(char* partial, int partial_len, int depth, NodeType node_type) : depth(depth), node_type(node_type), partial_len(partial_len) {
     for (int i = 0; i < partial_len; ++ i) this->partial[i] = partial[i];
     partial[define::hPartialLenMax -1] = 95;
+         assert(depth !=0);
   }
   Header(BufferHeader bhdr) : depth(bhdr.depth),node_type(static_cast<uint8_t>(NODE_256)),partial_len(bhdr.partial_len)
   {
     for(int i =0;i<partial_len;i++) partial[i] = bhdr.partial[i];
     partial[define::hPartialLenMax -1] = 94;
+         assert(depth !=0);
   }
 
   operator uint64_t() { return val; }
