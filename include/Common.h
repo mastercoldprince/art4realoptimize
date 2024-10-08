@@ -106,8 +106,8 @@ constexpr int64_t kPerCoroRdmaBuf    = kPerThreadRdmaBuf / MAX_CORO_NUM;
 constexpr int kIndexCacheSize = 800;
 
 // KV
-constexpr uint32_t maxkeyLen = 70;   
-constexpr uint32_t simulatedValLen = 20;//value 用array存，在第一个位置记录value长度
+constexpr uint32_t maxkeyLen = 128;   
+constexpr uint32_t simulatedValLen = 1024;//value 用array存，在第一个位置记录value长度
 constexpr uint32_t allocAlignKVLeafSize = ROUND_UP(maxkeyLen + simulatedValLen +8 + 1 + 1 + 2 + 2 +1 +1, ALLOC_ALLIGN_BIT);   
 constexpr uint32_t allocAlignPTRLeafSize= ROUND_UP(8 + 8 + 8 + 1 + 2 + 2, ALLOC_ALLIGN_BIT);   
 constexpr uint32_t keybuffer   =1024;
