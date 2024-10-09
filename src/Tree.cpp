@@ -466,7 +466,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       // udpate cas header. Optimization: no need to snyc; mask node_type
       auto header_buffer = (dsm->get_rbuf(coro_id)).get_header_buffer();
       auto new_hdr = Header::split_header(hdr, i);
-      dsm->cas(GADD(p.addr(), sizeof(GlobalAddress)), (uint64_t)hdr, (uint64_t)new_hdr, header_buffer, false, cxt);
+      bool res_1 =dsm->cas_sync(GADD(p.addr(), sizeof(GlobalAddress)), (uint64_t)hdr, (uint64_t)new_hdr, header_buffer,cxt);
       internal_header_split[dsm->getMyThreadID()] ++;
       goto insert_finish;
     }
@@ -495,7 +495,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   }
 
   // if no match slot, then find an empty slot to insert leaf directly
-  for (int i = 0; i < max_num; ++ i) {   //怎么会在中间有空的？？？？
+  for (int i = 0; i < max_num; ++ i) {   
     auto old_e = p_node->records[i];
     if (old_e == InternalEntry::Null()) {   
       auto e_ptr = GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header) + i * sizeof(InternalEntry));
@@ -526,8 +526,8 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   int slot_id;
   cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();  //可能存了一样的partial
   if (insert_behind(k, v,p.addr(), depth, leaf_addr,get_partial(k,depth), p.type(),leaf_type,klen, vlen,node_ptr,cas_buffer,slot_id,cxt,coro_id)){  // insert success
-      auto page_buffer2 = (dsm->get_rbuf(coro_id)).get_page_buffer();
-      read_node(p, type_correct, page_buffer2, p_ptr, depth,from_cache,cxt, coro_id);
+    //  auto page_buffer2 = (dsm->get_rbuf(coro_id)).get_page_buffer();
+   //   read_node(p, type_correct, page_buffer2, p_ptr, depth,from_cache,cxt, coro_id);
     
     
     auto next_type = num_to_node_type(slot_id);
@@ -1714,7 +1714,9 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v,const int depth_i, Glo
   GlobalAddress bnode_addr = dsm->alloc(sizeof(InternalBuffer));
 
   dsm->alloc_nodes(new_node_num, node_addrs);
-  
+  for(int i = 0;i<new_node_num;i++)
+   if(node_addrs.val == 0)  
+   printf("no enough mem!!!!!!!!!\n");
 
   // allocate & write new leaf
   auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_kvleaf_buffer();
@@ -1760,7 +1762,6 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v,const int depth_i, Glo
   InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,2,depth,1,2,node_addrs[0]);  // 暂时定初始2B作为partial key buffer地址
       //    printf("thread  %d 8 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)(buffernode->hdr));
   buffernode->records[0] = BufferEntry(0,get_partial(k, depth+2 ),1,leaf_type,leaf_addr);
-  buffernode->lock_byte = 88;
   // init the parent entry
   auto new_e = InternalEntry(old_e.partial,2,nodes_type, node_addrs[0]);
   auto page_size = sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(nodes_type) * sizeof(InternalEntry);
@@ -2075,7 +2076,7 @@ void Tree::cas_node_type(NodeType next_type, GlobalAddress p_ptr, InternalEntry 
     rs[1].source     = (uint64_t)cas_buffer_2;
     rs[1].dest       = header_addr;
     rs[1].is_on_chip = false;
-    std::pair<bool, bool> res=dsm->two_cas_mask_sync(rs[0], (uint64_t)p, (uint64_t)new_e, ~0UL,rs[1], hdr, Header(next_type,hdr), Header::node_type_mask, cxt);
+    std::pair<bool, bool> res=dsm->two_cas_mask_sync(rs[0], (uint64_t)p, (uint64_t)new_e, ~0UL,rs[1], hdr, Header(next_type,hdr), ~0UL, cxt);
 
     return res;
   };

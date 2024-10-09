@@ -880,6 +880,7 @@ public:
     new_hdr.partial_len = old_hdr.partial_len - diff_idx - 1;
     new_hdr.depth = old_hdr.depth + diff_idx + 1;
     new_hdr.node_type = old_hdr.node_type;
+    assert(new_hdr.depth !=0);
     return new_hdr;
   }
 

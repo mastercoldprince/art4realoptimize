@@ -5,15 +5,15 @@ This artifact provides the source code of **SMART** and scripts to reproduce all
 **SMART**, a di<u>**S**</u>aggregated-me<u>**M**</u>ory-friendly <u>**A**</u>daptive <u>**R**</u>adix <u>**T**</u>ree, is the first radix tree for disaggregated memory with high performance.
 
 
-- [SMART](#smart-a-high-performance-adaptive-radix-tree-for-disaggregated-memory)
-  * [Supported Platform](#supported-platform)
-  * [Create Cluster](#create-cluster)
-  * [Source Code *(Artifacts Available)*](#source-code-artifacts-available)
-  * [Environment Setup](#environment-setup)
-  * [YCSB Workloads](#ycsb-workloads)
-  * [Getting Started *(Artifacts Functional)*](#getting-started-artifacts-functional)
-  * [Reproduce All Experiment Results *(Results Reproduced)*](#reproduce-all-experiment-results-results-reproduced)
-  * [Paper](#paper)
+- [SMART: A High-Performance Adaptive Radix Tree for Disaggregated Memory](#smart-a-high-performance-adaptive-radix-tree-for-disaggregated-memory)
+  - [Supported Platform](#supported-platform)
+  - [Create Cluster](#create-cluster)
+  - [Source Code *(Artifacts Available)*](#source-code-artifacts-available)
+  - [Environment Setup](#environment-setup)
+  - [YCSB Workloads](#ycsb-workloads)
+  - [Getting Started *(Artifacts Functional)*](#getting-started-artifacts-functional)
+  - [Reproduce All Experiment Results *(Results Reproduced)*](#reproduce-all-experiment-results-results-reproduced)
+  - [Paper](#paper)
 
 
 ## Supported Platform
@@ -116,7 +116,7 @@ You should run the following steps on **all** nodes.
 * HugePages setting.
     ```shell
     sudo su
-    echo 36864 > /proc/sys/vm/nr_hugepages
+    echo 80000 > /proc/sys/vm/nr_hugepages
     ulimit -l unlimited
     ```
 
