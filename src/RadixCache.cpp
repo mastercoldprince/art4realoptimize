@@ -35,12 +35,12 @@ v = (uint64_t)page->hdr;
   auto new_entry = new CacheEntry(p_node,node_type,node_addr);
   
   _insert(byte_array, new_entry);
-//#ifndef CACHE_ENABLE_ART
+#ifndef CACHE_ENABLE_ART
   free_manager->consume(sizeof(Key));  // emulate hash-based cache
-//#endif
-//  if (free_manager->remain_size() < 0) {
-//    _evict();
-//  }
+#endif
+  if (free_manager->remain_size() < 0) {
+    _evict();
+  }
 
   return;
 }
