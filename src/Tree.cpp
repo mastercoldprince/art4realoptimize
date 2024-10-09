@@ -1035,7 +1035,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v,const int depth_i, Glo
 
   dsm->alloc_nodes(new_node_num, node_addrs);
   for(int i = 0;i<new_node_num;i++)
-   if(node_addrs.val == 0)  
+   if(node_addrs[i].val == 0)  
    printf("no enough mem!!!!!!!!!\n");
 
   // allocate & write new leaf
