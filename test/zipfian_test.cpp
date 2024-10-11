@@ -437,7 +437,7 @@ printf("No cache\n");
     for(int j =0;j<8;j++)
     {
     for(int i=0;i<MAX_APP_THREAD;i++)
-      insert_total_time[j] + = insert_time[j][i];
+      insert_total_time[j] += insert_time[j][i];
     }
 
     tree->clear_debug_info();
