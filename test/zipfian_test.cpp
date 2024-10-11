@@ -32,6 +32,17 @@ extern uint64_t try_read_node[MAX_APP_THREAD];
 extern uint64_t read_node_type[MAX_APP_THREAD][MAX_NODE_TYPE_NUM];
 extern uint64_t retry_cnt[MAX_APP_THREAD][MAX_FLAG_NUM];
 
+
+extern uint64_t insert_time[8][MAX_APP_THREAD];  
+extern uint64_t insert_cnt[MAX_APP_THREAD];
+extern uint64_t internal_empty_entry[MAX_APP_THREAD];
+extern uint64_t internal_extend_empty_entry[MAX_APP_THREAD];
+extern uint64_t internal_header_split[MAX_APP_THREAD];
+extern uint64_t buffer_empty_entry[MAX_APP_THREAD];
+extern uint64_t buffer_header_split[MAX_APP_THREAD];
+extern uint64_t buffer_reconstruct[MAX_APP_THREAD];
+extern uint64_t in_place_update[MAX_APP_THREAD];
+
 int kReadRatio;
 int kThreadCount;
 int kNodeCount;

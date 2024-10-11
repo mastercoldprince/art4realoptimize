@@ -36,10 +36,12 @@ thread_local CoroCall Tree::master;
 thread_local CoroQueue Tree::busy_waiting_queue;
 std::atomic<int> cnt = 0;
 
+memset(insert_type,-1,sizeof(uint64_t)*MAX_APP_THREAD);
 
 
 
 Tree::Tree(DSM *dsm, uint16_t tree_id) : dsm(dsm), tree_id(tree_id) {
+
   assert(dsm->is_register());
 
 #ifdef TREE_ENABLE_CACHE
@@ -94,6 +96,7 @@ InternalEntry Tree::get_root_ptr(CoroContext *cxt, int coro_id) {
 
 /*
 void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_update, bool is_load) {
+  auto start = std::chrono::high_resolution_clock::now();
   assert(dsm->is_register());
 
   // handover
@@ -156,7 +159,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   depth = 0;
 #endif
   depth ++;  // partial key in entry is matched
-  cache_depth = depth;
+//  cache_depth = depth;
 
 #ifdef TREE_TEST_ROWEX_ART
   if (!is_update) lock_node(node_ptr, cxt, coro_id);
@@ -179,6 +182,7 @@ next:
       goto next;
     }
     internal_empty_entry[dsm->getMyThreadID()] ++;
+    insert_type[dsm->getMyThreadID()] = 1;
     goto insert_finish;
   }
 
@@ -356,6 +360,7 @@ next:
       // cas success, return
       if (res) {
         internal_empty_entry[dsm->getMyThreadID()] ++;
+            insert_type[dsm->getMyThreadID()] = 1;
         goto insert_finish;
       }
       // cas fail, check
