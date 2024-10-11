@@ -923,7 +923,7 @@ insert_finish:
   auto stop = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
   insert_time[0][dsm->getMyThreadID()] += duration.count();
-  insert_time[insert_type[dsm->getMyThreadID()]][dsm->getMyThreadID()] += duration.count;
+  insert_time[insert_type[dsm->getMyThreadID()]][dsm->getMyThreadID()] += duration.count();
 
 
 
