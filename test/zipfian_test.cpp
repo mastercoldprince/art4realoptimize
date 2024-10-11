@@ -34,7 +34,7 @@ extern uint64_t retry_cnt[MAX_APP_THREAD][MAX_FLAG_NUM];
 
 
 extern uint64_t insert_time[8][MAX_APP_THREAD];  
-extern uint64_t insert_cnt[MAX_APP_THREAD];
+extern uint64_t insert_cnt[8][MAX_APP_THREAD];
 extern uint64_t internal_empty_entry[MAX_APP_THREAD];
 extern uint64_t internal_extend_empty_entry[MAX_APP_THREAD];
 extern uint64_t internal_header_split[MAX_APP_THREAD];
