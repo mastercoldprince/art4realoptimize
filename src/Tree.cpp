@@ -918,11 +918,13 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
   }
 
 }
+
+insert_finish:
   auto stop = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
   insert_time[0][dsm->getMyThreadID()] += duration.count();
   insert_time[insert_type[dsm->getMyThreadID()]][dsm->getMyThreadID()] += duration.count;
-insert_finish:
+
 
 
 #ifdef TREE_TEST_ROWEX_ART
