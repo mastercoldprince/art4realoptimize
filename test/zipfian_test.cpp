@@ -37,7 +37,7 @@ extern uint64_t MN_datas[MAX_APP_THREAD][MEMORY_NODE_NUM];
 
 
 extern uint64_t insert_time[8][MAX_APP_THREAD];  
-extern uint64_t insert_cnt[MAX_APP_THREAD];
+extern uint64_t insert_cnt[8][MAX_APP_THREAD];
 extern uint64_t internal_empty_entry[MAX_APP_THREAD];
 extern uint64_t internal_extend_empty_entry[MAX_APP_THREAD];
 extern uint64_t internal_header_split[MAX_APP_THREAD];
@@ -400,10 +400,15 @@ printf("No cache\n");
       }  
 
 
-    uint64_t insert = 0;
-    for (int i = 0; i < MAX_APP_THREAD; ++i) {
-      insert += insert_cnt[i]; 
+    uint64_t insert[8];
+    memset(insert,0,sizeof(uint64_t)*8);
+    for(int j=0;j<8;j++)
+    {
+      for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      insert[j] += insert_cnt[j][i]; 
     }
+    }
+
     uint64_t internal_empty = 0;
     for (int i = 0; i < MAX_APP_THREAD; ++i) {
       internal_empty += internal_empty_entry[i]; 
@@ -482,7 +487,7 @@ printf("No cache\n");
       }
     if (dsm->getMyNodeID() == 0) 
     {
-      printf("insert cnt : %" PRIu64",internal empty entry : %" PRIu64",internal extend empty entry : %" PRIu64",internal header split : %" PRIu64",buffer empty entry : %" PRIu64",buffer header split : %" PRIu64",buffer reconstruct : %" PRIu64" in place update : %" PRIu64" \n",insert,internal_empty,internal_extend_empty,internal_header_split_cnt,buffer_empty,buffer_header_split_cnt,buffer_reconstruct_cnt,in_place_update_cnt);
+      printf("insert cnt : %" PRIu64",internal empty entry : %" PRIu64",internal extend empty entry : %" PRIu64",internal header split : %" PRIu64",buffer empty entry : %" PRIu64",buffer header split : %" PRIu64",buffer reconstruct : %" PRIu64" in place update : %" PRIu64" \n",insert[0],insert[1],insert[2],insert[3],insert[4],insert[5],insert[6],insert[7]);
       printf("insert time : %" PRIu64",internal empty entry time: %" PRIu64",internal extend empty entry time: %" PRIu64",internal header split time: %" PRIu64",buffer empty entry time: %" PRIu64",buffer header split time: %" PRIu64",buffer reconstruct time: %" PRIu64" in place update time: %" PRIu64"\n",insert_total_time[0],insert_total_time[1],insert_total_time[2],insert_total_time[3],insert_total_time[4],insert_total_time[5],insert_total_time[6],insert_total_time[7]);
     } 
 /*

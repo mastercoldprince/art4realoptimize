@@ -40,7 +40,7 @@ uint64_t retry_time[MAX_APP_THREAD];
 
 int insert_type[MAX_APP_THREAD];  // 0 1 2 3 4 5 6 7
 
-uint64_t insert_cnt[MAX_APP_THREAD]; //0
+uint64_t insert_cnt[8][MAX_APP_THREAD]; //0
 uint64_t internal_empty_entry[MAX_APP_THREAD]; // 1
 uint64_t internal_extend_empty_entry[MAX_APP_THREAD]; // 2
 uint64_t internal_header_split[MAX_APP_THREAD];  // 3
@@ -179,7 +179,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   int first_buffer = 0;
   InternalPage parent_page;
   InternalBuffer parent_buffer;
-  insert_cnt[dsm->getMyThreadID()] ++ ;
+  insert_cnt[0][dsm->getMyThreadID()] ++ ;
 
   //search from cache
 
@@ -924,7 +924,7 @@ insert_finish:
   auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
   insert_time[0][dsm->getMyThreadID()] += duration.count();
   insert_time[insert_type[dsm->getMyThreadID()]][dsm->getMyThreadID()] += duration.count();
-
+  insert_cnt[insert_type[dsm->getMyThreadID()]][dsm->getMyThreadID()] ++;
 
 
 #ifdef TREE_TEST_ROWEX_ART
