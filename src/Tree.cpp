@@ -36,7 +36,7 @@ uint64_t MN_datas[MAX_APP_THREAD][MEMORY_NODE_NUM];
 
 int update_retry_flag[MAX_APP_THREAD];
 uint64_t retry_time[MAX_APP_THREAD];
-uint64_t insert_time[MAX_APP_THREAD];
+//uint64_t insert_time[MAX_APP_THREAD];
 
 int insert_type[MAX_APP_THREAD];  // 0 1 2 3 4 5 6 7
 
@@ -69,7 +69,7 @@ thread_local CoroCall Tree::master;
 thread_local CoroQueue Tree::busy_waiting_queue;
 std::atomic<int> cnt = 0;
 
-memset(insert_type,-1,sizeof(uint64_t)*MAX_APP_THREAD);
+
 
 
 
@@ -3401,4 +3401,5 @@ void Tree::clear_debug_info() {
   memset(try_read_node, 0, sizeof(uint64_t) * MAX_APP_THREAD);
   memset(read_node_type, 0, sizeof(uint64_t) * MAX_APP_THREAD * MAX_NODE_TYPE_NUM);
   memset(retry_cnt, 0, sizeof(uint64_t) * MAX_APP_THREAD * MAX_FLAG_NUM);
+  memset(insert_type,-1,sizeof(uint64_t)*MAX_APP_THREAD);
 }
