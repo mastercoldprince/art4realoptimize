@@ -264,7 +264,130 @@ next:
       retry_flag = CAS_LEAF;
       goto next;
     }
-    goto insert_finish;
+    assert(bhdr.depth !=0);
+    depth = bhdr.depth + bhdr.partial_len;
+    auto partial = get_partial(k, depth);  //获取需要匹配的关键字 应该是缓冲节点的深度再加上partial len
+    GlobalAddress leaf_addrs[256];
+    GlobalAddress leaves_ptr[256];
+    memset(leaf_addrs,0,256*sizeof(GlobalAddress));
+    memset(leaves_ptr,0,256*sizeof(GlobalAddress));
+    int leaf_cnt = 0;
+    //3.3 search an exists slot first 
+    for(int i=0;i < 256;i++)   //bp node 全空？
+    {
+      if(bp_node->records[i] != BufferEntry::Null()&&bp_node->records[i].partial == partial )
+      {
+      //  assert(bp_node->records[i].addr().nodeID == 0);
+        if(bp_node->records[i].node_type == 1 || bp_node->records[i].node_type == 2)   //是一个缓冲节点 或者内部节点 继续往下找 
+        {
+          bp = bp_node->records[i];
+          p_ptr = GADD(p.addr(), sizeof(GlobalAddress)+sizeof(BufferHeader) + i*sizeof(BufferEntry));
+          depth ++;
+          parent_type = 1;
+          from_cache = false;
+          retry_flag = FIND_NEXT;
+          goto next;
+        }
+        else 
+        {
+          leaf_addrs[leaf_cnt] = bp_node->records[i].addr();
+          leaves_ptr[leaf_cnt]  = GADD(p.addr(), sizeof(GlobalAddress)+sizeof(BufferHeader) + i*sizeof(BufferEntry));
+          leaf_cnt ++;   
+        }
+      }
+    }
+    if(leaf_cnt !=0)   //将所有的叶子读过来 看有没有重复的 
+    {
+        auto leaf_buffer = (dsm->get_rbuf(coro_id)).get_range_buffer(); 
+
+        is_valid = read_leaves(leaf_addrs, leaf_buffer,leaf_cnt,leaves_ptr,from_cache,cxt,coro_id);
+
+        if (!is_valid) {
+          if (from_cache) {
+          index_cache->invalidate(entry_ptr_ptr, entry_ptr);
+          }
+          // re-read leaf entry
+          auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
+          dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(BufferEntry), cxt);
+          p = *(InternalEntry *)entry_buffer;
+          from_cache = false;
+          buffer_from_cache_flag = false;
+          retry_flag = INVALID_LEAF;
+          goto next;
+        }
+        for(int i =0;i<leaf_cnt;i++)
+        {
+          auto leaf = (Leaf_kv*) leaf_buffer + i* define::allocAlignKVLeafSize;
+          auto _k = leaf->get_key();
+
+          // 2.3 Check if it is the key we search
+          if (_k == k) {    //叶节点不相等咋办  不相等在后面找空位插入
+            if (is_load) {
+               goto insert_finish;
+                }
+              in_place_update_leaf(k,v,leaf_addrs[i],leaf_type,leaf,cxt,coro_id);   
+              in_place_update[dsm->getMyThreadID()]++;
+              insert_type[dsm->getMyThreadID()] = 7;
+              goto insert_finish;
+          }
+        }
+    }
+    //3.4 still have empty slot  不存在部分键相同的情况  有的话 则往下找 否则放空位 
+  //  if(bhdr.count_1+bhdr.count_2 < 256)
+   // {
+      auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
+
+      GlobalAddress be_ptr;
+      BufferEntry old_be;
+     // uint8_t partial;
+
+//      if(get_partial(k, bhdr.depth + bhdr.partial_len-1) == bhdr.partial[bhdr.partial_len-1])
+//      {
+        for(int i=0;i < 256;i++)
+        {
+          if(bp_node->records[i] == BufferEntry::Null()) //If we are at a  buffer  empty and partial key match
+          {
+           depth ++;
+           old_be = bp_node->records[i];
+           be_ptr=GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader) + i * sizeof(BufferEntry));
+           auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
+           bool res = out_of_place_write_leaf(k,v,depth,leaf_addr,leaf_type ,klen,vlen,be_ptr,old_be,cas_buffer,cxt,coro_id);  //直接写空槽
+           if(res) 
+           {
+            buffer_empty_entry[dsm->getMyThreadID()] ++;
+                  insert_type[dsm->getMyThreadID()]=4;
+            goto insert_finish;
+           }
+           else {
+            auto e = *(BufferEntry*) cas_buffer;
+            if (e.partial == get_partial(k, depth - 1)) {  // same partial keys insert to the same empty slot  再次查找本层 
+              bp = e;
+              p_ptr=be_ptr;
+              from_cache = false;
+              parent_type = 1;
+              retry_flag = CAS_Buffer_EMPTY;
+              goto next;  // search next level
+              }
+          }
+        }
+        }
+        bool res=out_of_place_write_buffer_node(k, v,depth,bp_node,leaf_type,klen,vlen,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p, p_ptr,cxt,coro_id);
+        if (!res) {  //获取锁失败  获取锁失败可能是一个内部节点 所以p还是需要改
+        auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
+        dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
+        p = *(InternalEntry *)entry_buffer;
+        //  p = *(InternalEntry*) cas_buffer;
+          retry_flag = Buffer_Switch_type;
+          from_cache = false;
+          //重新获取p
+          goto next;
+        }
+        buffer_reconstruct[dsm->getMyThreadID()]++;
+        insert_type[dsm->getMyThreadID()] =6;
+        goto insert_finish;
+
+ //         }
+  //  }
   }
 
   // 3. Find out a node
@@ -1755,6 +1878,7 @@ if(res)
   }
   return true;
 }
+//old_e = *(InternalEntry*) cas_node_type_buffer;
 return false;
 }
 
@@ -1988,6 +2112,7 @@ if(res)
   }
   return true;
 }
+//old_e = *(BufferEntry*) cas_node_type_buffer;
 return false;
 }
 
