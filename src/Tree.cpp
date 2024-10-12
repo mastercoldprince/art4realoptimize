@@ -12,7 +12,7 @@
 #include <atomic>
 #include <mutex>
 #include <fstream>
-
+#include <chrono>
 
 double cache_miss[MAX_APP_THREAD];
 double cache_hit[MAX_APP_THREAD];
@@ -36,18 +36,31 @@ uint64_t MN_datas[MAX_APP_THREAD][MEMORY_NODE_NUM];
 
 int update_retry_flag[MAX_APP_THREAD];
 uint64_t retry_time[MAX_APP_THREAD];
-uint64_t insert_time[MAX_APP_THREAD];
+//uint64_t insert_time[MAX_APP_THREAD];
 
-uint64_t insert_cnt[MAX_APP_THREAD];
-uint64_t internal_empty_entry[MAX_APP_THREAD];
-uint64_t internal_extend_empty_entry[MAX_APP_THREAD];
-uint64_t internal_header_split[MAX_APP_THREAD];
-uint64_t buffer_empty_entry[MAX_APP_THREAD];
-uint64_t buffer_header_split[MAX_APP_THREAD];
-uint64_t buffer_reconstruct[MAX_APP_THREAD];
-uint64_t in_place_update[MAX_APP_THREAD];
+int insert_type[MAX_APP_THREAD];  // 0 1 2 3 4 5 6 7
+
+uint64_t insert_cnt[8][MAX_APP_THREAD]; //0
+uint64_t internal_empty_entry[MAX_APP_THREAD]; // 1
+uint64_t internal_extend_empty_entry[MAX_APP_THREAD]; // 2
+uint64_t internal_header_split[MAX_APP_THREAD];  // 3
+uint64_t buffer_empty_entry[MAX_APP_THREAD]; // 4
+uint64_t buffer_header_split[MAX_APP_THREAD]; // 5
+uint64_t buffer_reconstruct[MAX_APP_THREAD]; // 6
+uint64_t in_place_update[MAX_APP_THREAD]; // 7
 
 
+
+uint64_t insert_time[8][MAX_APP_THREAD];  //总时间
+/*
+uint64_t internal_empty_entry_time[MAX_APP_THREAD]; //找到内部节点空槽插入的时间
+uint64_t internal_extend_empty_entry_time[MAX_APP_THREAD]; //内部节点扩展的时间
+uint64_t internal_header_split_time[MAX_APP_THREAD]; //内部节点分裂的时间 
+uint64_t buffer_empty_entry_time[MAX_APP_THREAD]; //插入缓冲节点空槽的时间
+uint64_t buffer_header_split_time[MAX_APP_THREAD]; // 缓冲节点头部分裂时间
+uint64_t buffer_reconstruct_time[MAX_APP_THREAD]; // 缓冲节点重建时间
+uint64_t in_place_update_time[MAX_APP_THREAD]; //就地更新时间
+*/
 
 
 
@@ -59,7 +72,9 @@ std::atomic<int> cnt = 0;
 
 
 
+
 Tree::Tree(DSM *dsm, uint16_t tree_id) : dsm(dsm), tree_id(tree_id) {
+
   assert(dsm->is_register());
 
 #ifdef TREE_ENABLE_CACHE
@@ -107,6 +122,7 @@ InternalEntry Tree::get_root_ptr(CoroContext *cxt, int coro_id) {
 }
 
 void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_update, bool is_load) {
+  auto start = std::chrono::high_resolution_clock::now();
   assert(dsm->is_register());
   int leaf_type=-1;
   int leaf_size =0;
@@ -163,7 +179,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   int first_buffer = 0;
   InternalPage parent_page;
   InternalBuffer parent_buffer;
-  insert_cnt[dsm->getMyThreadID()] ++ ;
+  insert_cnt[0][dsm->getMyThreadID()] ++ ;
 
   //search from cache
 
@@ -174,6 +190,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
     p = entry_ptr->records[entry_idx];
     node_ptr = entry_ptr->addr;
     depth = entry_ptr->depth;
+    cache_depth = depth;
     parent_type  = entry_ptr->node_type;
     if(entry_ptr->node_type == 1)   //如果cache找到的缓冲节点则直接去读吧！！！  后面如果是从cache来的 并且类型就是一个缓冲节点就不用再读一遍了 还是再读一次吧、、、
     { 
@@ -225,6 +242,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       goto next;
     }
     internal_empty_entry[dsm->getMyThreadID()] ++;
+    insert_type[dsm->getMyThreadID()] = 1;
     goto insert_finish;
   }
   if(p.child_type == 1)   //找buffer node 看有没有空的
@@ -290,6 +308,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
       bool res_d = dsm->cas_sync(GADD(p.addr(), sizeof(GlobalAddress)), (uint64_t)bhdr, (uint64_t)new_hdr, header_buffer, cxt);
       buffer_header_split[dsm->getMyThreadID()] ++;
+            insert_type[dsm->getMyThreadID()] =5;
       goto insert_finish;
     }
     }
@@ -356,6 +375,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
                 }
               in_place_update_leaf(k,v,leaf_addrs[i],leaf_type,leaf,cxt,coro_id);   
               in_place_update[dsm->getMyThreadID()]++;
+              insert_type[dsm->getMyThreadID()] = 7;
               goto insert_finish;
           }
         }
@@ -383,6 +403,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
            if(res) 
            {
             buffer_empty_entry[dsm->getMyThreadID()] ++;
+                  insert_type[dsm->getMyThreadID()]=4;
             goto insert_finish;
            }
            else {
@@ -399,17 +420,21 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
         }
         }
         bool res=out_of_place_write_buffer_node(k, v,depth,bp_node,leaf_type,klen,vlen,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p, p_ptr,cxt,coro_id);
-        // assert(p.child_type == 2);
-        if (!res) {  //获取锁失败
+        if (!res) {  //获取锁失败  获取锁失败可能是一个内部节点 所以p还是需要改
+        auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
+        dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
+        p = *(InternalEntry *)entry_buffer;
         //  p = *(InternalEntry*) cas_buffer;
           auto tmp_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
           dsm->read_sync((char *)tmp_buffer, p_ptr, sizeof(InternalEntry), cxt);
           p = *(InternalEntry*) tmp_buffer;
           retry_flag = Buffer_Switch_type;
           from_cache = false;
+          //重新获取p
           goto next;
         }
         buffer_reconstruct[dsm->getMyThreadID()]++;
+        insert_type[dsm->getMyThreadID()] =6;
         goto insert_finish;
 
  //         }
@@ -450,7 +475,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
  //   printf("thread  %d 4 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)p_node->hdr);
     index_cache->add_to_cache(k, 0,p_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header)));
   }
-  // if(hdr.depth == 0) goto insert_finish;
+//  if(hdr.depth == 0) goto insert_finish;
   for (int i = 0; i < hdr.partial_len; ++ i) {
     if (get_partial(k, hdr.depth + i) != hdr.partial[i]) {
       // need split
@@ -475,6 +500,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       auto new_hdr = Header::split_header(hdr, i);
       bool res_1 =dsm->cas_sync(GADD(p.addr(), sizeof(GlobalAddress)), (uint64_t)hdr, (uint64_t)new_hdr, header_buffer,cxt);
       internal_header_split[dsm->getMyThreadID()] ++;
+            insert_type[dsm->getMyThreadID()] = 3;
       goto insert_finish;
     }
   }
@@ -511,6 +537,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       // cas success, return
       if (res) {
         internal_empty_entry[dsm->getMyThreadID()] ++;
+            insert_type[dsm->getMyThreadID()] = 1;
         goto insert_finish;
       }
       else{
@@ -543,6 +570,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       index_cache->invalidate(entry_ptr_ptr, entry_ptr);
     }
     internal_extend_empty_entry[dsm->getMyThreadID()];
+        insert_type[dsm->getMyThreadID()] = 2;
     goto insert_finish;
   }
   else {  // same partial keys insert to the same empty slot
@@ -580,6 +608,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
         goto next;
       }
       buffer_empty_entry[dsm->getMyThreadID()] ++;
+      insert_type[dsm->getMyThreadID()]=4;
       goto insert_finish;
     }
 
@@ -642,6 +671,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
 
       bool res_d=dsm->cas_sync(GADD(bp.addr(), sizeof(GlobalAddress)), (uint64_t)bhdr, (uint64_t)new_hdr, header_buffer,cxt);
       buffer_header_split[dsm->getMyThreadID()] ++;
+      insert_type[dsm->getMyThreadID()] =5;
       goto insert_finish;
     }
     }
@@ -729,6 +759,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
            if(res)
            {
             buffer_empty_entry[dsm->getMyThreadID()]++;
+                  insert_type[dsm->getMyThreadID()]=4;
             goto insert_finish;
            } 
            else {
@@ -752,6 +783,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
             goto next;
           }
           buffer_reconstruct[dsm->getMyThreadID()] ++;
+                  insert_type[dsm->getMyThreadID()] =6;
           goto insert_finish;
 
      //     }
@@ -815,6 +847,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       auto new_hdr = Header::split_header(hdr, i);
       dsm->cas(GADD(bp.addr(), sizeof(GlobalAddress)), (uint64_t)hdr, (uint64_t)new_hdr, header_buffer, false, cxt);
       internal_header_split[dsm->getMyThreadID()] ++;
+      insert_type[dsm->getMyThreadID()] = 3;
       goto insert_finish;
     }
   }
@@ -853,6 +886,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       // cas success, return
       if (res) {
         internal_empty_entry[dsm->getMyThreadID()] ++;
+            insert_type[dsm->getMyThreadID()] = 1;
         goto insert_finish;
       }
       else{
@@ -881,6 +915,7 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
       index_cache->invalidate(entry_ptr_ptr, entry_ptr);
     }
     internal_extend_empty_entry[dsm->getMyThreadID()] ++;
+    insert_type[dsm->getMyThreadID()] = 2;
     goto insert_finish;
   }
   else {  // same partial keys insert to the same empty slot
@@ -895,6 +930,11 @@ else{  //一个缓冲节点 1.找到一样的叶节点了 2.插空槽 3.缓冲�
 }
 
 insert_finish:
+  auto stop = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+  insert_time[0][dsm->getMyThreadID()] += duration.count();
+  insert_time[insert_type[dsm->getMyThreadID()]][dsm->getMyThreadID()] += duration.count();
+  insert_cnt[insert_type[dsm->getMyThreadID()]][dsm->getMyThreadID()] ++;
 
 
 #ifdef TREE_TEST_ROWEX_ART
@@ -2428,7 +2468,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   InternalEntry new_entry(old_e);
   new_entry.child_type = 2;
   new_entry.node_type = static_cast<uint8_t>(NODE_256);
-  // new (cas_node_type_buffer) InternalEntry(new_entry);
+//  new (cas_node_type_buffer) InternalEntry(new_entry);
   bool res =dsm->cas_sync(p_ptr, (uint64_t)old_e, (uint64_t)new_entry, cas_node_type_buffer, cxt);
 
   assert(res == true && new_entry.child_type == 2);
@@ -2449,11 +2489,12 @@ if(res)
   // }
   return true;
 }
+//old_e = *(InternalEntry*) cas_node_type_buffer;
 return false;
 }
 
 //新建很多个缓冲节点 有重复的往里面放  
-bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, int depth,InternalBuffer* bnode,int leaf_type,int klen,int vlen,GlobalAddress leaf_addr,CacheEntry**&entry_ptr_ptr,CacheEntry*& entry_ptr,bool from_cache,BufferEntry old_e, GlobalAddress p_ptr,CoroContext *cxt, int coro_id) {
+bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, int depth,InternalBuffer* bnode,int leaf_type,int klen,int vlen,GlobalAddress leaf_addr,CacheEntry**&entry_ptr_ptr,CacheEntry*& entry_ptr,bool from_cache,BufferEntry& old_e, GlobalAddress p_ptr,CoroContext *cxt, int coro_id) {
   //先获取锁 再修改 否则不修改
   static const uint64_t lock_cas_offset = ROUND_DOWN(STRUCT_OFFSET(InternalBuffer, lock_byte), 3);  //8B对齐
   static const uint64_t lock_mask       = 1UL << ((STRUCT_OFFSET(InternalBuffer, lock_byte) - lock_cas_offset) * 8);
@@ -2664,7 +2705,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   BufferEntry new_entry(old_e);
   new_entry.node_type = 2;
   new_entry.leaf_type = static_cast<uint8_t>(NODE_256);
-  new (cas_node_type_buffer) BufferEntry(new_entry);
+//  new (cas_node_type_buffer) BufferEntry(new_entry);
   bool res =dsm->cas_sync(p_ptr, (uint64_t)old_e, (uint64_t)new_entry, cas_node_type_buffer, cxt);
 
 
@@ -2682,6 +2723,7 @@ if(res)
   // }
   return true;
 }
+//old_e = *(BufferEntry*) cas_node_type_buffer;
 return false;
 }
 
@@ -3382,4 +3424,14 @@ void Tree::clear_debug_info() {
   memset(try_read_node, 0, sizeof(uint64_t) * MAX_APP_THREAD);
   memset(read_node_type, 0, sizeof(uint64_t) * MAX_APP_THREAD * MAX_NODE_TYPE_NUM);
   memset(retry_cnt, 0, sizeof(uint64_t) * MAX_APP_THREAD * MAX_FLAG_NUM);
+  memset(insert_type,-1,sizeof(uint64_t)*MAX_APP_THREAD);
+  memset(insert_cnt,0,sizeof(uint64_t)*MAX_APP_THREAD);
+  memset(internal_empty_entry,0,sizeof(uint64_t)*MAX_APP_THREAD);
+  memset(internal_extend_empty_entry,0,sizeof(uint64_t)*MAX_APP_THREAD);
+  memset(internal_header_split,0,sizeof(uint64_t)*MAX_APP_THREAD);
+  memset(buffer_empty_entry,0,sizeof(uint64_t)*MAX_APP_THREAD);
+  memset(buffer_header_split,0,sizeof(uint64_t)*MAX_APP_THREAD);
+  memset(buffer_reconstruct,0,sizeof(uint64_t)*MAX_APP_THREAD);
+  memset(in_place_update,0,sizeof(uint64_t)*MAX_APP_THREAD);
+  memset(insert_time,0,sizeof(uint64_t)*MAX_APP_THREAD*8);
 }

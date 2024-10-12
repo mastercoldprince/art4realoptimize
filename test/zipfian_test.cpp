@@ -13,7 +13,7 @@
 #include <random>
 
 
-#define TEST_EPOCH 10
+#define TEST_EPOCH 20
 // #define NO_WRITE_CONFLICT
 // #define TEST_INSERT
 
@@ -35,6 +35,17 @@ extern uint64_t retry_cnt[MAX_APP_THREAD][MAX_FLAG_NUM];
 extern uint64_t MN_iops[MAX_APP_THREAD][MEMORY_NODE_NUM];
 extern uint64_t MN_datas[MAX_APP_THREAD][MEMORY_NODE_NUM];
 
+
+extern uint64_t insert_time[8][MAX_APP_THREAD];  
+extern uint64_t insert_cnt[8][MAX_APP_THREAD];
+extern uint64_t internal_empty_entry[MAX_APP_THREAD];
+extern uint64_t internal_extend_empty_entry[MAX_APP_THREAD];
+extern uint64_t internal_header_split[MAX_APP_THREAD];
+extern uint64_t buffer_empty_entry[MAX_APP_THREAD];
+extern uint64_t buffer_header_split[MAX_APP_THREAD];
+extern uint64_t buffer_reconstruct[MAX_APP_THREAD];
+extern uint64_t in_place_update[MAX_APP_THREAD];
+
 int kReadRatio;
 int kThreadCount;
 int kNodeCount;
@@ -43,7 +54,7 @@ int kNodeCount;
 uint64_t kKeySpace = 60 * define::MB;
 //uint64_t kKeySpace = 2000;
 double kWarmRatio = 1;
-double zipfan = 0.99;
+double zipfan = 0;
 int kCoroCnt = 2;
 #ifdef TEST_INSERT
 bool test_insert = true;  // micro-benchmark
@@ -305,7 +316,7 @@ printf("Cache \n");
 #else 
 printf("No cache\n");
 #endif
-    sleep(1);
+    sleep(0.8);
     clock_gettime(CLOCK_REALTIME, &e);
     int microseconds = (e.tv_sec - s.tv_sec) * 1000000 +
                        (double)(e.tv_nsec - s.tv_nsec) / 1000;
@@ -388,6 +399,52 @@ printf("No cache\n");
         MN_cap[j]=MN_tps[j]-MN_tp[j];
       }  
 
+
+    uint64_t insert[8];
+    memset(insert,0,sizeof(uint64_t)*8);
+    for(int j=0;j<8;j++)
+    {
+      for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      insert[j] += insert_cnt[j][i]; 
+    }
+    }
+
+    uint64_t internal_empty = 0;
+    for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      internal_empty += internal_empty_entry[i]; 
+    }
+    uint64_t internal_extend_empty = 0;
+    for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      internal_extend_empty += internal_extend_empty_entry[i]; 
+    }
+    uint64_t internal_header_split_cnt = 0;
+    for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      internal_header_split_cnt += internal_header_split[i]; 
+    }
+    uint64_t buffer_empty = 0;
+    for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      buffer_empty += buffer_empty_entry[i]; 
+    }
+    uint64_t buffer_header_split_cnt = 0;
+    for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      buffer_header_split_cnt += buffer_header_split[i]; 
+    }
+    uint64_t buffer_reconstruct_cnt = 0;
+    for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      buffer_reconstruct_cnt += buffer_reconstruct[i]; 
+    }
+    uint64_t in_place_update_cnt = 0;
+    for (int i = 0; i < MAX_APP_THREAD; ++i) {
+      in_place_update_cnt += in_place_update[i]; 
+    }
+    uint64_t insert_total_time[8];
+    memset(insert_total_time,0,sizeof(uint64_t)*8);
+    for(int j =0;j<8;j++)
+    {
+    for(int i=0;i<MAX_APP_THREAD;i++)
+      insert_total_time[j] += insert_time[j][i];
+    }
+
     tree->clear_debug_info();
 
 //    save_latency(++ count);
@@ -428,6 +485,11 @@ printf("No cache\n");
         MN_tp[j]=MN_tps[j];
         MN_data[j]=MN_d[j];
       }
+    if (dsm->getMyNodeID() == 0) 
+    {
+      printf("insert cnt : %" PRIu64",internal empty entry : %" PRIu64",internal extend empty entry : %" PRIu64",internal header split : %" PRIu64",buffer empty entry : %" PRIu64",buffer header split : %" PRIu64",buffer reconstruct : %" PRIu64" in place update : %" PRIu64" \n",insert[0],insert[1],insert[2],insert[3],insert[4],insert[5],insert[6],insert[7]);
+      printf("insert time : %" PRIu64",internal empty entry time: %" PRIu64",internal extend empty entry time: %" PRIu64",internal header split time: %" PRIu64",buffer empty entry time: %" PRIu64",buffer header split time: %" PRIu64",buffer reconstruct time: %" PRIu64" in place update time: %" PRIu64"\n",insert_total_time[0],insert_total_time[1],insert_total_time[2],insert_total_time[3],insert_total_time[4],insert_total_time[5],insert_total_time[6],insert_total_time[7]);
+    } 
 /*
     if (dsm->getMyNodeID() == 0) {
       printf("epoch %d passed!\n", count);
