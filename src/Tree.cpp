@@ -421,6 +421,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
         //  p = *(InternalEntry*) cas_buffer;
           retry_flag = Buffer_Switch_type;
           from_cache = false;
+          //重新获取p
           goto next;
         }
         buffer_reconstruct[dsm->getMyThreadID()]++;
@@ -2237,7 +2238,7 @@ re_switch:
   }
 }
 //新建很多个缓冲节点 有重复的往里面放  
-bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,InternalBuffer* bnode,int leaf_type,int klen,int vlen,GlobalAddress leaf_addr,CacheEntry**&entry_ptr_ptr,CacheEntry*& entry_ptr,bool from_cache,InternalEntry old_e, GlobalAddress p_ptr,CoroContext *cxt, int coro_id) {
+bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,InternalBuffer* bnode,int leaf_type,int klen,int vlen,GlobalAddress leaf_addr,CacheEntry**&entry_ptr_ptr,CacheEntry*& entry_ptr,bool from_cache,InternalEntry& old_e, GlobalAddress p_ptr,CoroContext *cxt, int coro_id) {
   //先获取锁 再修改 否则不修改
   static const uint64_t lock_cas_offset = ROUND_DOWN(STRUCT_OFFSET(InternalBuffer, lock_byte), 3);  //8B对齐
   static const uint64_t lock_mask       = 1UL << ((STRUCT_OFFSET(InternalBuffer, lock_byte) - lock_cas_offset) * 8);
@@ -2450,7 +2451,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   InternalEntry new_entry(old_e);
   new_entry.child_type = 2;
   new_entry.node_type = static_cast<uint8_t>(NODE_256);
-  new (cas_node_type_buffer) InternalEntry(new_entry);
+//  new (cas_node_type_buffer) InternalEntry(new_entry);
   bool res =dsm->cas_sync(p_ptr, (uint64_t)old_e, (uint64_t)new_entry, cas_node_type_buffer, cxt);
 
 
@@ -2468,11 +2469,12 @@ if(res)
   }
   return true;
 }
+old_e = *(InternalEntry*) cas_node_type_buffer;
 return false;
 }
 
 //新建很多个缓冲节点 有重复的往里面放  
-bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, int depth,InternalBuffer* bnode,int leaf_type,int klen,int vlen,GlobalAddress leaf_addr,CacheEntry**&entry_ptr_ptr,CacheEntry*& entry_ptr,bool from_cache,BufferEntry old_e, GlobalAddress p_ptr,CoroContext *cxt, int coro_id) {
+bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, int depth,InternalBuffer* bnode,int leaf_type,int klen,int vlen,GlobalAddress leaf_addr,CacheEntry**&entry_ptr_ptr,CacheEntry*& entry_ptr,bool from_cache,BufferEntry& old_e, GlobalAddress p_ptr,CoroContext *cxt, int coro_id) {
   //先获取锁 再修改 否则不修改
   static const uint64_t lock_cas_offset = ROUND_DOWN(STRUCT_OFFSET(InternalBuffer, lock_byte), 3);  //8B对齐
   static const uint64_t lock_mask       = 1UL << ((STRUCT_OFFSET(InternalBuffer, lock_byte) - lock_cas_offset) * 8);
@@ -2683,7 +2685,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   BufferEntry new_entry(old_e);
   new_entry.node_type = 2;
   new_entry.leaf_type = static_cast<uint8_t>(NODE_256);
-  new (cas_node_type_buffer) BufferEntry(new_entry);
+//  new (cas_node_type_buffer) BufferEntry(new_entry);
   bool res =dsm->cas_sync(p_ptr, (uint64_t)old_e, (uint64_t)new_entry, cas_node_type_buffer, cxt);
 
 
@@ -2701,6 +2703,7 @@ if(res)
   }
   return true;
 }
+old_e = *(BufferEntry*) cas_node_type_buffer;
 return false;
 }
 
