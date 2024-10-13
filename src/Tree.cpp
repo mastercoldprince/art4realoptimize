@@ -183,7 +183,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
 
   //search from cache
 
-  /*from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, parent_parent_type,entry_idx,cache_entry_parent,first_buffer);   //check   直接从cache里面找到一个 
+  from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, parent_parent_type,entry_idx,cache_entry_parent,first_buffer);   //check   直接从cache里面找到一个 
   if (from_cache) { // cache hit
     assert(entry_idx >= 0);
     p_ptr = GADD(entry_ptr->addr, sizeof(InternalEntry) * entry_idx);
@@ -212,7 +212,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
     }
     bp.val = p.val;
   }
-  else {*/
+  else {
     p_ptr = root_ptr_ptr;
     p = get_root_ptr(cxt, coro_id);
     depth = 0;
@@ -1811,7 +1811,7 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v,const int depth_i, Glo
  //   printf("buffer node buffer:  %d\n",b_buffer);
  // if(node_addrs[0].val == 0) printf("0003!\n");
   InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,define::bPartialLenMax,depth,1,2,node_addrs[0]);  // 暂时定初始2B作为partial key buffer地址
-  InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,define::bPartialLenMax,depth,1,2,node_addrs[0]);  // 暂时定初始2B作为partial key buffer地址
+  // InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,define::bPartialLenMax,depth,1,2,node_addrs[0]);  // 暂时定初始2B作为partial key buffer地址
       //    printf("thread  %d 8 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)(buffernode->hdr));
   buffernode->records[0] = BufferEntry(0,get_partial(k, depth + buffernode->hdr.partial_len ),1,leaf_type,leaf_addr);
   // init the parent entry
@@ -1933,7 +1933,7 @@ bool Tree::out_of_place_write_node_from_buffer(const Key &k, Value &v,const int 
   auto b_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
  // if(node_addrs[0].val == 0) printf("0004!\n");
   InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,define::bPartialLenMax,depth ,1,0,node_addrs[0]);  // 暂时定初始2B作为partial key buffer地址
-  InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,define::bPartialLenMax,depth ,1,0,node_addrs[0]);  // 暂时定初始2B作为partial key buffer地址
+  // InternalBuffer* buffernode = new (b_buffer) InternalBuffer(k,define::bPartialLenMax,depth ,1,0,node_addrs[0]);  // 暂时定初始2B作为partial key buffer地址
          //   printf("thread  %d 12 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)(buffernode->hdr));
   buffernode->records[0] = BufferEntry(0,get_partial(k, depth + buffernode->hdr.partial_len ),1,leaf_type,leaf_addr);
   
@@ -2275,8 +2275,8 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   BufferEntry *new_leaf_be;
   GlobalAddress *bnode_addrs;
   int bnodes_entry_index[256][256];
-  int first_empty_flag = 0;
-  int first_empty = -1;
+  // int first_empty_flag = 0;
+  // int first_empty = -1;
   memset(count_index,0,256*256*sizeof(int));
   memset(bnodes_entry_index,0,256*256*sizeof(int));
 
@@ -2486,7 +2486,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   {
     index_cache->invalidate(entry_ptr_ptr, entry_ptr);
   }
-  index_cache->add_to_cache(k, 1,(InternalPage*)old_bnode, GADD(e_ptr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
+  // index_cache->add_to_cache(k, 1,(InternalPage*)old_bnode, GADD(e_ptr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
 
 // old_e = *(InternalEntry*) cas_node_type_buffer;
 if(res)
@@ -2727,7 +2727,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   {
     index_cache->invalidate(entry_ptr_ptr, entry_ptr);
   }
-  index_cache->add_to_cache(k, 1,(InternalPage*)old_bnode, GADD(e_ptr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
+  // index_cache->add_to_cache(k, 1,(InternalPage*)old_bnode, GADD(e_ptr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
 if(res)
 {
    for (int i = 0; i < new_bnode_num; ++ i) {
