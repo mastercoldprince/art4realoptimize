@@ -2286,6 +2286,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
       count_index[(int)bnode->records[i].partial][count_index[(int)bnode->records[i].partial][0]] = i;
   //  if(count_index[(int)bnode.records[i].partial][0] > 1) printf("partial is %d \n",i);
     }
+        assert(bnode->records[i] != BufferEntry::NULL());
     assert(bnode->records[i].val != 0);
   }
 
