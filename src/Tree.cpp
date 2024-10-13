@@ -407,15 +407,16 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
             goto insert_finish;
            }
            else {
-            auto e = *(BufferEntry*) cas_buffer;
-            if (e.partial == get_partial(k, depth - 1)) {  // same partial keys insert to the same empty slot  再次查找本层 
+            auto e = *(BufferEntry*) cas_buffer;  //当插入空槽失败的话 直接插下一个空槽就得了 不应该判断还有没有下一个捏 如果说一直往后面插都满了再分裂
+/*           if ( e.partial == get_partial(k, depth - 1)) {  // same partial keys insert to the same empty slot  再次查找本层 
               bp = e;
               p_ptr=be_ptr;
               from_cache = false;
               parent_type = 1;
               retry_flag = CAS_Buffer_EMPTY;
               goto next;  // search next level
-              }
+              }*/ 
+            bp_node ->records[i] = e.val;
           }
         }
         }
