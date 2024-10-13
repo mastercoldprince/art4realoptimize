@@ -2431,6 +2431,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   Header new_hdr(bnode->hdr);
   old_page->hdr.val = new_hdr.val;
 //  old_page->lock_byte = 99;
+  old_page->lock_byte = 0;
   assert(old_page->hdr.val !=0);
 
 
