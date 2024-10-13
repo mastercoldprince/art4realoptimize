@@ -2411,7 +2411,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     bnode->records[first_empty].partial = new_leaf_partial;
     bnode->records[first_empty].node_type = 1;
     bnode->records[first_empty].prefix_type = 1;
-    assert(new_bnodes[i]->records[first_empty].packed_addr.offset !=0);
+    assert(bnode->records[first_empty].packed_addr.offset !=0);
     new (leaf_buffer) Leaf_kv(GADD(bnode_addrs[new_bnode_num],sizeof(GlobalAddress)+sizeof(BufferHeader)),leaf_type,klen,vlen,k,v); 
     new_bnode_num ++;
   }
