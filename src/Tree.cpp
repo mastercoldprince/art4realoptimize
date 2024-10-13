@@ -425,9 +425,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
         dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
         p = *(InternalEntry *)entry_buffer;
         //  p = *(InternalEntry*) cas_buffer;
-          auto tmp_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
-          dsm->read_sync((char *)tmp_buffer, p_ptr, sizeof(InternalEntry), cxt);
-          p = *(InternalEntry*) tmp_buffer;
+
           retry_flag = Buffer_Switch_type;
           from_cache = false;
           //重新获取p
