@@ -2327,7 +2327,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
 //  if(!leaf_flag) new_bnode_num ++;
 
   bnode_addrs = new GlobalAddress[new_bnode_num + 1];
-  leaf_flag?  dsm->alloc_bnodes(new_bnode_num+1, bnode_addrs) :dsm->alloc_bnodes(new_bnode_num, bnode_addrs);
+  leaf_flag?  dsm->alloc_bnodes(new_bnode_num, bnode_addrs) :dsm->alloc_bnodes(new_bnode_num+1, bnode_addrs);
   auto leaves_buffer =(dsm->get_rbuf(0)).get_range_buffer();
   for(int i =0;i<(int) rs.size();i++)
   {
@@ -2575,7 +2575,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
 //  if(!leaf_flag) new_bnode_num ++;
 
   bnode_addrs = new GlobalAddress[new_bnode_num + 1];
-  leaf_flag?  dsm->alloc_bnodes(new_bnode_num+1, bnode_addrs) :dsm->alloc_bnodes(new_bnode_num, bnode_addrs);
+  leaf_flag?  dsm->alloc_bnodes(new_bnode_num, bnode_addrs) :dsm->alloc_bnodes(new_bnode_num +1, bnode_addrs);
   auto leaves_buffer =(dsm->get_rbuf(0)).get_range_buffer();
   for(int i =0;i<(int) rs.size();i++)
   {
