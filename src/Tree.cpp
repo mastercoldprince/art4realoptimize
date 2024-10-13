@@ -2371,7 +2371,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
       leaf_cnt++;
       new_bnodes[i]->records[bnodes_entry_index[i][0]].leaf_type = leaf_type;
       new_bnodes[i]->records[bnodes_entry_index[i][0]].node_type = 0;
-      new_bnodes[i]->records[bnodes_entry_index[i][0]].prefix_type = 0;
+      new_bnodes[i]->records[bnodes_entry_index[i][0]].prefix_type = 1;
       new_bnodes[i]->records[bnodes_entry_index[i][0]].packed_addr={leaf_addr.nodeID,leaf_addr.offset >> ALLOC_ALLIGN_BIT};
       new (leaf_buffer) Leaf_kv(GADD(bnode_addrs[i],sizeof(GlobalAddress)+sizeof(BufferHeader)+bnodes_entry_index[i][0]*sizeof(BufferEntry)),leaf_type,klen,vlen,k,v);   //修改  叶节点的反向指针应该指向槽的地址 
       bnodes_entry_index[i][0] ++;
@@ -2390,6 +2390,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
      //修改bufferentry的地址 
     bnode->records[bnodes_entry_index[i][1]].packed_addr={bnode_addrs[i].nodeID, bnode_addrs[i].offset >> ALLOC_ALLIGN_BIT};
     bnode->records[bnodes_entry_index[i][1]].node_type = 1;
+    bnode->records[bnodes_entry_index[i][1]].prefix_type = 1;
    // printf("thread  %d 15 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)(new_bnodes[i]->hdr));
   // assert(bnode->records[bnodes_entry_index[i][1]].packed_addr.mn_id == 0);
    assert(new_bnodes[i]->hdr.val != 0);
@@ -2407,6 +2408,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     bnode->records[first_empty].packed_addr={bnode_addrs[new_bnode_num].nodeID, bnode_addrs[new_bnode_num].offset >> ALLOC_ALLIGN_BIT};
     bnode->records[first_empty].partial = new_leaf_partial;
     bnode->records[first_empty].node_type = 1;
+    bnode->records[first_empty].prefix_type = 1;
     new (leaf_buffer) Leaf_kv(GADD(bnode_addrs[new_bnode_num],sizeof(GlobalAddress)+sizeof(BufferHeader)),leaf_type,klen,vlen,k,v); 
     new_bnode_num ++;
   }
