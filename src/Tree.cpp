@@ -216,7 +216,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
     p_ptr = root_ptr_ptr;
     p = get_root_ptr(cxt, coro_id);
     depth = 0;
-  }
+   }
 
 
   depth ++;  // partial key in entry is matched
@@ -938,7 +938,11 @@ insert_finish:
   if (!is_update) unlock_node(node_ptr, cxt, coro_id);
 #endif
 
-
+// if(buffer_from_cache_flag)
+    // {
+    //  delete bp_node;
+      //is_valid？ 本地的节点如何验证 is valid？？   不用验证 ？
+    // }
 
     auto hit = (cache_depth == 1 ? 0 : (double)cache_depth / depth);
     cache_hit[dsm->getMyThreadID()] += hit;
@@ -2247,6 +2251,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   static const uint64_t lock_mask       = 1UL << ((STRUCT_OFFSET(InternalBuffer, lock_byte) - lock_cas_offset) * 8);
   auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
   auto acquire_lock = dsm->cas_mask_sync(GADD(old_e.addr(), lock_cas_offset), 0UL, ~0UL, cas_buffer, lock_mask, cxt);
+
   if(!acquire_lock) return false;
 
   depth ++;
@@ -2255,7 +2260,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   int count_index[256][256];  //[][0] -> count  [1~] ->index
   int leaf_cnt = 0;
   BufferEntry leaf_addrs[256][256];
-  thread_local std::vector<RdmaOpRegion> rs;
+  std::vector<RdmaOpRegion> rs;
   int new_bnode_num = 0;
   int leaf_flag = 0; //叶节点的部分键是否重复
   uint8_t new_leaf_partial = get_partial(k,depth-1);
@@ -2295,6 +2300,9 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
         r.size       = sizeof(Leaf_kv);
         r.is_on_chip = false;
         rs.push_back(r);
+        // if(count_index[i][0] > 1 && j == 0)
+          // 按理来说这种情况会变成一个缓冲节点
+          // (bnode->records[count_index[i][0]]).node_type = 1;
         if(j > 0 ) 
         {
           if(!first_empty_set)
@@ -2407,7 +2415,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   old_page = new (old_page_buffer) InternalBuffer(*bnode);
   Header new_hdr(bnode->hdr);
   old_page->hdr.val = new_hdr.val;
-  old_page->lock_byte = 99;
+  // old_page->lock_byte = 99;
   assert(old_page->hdr.val !=0);
 
 
@@ -2463,19 +2471,22 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
 //  new (cas_node_type_buffer) InternalEntry(new_entry);
   bool res =dsm->cas_sync(p_ptr, (uint64_t)old_e, (uint64_t)new_entry, cas_node_type_buffer, cxt);
 
+  // assert(res == true && new_entry.child_type == 2);
 
   //先失效 再加
   if(from_cache)
   {
     index_cache->invalidate(entry_ptr_ptr, entry_ptr);
   }
-//  index_cache->add_to_cache(k, 1,(InternalPage*)old_bnode, GADD(e_ptr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
+  index_cache->add_to_cache(k, 1,(InternalPage*)old_bnode, GADD(e_ptr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
+
+// old_e = *(InternalEntry*) cas_node_type_buffer;
 if(res)
 {
-  for (int i = 0; i < new_bnode_num; ++ i) {
-   //   printf("thread  %d 16 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)(new_bnodes[i]->hdr));
-      index_cache->add_to_cache(k,1,(InternalPage*)new_bnodes[i], GADD(bnode_addrs[i], sizeof(GlobalAddress) + sizeof(BufferHeader)));
-  }
+   for (int i = 0; i < new_bnode_num; ++ i) {
+      printf("thread  %d 16 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)(new_bnodes[i]->hdr));
+       index_cache->add_to_cache(k,1,(InternalPage*)new_bnodes[i], GADD(bnode_addrs[i], sizeof(GlobalAddress) + sizeof(BufferHeader)));
+   }
   return true;
 }
 //old_e = *(InternalEntry*) cas_node_type_buffer;
@@ -2497,7 +2508,7 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   int count_index[256][256];  //[][0] -> count  [1~] ->index
   int leaf_cnt = 0;
   BufferEntry leaf_addrs[256][256];
-  thread_local std::vector<RdmaOpRegion> rs;
+  std::vector<RdmaOpRegion> rs;
   int new_bnode_num = 0;
   int leaf_flag = 0; //叶节点的部分键是否重复
   uint8_t new_leaf_partial = get_partial(k,depth-1);
@@ -2708,13 +2719,13 @@ bool Tree::out_of_place_write_buffer_node_from_buffer(const Key &k, Value &v, in
   {
     index_cache->invalidate(entry_ptr_ptr, entry_ptr);
   }
-//  index_cache->add_to_cache(k, 1,(InternalPage*)old_bnode, GADD(e_ptr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
+  index_cache->add_to_cache(k, 1,(InternalPage*)old_bnode, GADD(e_ptr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
 if(res)
 {
-  for (int i = 0; i < new_bnode_num; ++ i) {
-   //   printf("thread  %d 16 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)(new_bnodes[i]->hdr));
-      index_cache->add_to_cache(k,1,(InternalPage*)new_bnodes[i], GADD(bnode_addrs[i], sizeof(GlobalAddress) + sizeof(BufferHeader)));
-  }
+   for (int i = 0; i < new_bnode_num; ++ i) {
+      printf("thread  %d 16 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)(new_bnodes[i]->hdr));
+       index_cache->add_to_cache(k,1,(InternalPage*)new_bnodes[i], GADD(bnode_addrs[i], sizeof(GlobalAddress) + sizeof(BufferHeader)));
+   }
   return true;
 }
 //old_e = *(BufferEntry*) cas_node_type_buffer;
@@ -2884,10 +2895,10 @@ next:
   }
     //2.1 check partial key
     bhdr=bp_node->hdr;
-    if (depth == hdr.depth) {
-    //      printf("thread  %d 18 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)(bp_node->hdr));
-    index_cache->add_to_cache(k, 1,(InternalPage*)bp_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
-    }
+     if (depth == hdr.depth) {
+          printf("thread  %d 18 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)(bp_node->hdr));
+     index_cache->add_to_cache(k, 1,(InternalPage*)bp_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
+     }
 
     for (int i = 0; i < bhdr.partial_len; ++ i) {      //查看部分键前n个字节
     if (get_partial(k, bhdr.depth + i) != bhdr.partial[i]) {
