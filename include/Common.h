@@ -130,7 +130,7 @@ constexpr uint32_t hPartialLenMax  = 6;
 
 //Buffer ndoe
 constexpr uint32_t partial_len  = 2;
-constexpr uint32_t bPartialLenMax  = 0;
+constexpr uint32_t bPartialLenMax  = 2;
 constexpr uint32_t count_1  = 9;
 constexpr uint32_t count_2  = 9;
 constexpr uint32_t leaf_type  = 5;
