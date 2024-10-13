@@ -417,6 +417,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
               goto next;  // search next level
               }*/ 
             bp_node ->records[i].val = e.val;
+            depth --;
           }
         }
         }
