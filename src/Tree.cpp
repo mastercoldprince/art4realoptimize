@@ -416,7 +416,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
               retry_flag = CAS_Buffer_EMPTY;
               goto next;  // search next level
               }*/ 
-            bp_node ->records[i] = e.val;
+            bp_node ->records[i].val = e.val;
           }
         }
         }
