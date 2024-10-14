@@ -2379,8 +2379,8 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     }
     leaf_cnt -= bnodes_entry_index[i][0];
 
-    int com_par_len = get_2B_partial(leaf_key,depth);
-    if(com_par_len >2) com_par_len = 2;
+    int com_par_len = 0;//get_2B_partial(leaf_key,depth);
+    // if(com_par_len >2) com_par_len = 2;
     BufferHeader  bhdr(leaf_key[0], com_par_len, depth , bnodes_entry_index[i][0], 0);
     new_bnodes[i]->hdr.val = bhdr.val;
     
