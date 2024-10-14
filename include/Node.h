@@ -803,12 +803,13 @@ public:
   }
 
   static BufferHeader split_header(const BufferHeader& old_hdr, int diff_idx) {
+  
   auto new_hdr = BufferHeader();
-  for (int i = diff_idx + 1; i < old_hdr.partial_len; ++ i) new_hdr.partial[i - diff_idx - 1] = old_hdr.partial[i];
+  /*for (int i = diff_idx + 1; i < old_hdr.partial_len; ++ i) new_hdr.partial[i - diff_idx - 1] = old_hdr.partial[i];
   new_hdr.partial_len = old_hdr.partial_len - diff_idx - 1;
   new_hdr.depth = old_hdr.depth + diff_idx + 1;
   new_hdr.count_1 = old_hdr.count_1;
-  new_hdr.count_2 = old_hdr.count_2;
+  new_hdr.count_2 = old_hdr.count_2;*/
   return new_hdr;
 }
 
