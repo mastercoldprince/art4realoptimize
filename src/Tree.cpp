@@ -182,7 +182,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   insert_cnt[0][dsm->getMyThreadID()] ++ ;
 
   //search from cache
-
+/*
   from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, parent_parent_type,entry_idx,cache_entry_parent,first_buffer);   //check   直接从cache里面找到一个 
   if (from_cache) { // cache hit
     assert(entry_idx >= 0);
@@ -190,7 +190,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
     p = entry_ptr->records[entry_idx];
     node_ptr = entry_ptr->addr;
     depth = entry_ptr->depth;
-    cache_depth = depth;
+    // cache_depth = depth;
     parent_type  = entry_ptr->node_type;
     if(entry_ptr->node_type == 1)   //如果cache找到的缓冲节点则直接去读吧！！！  后面如果是从cache来的 并且类型就是一个缓冲节点就不用再读一遍了 还是再读一次吧、、、
     { 
@@ -212,11 +212,11 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
     }
     bp.val = p.val;
   }
-  else {
+  else {*/
     p_ptr = root_ptr_ptr;
     p = get_root_ptr(cxt, coro_id);
     depth = 0;
-    }
+    // }
 
 
   depth ++;  // partial key in entry is matched
