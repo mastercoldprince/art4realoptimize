@@ -1060,7 +1060,7 @@ public:
   
     }
 
-  InternalBuffer(const Key &k, int partial_len, int depth, int count_1,int count_2, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), hdr(k, partial_len, depth, count_1,count_2) {
+  InternalBuffer(const Key &k, int partial_len, int depth, int count_1,int count_2, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), hdr(k, partial_len, depth, count_1,count_2) ,lock_byte(0){
     std::fill(records, records + 256, BufferEntry::Null());
 
   }
