@@ -1048,7 +1048,7 @@ public:
 
 
 public:
-  InternalBuffer() { std::fill(records, records + 256, BufferEntry::Null()); }
+  InternalBuffer() { std::fill(records, records + 256, BufferEntry::Null()); lock_byte = 0;}
   InternalBuffer(const InternalBuffer &bnode)
    {  rev_ptr = bnode.rev_ptr;
       hdr = bnode.hdr;
@@ -1071,6 +1071,7 @@ public:
     {
       this->records[i].val = records[i].val;
     }
+    lock_byte = 0;
   }
 
   bool is_valid(const GlobalAddress& p_ptr, int depth, bool from_cache) const { return hdr.depth <= depth && (!from_cache || p_ptr == rev_ptr); }
