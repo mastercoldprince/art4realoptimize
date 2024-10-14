@@ -3445,7 +3445,7 @@ void Tree::clear_debug_info() {
   memset(try_read_node, 0, sizeof(uint64_t) * MAX_APP_THREAD);
   memset(read_node_type, 0, sizeof(uint64_t) * MAX_APP_THREAD * MAX_NODE_TYPE_NUM);
   memset(retry_cnt, 0, sizeof(uint64_t) * MAX_APP_THREAD * MAX_FLAG_NUM);
-  memset(insert_type,-1,sizeof(uint64_t)*MAX_APP_THREAD);
+  memset(insert_type,-1,sizeof(int)*MAX_APP_THREAD);
   memset(insert_cnt,0,sizeof(uint64_t)*MAX_APP_THREAD);
   memset(internal_empty_entry,0,sizeof(uint64_t)*MAX_APP_THREAD);
   memset(internal_extend_empty_entry,0,sizeof(uint64_t)*MAX_APP_THREAD);
