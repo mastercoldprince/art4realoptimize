@@ -194,7 +194,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
    // cache_depth = depth;
     parent_type  = entry_ptr->node_type;
     if(entry_ptr->node_type == 1)   //如果cache找到的缓冲节点则直接去读吧！！！  后面如果是从cache来的 并且类型就是一个缓冲节点就不用再读一遍了 还是再读一次吧、、、
-    { 
+    {
       if(first_buffer) 
       {
         p_ptr = root_ptr_ptr;
@@ -268,6 +268,11 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       bp_node = (InternalBuffer *)buffer_buffer;
 //      parent_buffer = *bp_node;
           //3.1 check partial key
+      if( bp_node->lock_byte == 99) 
+      {
+        p_node = (InternalPage *)buffer_buffer;
+        goto l1;
+      }
       if (!is_valid) {  // node deleted || outdated cache entry in cached node
         if (from_cache) {
           index_cache->invalidate(entry_ptr_ptr, entry_ptr);
@@ -469,7 +474,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     retry_flag = INVALID_Internal_NODE;
     goto next;
   }
-
+l1:
   // 3.2 Check header
   hdr = p_node->hdr;
   if (from_cache && !type_correct) {  // invalidate the out dated node type
