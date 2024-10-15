@@ -422,6 +422,9 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
         }
         }
         bool res=out_of_place_write_buffer_node(k, v,depth,bp_node,leaf_type,klen,vlen,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p, p_ptr,cxt,coro_id);
+        auto entry_tmp = (dsm->get_rbuf(coro_id)).get_entry_buffer();
+        dsm->read_sync((char *)entry_tmp, p_ptr, sizeof(InternalEntry), cxt);
+        p = *(InternalEntry *)entry_tmp;        
         if (!res) {  //获取锁失败  获取锁失败可能是一个内部节点 所以p还是需要改
         auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
         dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
