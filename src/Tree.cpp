@@ -160,6 +160,8 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   CacheEntry* entry_ptr = nullptr;
   CacheEntry** cache_entry_parent_ptr = nullptr;
   CacheEntry* cache_entry_parent = nullptr;
+  CacheEntry** cache_entry_buffer_ptr = nullptr;  //指向最后一层的缓冲节点
+  CacheEntry* cache_entry_buffer = nullptr;
   int entry_idx = -1;
   int cache_depth = 0;
 
@@ -208,6 +210,8 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
         parent_type = cache_entry_parent->node_type;
         depth = cache_entry_parent->depth;
         node_ptr = cache_entry_parent->addr;
+        cache_entry_buffer = entry_ptr;
+        cache_entry_buffer_ptr = entry_ptr_ptr; 
         entry_ptr = cache_entry_parent;
         entry_ptr_ptr = cache_entry_parent_ptr;
       }
@@ -268,16 +272,17 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       bp_node = (InternalBuffer *)buffer_buffer;
 //      parent_buffer = *bp_node;
           //3.1 check partial key
-      if( bp_node->hdr.partial_len != 0) 
+/*      if( bp_node->hdr.partial_len != 0) 
       {
         p_node = (InternalPage *)buffer_buffer;
         p.child_type =2;
         p.node_type = static_cast<uint8_t>(NODE_256);
         goto l1;
-      }
+      }*/
       if (!is_valid) {  // node deleted || outdated cache entry in cached node
         if (from_cache) {
-          index_cache->invalidate(entry_ptr_ptr, entry_ptr);
+          index_cache->invalidate(entry_ptr_ptr, entry_ptr); //invalid 父节点
+          index_cache->invalidate(cache_entry_buffer_ptr, cache_entry_buffer); //invalid 缓冲节点
         }
         // re-read node entry
         auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
@@ -363,6 +368,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
         if (!is_valid) {
           if (from_cache) {
           index_cache->invalidate(entry_ptr_ptr, entry_ptr);
+          index_cache->invalidate(cache_entry_buffer_ptr, cache_entry_buffer); //invalid 缓冲节点
           }
           // re-read leaf entry
           auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
@@ -432,7 +438,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
         }
         }
         bool res=out_of_place_write_buffer_node(k, v,depth,bp_node,leaf_type,klen,vlen,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p, p_ptr,cxt,coro_id);
-     
+        if(from_cache)   index_cache->invalidate(cache_entry_buffer_ptr, cache_entry_buffer); //invalid 缓冲节点
         if (!res) {  //获取锁失败  获取锁失败可能是一个内部节点 所以p还是需要改
         auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
         dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
@@ -1928,9 +1934,9 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   //先失效 再加
   if(from_cache)
   {
-    index_cache->invalidate(entry_ptr_ptr, entry_ptr);
+    index_cache->invalidate(entry_ptr_ptr, entry_ptr);  //首先是invalid 父节点 然后在外面invalid缓冲节点本身
   }
-  // index_cache->add_to_cache(k, 1,(InternalPage*)old_bnode, GADD(e_ptr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
+   index_cache->add_to_cache(k, 0,(InternalPage*)old_page, GADD(old_e.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
 
 // old_e = *(InternalEntry*) cas_node_type_buffer;
 if(res)
