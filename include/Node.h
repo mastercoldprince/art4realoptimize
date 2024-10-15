@@ -1048,20 +1048,22 @@ public:
 
 
 public:
-  InternalBuffer() { std::fill(records, records + 256, BufferEntry::Null()); lock_byte = 0;}
+  InternalBuffer() { std::fill(records, records + 256, BufferEntry::Null());       hdr.count_2 = 100;lock_byte = 0;}
   InternalBuffer(const InternalBuffer &bnode)
-   {  rev_ptr = bnode.rev_ptr;
-      hdr = bnode.hdr;
+   {  rev_ptr.val = bnode.rev_ptr.val;
+      hdr.val = bnode.hdr.val;
       for(int i=0;i<256;i++)
       {
         records[i] = bnode.records[i];
       }
       w_lock = bnode.w_lock;
+      hdr.count_2 = 99;
   
     }
 
   InternalBuffer(const Key &k, int partial_len, int depth, int count_1,int count_2, const GlobalAddress& rev_ptr) : rev_ptr(rev_ptr), hdr(k, partial_len, depth, count_1,count_2) ,lock_byte(0){
     std::fill(records, records + 256, BufferEntry::Null());
+          hdr.count_2 = 98;
 
   }
   InternalBuffer(int depth,std::vector<InternalEntry> records)
@@ -1072,6 +1074,7 @@ public:
       this->records[i].val = records[i].val;
     }
     lock_byte = 0;
+          hdr.count_2 = 97;
   }
 
   bool is_valid(const GlobalAddress& p_ptr, int depth, bool from_cache) const { return hdr.depth <= depth && (!from_cache || p_ptr == rev_ptr); }
