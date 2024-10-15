@@ -40,7 +40,7 @@ struct CacheEntry {
   }
 
   uint64_t content_size() const {
-    return sizeof(uint8_t) + sizeof(GlobalAddress) + sizeof(InternalEntry) * records.size();  // + sizeof(uint64_t)
+    return sizeof(uint8_t) + sizeof(uint8_t) + sizeof(GlobalAddress) + sizeof(InternalEntry) * records.size() ;  // + sizeof(uint64_t)
   }
 };
 

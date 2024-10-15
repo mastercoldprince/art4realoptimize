@@ -2234,6 +2234,7 @@ bool Tree::insert_behind(const Key &k, Value &v, GlobalAddress p_ptr,int depth, 
 
     if (res) {
       inserted_idx = slot_id;
+      index_cache->add_to_cache(k, 1,(InternalPage *)buffer, GADD(b_addr, sizeof(GlobalAddress) + sizeof(BufferHeader)));
       return true;
     }
     // cas fail, check
