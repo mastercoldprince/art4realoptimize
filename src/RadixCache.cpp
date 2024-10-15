@@ -23,7 +23,6 @@ void RadixCache::clear() {
 }
 
 void RadixCache::add_to_cache(const Key& k, int node_type, const InternalPage* p_node, const GlobalAddress &node_addr) {
-//if(p_node->rev_ptr.val == 88841248571392) printf("its meeeeeeeeeeeeeeeeeeeeeeee!\n");
 InternalPage * page = const_cast<InternalPage*>(p_node);
 v = (uint64_t)page->hdr;
   auto depth = p_node->hdr.depth - 1;
