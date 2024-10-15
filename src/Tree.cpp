@@ -2270,7 +2270,8 @@ bool Tree::search(const Key &k, Value &v, CoroContext *cxt, int coro_id) {   ///
   bool from_cache = false;
   CacheEntry** entry_ptr_ptr = nullptr;
   CacheEntry* entry_ptr = nullptr;
-  CacheEntry* cache_entry_parent;
+  CacheEntry* cache_entry_parent = nullptr;
+  CacheEntry** cache_entry_parent_ptr = nullptr;
   int entry_idx = -1;
   int cache_depth = 0;
 
@@ -2286,7 +2287,7 @@ bool Tree::search(const Key &k, Value &v, CoroContext *cxt, int coro_id) {   ///
   int buffer_from_cache_flag = 0;
   int first_buffer = 0;
 
-  from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, parent_parent_type,entry_idx,cache_entry_parent,first_buffer);   //check   直接从cache里面找到一个 
+  from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, parent_parent_type,entry_idx,cache_entry_parent_ptr,cache_entry_parent,first_buffer);   //check   直接从cache里面找到一个 
   if (from_cache) { // cache hit
     assert(entry_idx >= 0);
     p_ptr = GADD(entry_ptr->addr, sizeof(InternalEntry) * entry_idx);
@@ -2307,6 +2308,8 @@ bool Tree::search(const Key &k, Value &v, CoroContext *cxt, int coro_id) {   ///
         p = cache_entry_parent->records[entry_idx];
         parent_type = cache_entry_parent->node_type;
         depth = cache_entry_parent->depth;
+        entry_ptr = cache_entry_parent;
+        entry_ptr_ptr = cache_entry_parent_ptr;
       }
       buffer_from_cache_flag = true;
     }
