@@ -268,7 +268,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       bp_node = (InternalBuffer *)buffer_buffer;
 //      parent_buffer = *bp_node;
           //3.1 check partial key
-      if( bp_node->lock_byte == 99) 
+      if( bp_node->hdr.depth == 0) 
       {
         p_node = (InternalPage *)buffer_buffer;
         p.child_type =2;
