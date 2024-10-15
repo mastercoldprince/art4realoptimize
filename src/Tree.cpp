@@ -271,6 +271,8 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       if( bp_node->lock_byte == 99) 
       {
         p_node = (InternalPage *)buffer_buffer;
+        p.child_type =2;
+        p.node_type = static_cast<uint8_t>(NODE_256);
         goto l1;
       }
       if (!is_valid) {  // node deleted || outdated cache entry in cached node
@@ -1910,23 +1912,6 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
     rs_write[new_bnode_num +1].size       = sizeof(InternalBuffer);
     rs_write[new_bnode_num +1].is_on_chip = false;
   //  dsm->write((const char*)old_bnode_buffer, e_ptr, sizeof(InternalBuffer), false, cxt);
-  }
-
-  int internal_node_repeat = false;
-  int i_1,j_1;
-  for(int i = 0;i < 256;i++)
-  {
-    for(int j = 0;j< 256;j++)
-    {
-      if(i!= j && bnode->records[i]!=BufferEntry::Null() && bnode->records[i].partial == bnode->records[j].partial)
-      {
-        i_1 =i;
-        j_1 =j;
-        internal_node_repeat = true;
-        break;
-      }
-    }
-    if (internal_node_repeat) break;
   }
 
 
