@@ -272,13 +272,13 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       bp_node = (InternalBuffer *)buffer_buffer;
 //      parent_buffer = *bp_node;
           //3.1 check partial key
-/*      if( bp_node->hdr.partial_len != 0) 
+      if( bp_node->hdr.partial_len != 0) 
       {
         p_node = (InternalPage *)buffer_buffer;
         p.child_type =2;
         p.node_type = static_cast<uint8_t>(NODE_256);
         goto l1;
-      }*/
+      }
       if (!is_valid) {  // node deleted || outdated cache entry in cached node
         if (from_cache) {
           index_cache->invalidate(entry_ptr_ptr, entry_ptr); //invalid 父节点
