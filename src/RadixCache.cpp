@@ -162,7 +162,7 @@ void change_node_type(CacheEntry*& entry_ptr)
 }
 
 
-bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& parent_parent_type,int& entry_idx,CacheEntry* & cache_entry_parent,int& first_buffer) {  //当发现是一个缓冲节点直接返回内部节点？  entry_ptr_ptr是地址 entry_ptr的地址
+bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& parent_parent_type,int& entry_idx,CacheEntry**& cache_entry_parent_ptr,CacheEntry* & cache_entry_parent,int& first_buffer) {  //当发现是一个缓冲节点直接返回内部节点？  entry_ptr_ptr是地址 entry_ptr的地址
 
   CacheKey byte_array(k.begin(), k.begin() + define::maxkeyLen - 1);
 
@@ -208,6 +208,7 @@ bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, Cac
               cache_entry = ret.top().entry_ptr;//获取上一级的entry  找一个这个buffer在上一级是个啥？ 
               if(cache_entry == 0) return false;
               parent_parent_type = cache_entry->node_type;
+              cache_entry_parent_ptr = ret.top().entry_ptr_ptr;
               cache_entry_parent = cache_entry;
               uint8_t partial = k.at(ret.top().next_idx);
               for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {  //一个个查看slot

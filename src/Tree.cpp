@@ -158,7 +158,8 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   bool from_cache = false;
   CacheEntry** entry_ptr_ptr = nullptr;
   CacheEntry* entry_ptr = nullptr;
-  CacheEntry* cache_entry_parent;
+  CacheEntry** cache_entry_parent_ptr = nullptr;
+  CacheEntry* cache_entry_parent = nullptr;
   int entry_idx = -1;
   int cache_depth = 0;
 
@@ -182,7 +183,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   insert_cnt[0][dsm->getMyThreadID()] ++ ;
 
   //search from cache
-/*
+
   from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, parent_parent_type,entry_idx,cache_entry_parent,first_buffer);   //check   直接从cache里面找到一个 
   if (from_cache) { // cache hit
     assert(entry_idx >= 0);
@@ -207,16 +208,18 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
         parent_type = cache_entry_parent->node_type;
         depth = cache_entry_parent->depth;
         node_ptr = cache_entry_parent->addr;
+        entry_ptr = cache_entry_parent;
+        entry_ptr_ptr = cache_entry_parent_ptr;
       }
       buffer_from_cache_flag = true;
     }
     bp.val = p.val;
   }
-  else {*/
+  else {
     p_ptr = root_ptr_ptr;
     p = get_root_ptr(cxt, coro_id);
     depth = 0;
-    //  }
+      }
 
 
   depth ++;  // partial key in entry is matched
