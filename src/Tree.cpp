@@ -184,7 +184,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
 
   //search from cache
 
-  from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, parent_parent_type,entry_idx,cache_entry_parent,first_buffer);   //check   直接从cache里面找到一个 
+  from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, parent_parent_type,entry_idx,cache_entry_parent_ptr,cache_entry_parent,first_buffer);   //check   直接从cache里面找到一个 
   if (from_cache) { // cache hit
     assert(entry_idx >= 0);
     p_ptr = GADD(entry_ptr->addr, sizeof(InternalEntry) * entry_idx);
