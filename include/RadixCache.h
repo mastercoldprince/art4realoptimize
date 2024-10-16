@@ -23,7 +23,7 @@ struct CacheNodeValue {
   CacheEntry* cache_entry;   //一定要作区分吗？
 
       /* data */
-  void * next;   //指向下一个？
+  void * next;   //指向下一个 父节点？？？
 
   CacheNodeValue() :  cache_entry(nullptr), next(nullptr) {}
   CacheNodeValue(CacheEntry* cache_entry, void *next) :

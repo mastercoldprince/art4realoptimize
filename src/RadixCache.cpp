@@ -273,7 +273,7 @@ next:
     parent=cache_entry;
     node = (CacheNode *)(r_entry->second.next);  //看下一层还能不能继续往下 应该是在插入函数修改的  next应该指向的是和该内部节点所指向的所有内部节点
     if (node) {
-      idx ++;
+      idx ++;  //下一层
       goto next;
     }
   }

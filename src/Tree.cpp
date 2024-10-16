@@ -272,17 +272,17 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
       bp_node = (InternalBuffer *)buffer_buffer;
 //      parent_buffer = *bp_node;
           //3.1 check partial key
-      if( bp_node->hdr.partial_len != 0) 
+/*     if( bp_node->hdr.partial_len != 0) 
       {
         p_node = (InternalPage *)buffer_buffer;
         p.child_type =2;
         p.node_type = static_cast<uint8_t>(NODE_256);
         goto l1;
-      }
+      }*/ 
       if (!is_valid) {  // node deleted || outdated cache entry in cached node
         if (from_cache) {
-          index_cache->invalidate(entry_ptr_ptr, entry_ptr); //invalid 父节点
-          index_cache->invalidate(cache_entry_buffer_ptr, cache_entry_buffer); //invalid 缓冲节点
+           index_cache->invalidate(entry_ptr_ptr, entry_ptr); //invalid 父节点
+           index_cache->invalidate(cache_entry_buffer_ptr, cache_entry_buffer); //invalid 缓冲节点
         }
         // re-read node entry
         auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
@@ -367,8 +367,8 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
         if (!is_valid) {
           if (from_cache) {
-          index_cache->invalidate(entry_ptr_ptr, entry_ptr);
-          index_cache->invalidate(cache_entry_buffer_ptr, cache_entry_buffer); //invalid 缓冲节点
+      //    index_cache->invalidate(entry_ptr_ptr, entry_ptr);  //叶子无效只需要invalid缓冲节点就行了
+          // index_cache->invalidate(cache_entry_buffer_ptr, cache_entry_buffer); //invalid 缓冲节点
           }
           // re-read leaf entry
           auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
