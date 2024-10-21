@@ -33,6 +33,21 @@ v = (uint64_t)page->hdr;
 
   auto new_entry = new CacheEntry(p_node,node_type,node_addr);
   
+  bool is_leaf = false;
+  int id = -1;
+  if(node_type == 0)
+  {
+    for(int i =0;i<256;i++)
+    {
+      if(new_entry->records[i].val !=0 && new_entry->records[i].child_type == 0) 
+      {
+        is_leaf =true;
+        id = i;
+      }
+  }
+  }
+
+
   _insert(byte_array, new_entry);
 #ifndef CACHE_ENABLE_ART
   free_manager->consume(sizeof(Key));  // emulate hash-based cache
@@ -189,20 +204,23 @@ bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, Cac
 
         }
         else{       //如果是最接近叶节点的缓冲节点直接返回该缓冲节点  或者返回多个槽？
-            for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {  //一个个查看slot
-               BufferEntry e = *((BufferEntry*)&cache_entry->records[i]);
-            if (e != BufferEntry::Null() && e.partial == next_partial) {       //找到部分键匹配的了  应该返回这个缓冲节点本身 而不是缓冲节点的槽  所以需要在上一个entry里面去找buffer对应的slot的位置  现在是buffer 上一级起码还有一个节点
+            entry_ptr = cache_entry;
+            entry_ptr_ptr = item.entry_ptr_ptr;
+            // for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {  //一个个查看slot
+              //  BufferEntry e = *((BufferEntry*)&cache_entry->records[i]);
+            // if (e != BufferEntry::Null() && e.partial == next_partial) {       //找到部分键匹配的了  应该返回这个缓冲节点本身 而不是缓冲节点的槽  所以需要在上一个entry里面去找buffer对应的slot的位置  现在是buffer 上一级起码还有一个节点
             
-              entry_ptr = cache_entry;
+              // entry_ptr = cache_entry;
               // __sync_fetch_and_add(&(entry_ptr->counter), 1UL);
-              entry_ptr_ptr = item.entry_ptr_ptr;
-              entry_idx = i; //叶节点开始的位置 也可能不是一个叶节点
+              // entry_ptr_ptr = item.entry_ptr_ptr;
+              // entry_idx = i; //叶节点开始的位置 也可能不是一个叶节点
                //有可能是生成第一个缓冲节点 所以不会有上一节的节点
 
               ret.pop();
               if(ret.empty())  //已经是最后一个节点了
               {
                 first_buffer = 1;
+                return false;
               }
               else{
               cache_entry = ret.top().entry_ptr;//获取上一级的entry  找一个这个buffer在上一级是个啥？ 
@@ -212,16 +230,16 @@ bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, Cac
               cache_entry_parent = cache_entry;
               uint8_t partial = k.at(ret.top().next_idx);
               for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {  //一个个查看slot
-                const auto& e = cache_entry->records[i];
+                auto& e = cache_entry->records[i];
                 if (e != BufferEntry::Null()&&e != InternalEntry::Null() && e.partial == partial) { 
                 entry_idx = i;   //返回这个buffer在父节点的下标
                 return true;
                 }
               }
               }
-              return true;
-            }
-          }
+              // return true;
+            // }
+          // }
         }
 
       }
@@ -273,7 +291,7 @@ next:
     parent=cache_entry;
     node = (CacheNode *)(r_entry->second.next);  //看下一层还能不能继续往下 应该是在插入函数修改的  next应该指向的是和该内部节点所指向的所有内部节点
     if (node) {
-      idx ++;  //下一层
+      idx ++;
       goto next;
     }
   }

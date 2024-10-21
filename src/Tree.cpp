@@ -180,7 +180,10 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
   int parent_parent_type = -1;
   bool buffer_from_cache_flag = 0;
   int first_buffer = 0;
-  InternalPage parent_page;
+  InternalPage* parent_page = nullptr;
+  GlobalAddress parent_page_ptr;
+  bool parent_add_to_cache_flag = false;
+
   InternalBuffer parent_buffer;
   insert_cnt[0][dsm->getMyThreadID()] ++ ;
 
@@ -188,7 +191,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
 
   from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, parent_parent_type,entry_idx,cache_entry_parent_ptr,cache_entry_parent,first_buffer);   //check   直接从cache里面找到一个 
   if (from_cache) { // cache hit
-    assert(entry_idx >= 0);
+
     p_ptr = GADD(entry_ptr->addr, sizeof(InternalEntry) * entry_idx);
     p = entry_ptr->records[entry_idx];
     node_ptr = entry_ptr->addr;
@@ -197,12 +200,12 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
     parent_type  = entry_ptr->node_type;
     if(entry_ptr->node_type == 1)   //如果cache找到的缓冲节点则直接去读吧！！！  后面如果是从cache来的 并且类型就是一个缓冲节点就不用再读一遍了 还是再读一次吧、、、
     {
-      if(first_buffer) 
+      if(first_buffer)   //是第一个buffer 并且这个buffer前面会有一个内部节点
       {
         p_ptr = root_ptr_ptr;
         p = get_root_ptr(cxt, coro_id);
         parent_type = 0;
-        depth = 0;
+        depth = 1;
       }
       else{
         p_ptr = GADD(cache_entry_parent->addr,sizeof(InternalEntry)*entry_idx);
@@ -217,6 +220,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
       }
       buffer_from_cache_flag = true;
     }
+    else     assert(entry_idx >= 0);
     bp.val = p.val;
   }
   else {
@@ -258,31 +262,33 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     bool is_match;
     auto buffer_buffer =  (dsm->get_rbuf(coro_id)).get_buffer_buffer();
     GlobalAddress addr = p.addr();
-  //  if(buffer_from_cache_flag)
-    {
-      // if(bp_node && bp_node != (InternalBuffer *)buffer_buffer)
+     if(buffer_from_cache_flag && from_cache)
+     {
+      //  if(bp_node && bp_node != (InternalBuffer *)buffer_buffer)
         // delete bp_node;
-    //  bp_node =new InternalBuffer(entry_ptr->depth,entry_ptr->records);
+       bp_node =new InternalBuffer(cache_entry_buffer->depth,cache_entry_buffer->records);
     //  不加上这个的话每次next都要new...
       //is_valid？ 本地的节点如何验证 is valid？？   不用验证 ？
-    }
-  //  else
+     }
+     else
 {
       is_valid = read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   
       bp_node = (InternalBuffer *)buffer_buffer;
+      bp_node->hdr.depth = depth;
+            bp_node->hdr.partial_len = 0;
 //      parent_buffer = *bp_node;
           //3.1 check partial key
-/*     if( bp_node->hdr.partial_len != 0) 
+/*      if( bp_node->hdr.partial_len != 0) 
       {
         p_node = (InternalPage *)buffer_buffer;
         p.child_type =2;
         p.node_type = static_cast<uint8_t>(NODE_256);
         goto l1;
-      }*/ 
+      }*/
       if (!is_valid) {  // node deleted || outdated cache entry in cached node
         if (from_cache) {
-           index_cache->invalidate(entry_ptr_ptr, entry_ptr); //invalid 父节点
-           index_cache->invalidate(cache_entry_buffer_ptr, cache_entry_buffer); //invalid 缓冲节点
+          index_cache->invalidate(entry_ptr_ptr, entry_ptr); //invalid 父节点
+          index_cache->invalidate(cache_entry_buffer_ptr, cache_entry_buffer); //invalid 缓冲节点
         }
         // re-read node entry
         auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
@@ -295,7 +301,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
     }
 
     bhdr=bp_node->hdr;
-    if (depth == bhdr.depth) {
+    if (depth == bhdr.depth && !from_cache) {
     //  printf("thread  %d 3 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)bp_node->hdr);
       index_cache->add_to_cache(k, 1,(InternalPage *)bp_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
     }
@@ -367,7 +373,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
         if (!is_valid) {
           if (from_cache) {
-      //    index_cache->invalidate(entry_ptr_ptr, entry_ptr);  //叶子无效只需要invalid缓冲节点就行了
+          // index_cache->invalidate(entry_ptr_ptr, entry_ptr);
           // index_cache->invalidate(cache_entry_buffer_ptr, cache_entry_buffer); //invalid 缓冲节点
           }
           // re-read leaf entry
@@ -416,6 +422,11 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
            be_ptr=GADD(p.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader) + i * sizeof(BufferEntry));
            auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
            bool res = out_of_place_write_leaf(k,v,depth,leaf_addr,leaf_type ,klen,vlen,be_ptr,old_be,cas_buffer,cxt,coro_id);  //直接写空槽
+           if(buffer_from_cache_flag && res && from_cache)
+           {
+              auto new_e = BufferEntry(0,get_partial(k,depth-1),1,leaf_type,leaf_addr); 
+            cache_entry_buffer->records[i].val = new_e.val;
+           }
            if(res) 
            {
             buffer_empty_entry[dsm->getMyThreadID()] ++;
@@ -437,8 +448,16 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
           }
         }
         }
+        read_buffer_node(addr, buffer_buffer, p_ptr, depth, from_cache,cxt, coro_id);   
+      bp_node = (InternalBuffer *)buffer_buffer;
+      if(!from_cache)  //先失效父节点（内部节点）
+        {
+          bool cache_res = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, parent_parent_type,entry_idx,cache_entry_parent_ptr,cache_entry_parent,first_buffer);
+          index_cache->invalidate(cache_entry_parent_ptr, cache_entry_parent);
+        }
         bool res=out_of_place_write_buffer_node(k, v,depth,bp_node,leaf_type,klen,vlen,leaf_addr,entry_ptr_ptr,entry_ptr,from_cache,p, p_ptr,cxt,coro_id);
-        if(from_cache)   index_cache->invalidate(cache_entry_buffer_ptr, cache_entry_buffer); //invalid 缓冲节点
+
+        if(from_cache && buffer_from_cache_flag)   index_cache->invalidate(cache_entry_buffer_ptr, cache_entry_buffer); //invalid 缓冲节点
         if (!res) {  //获取锁失败  获取锁失败可能是一个内部节点 所以p还是需要改
         auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
         dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
@@ -460,10 +479,12 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
   //内部节点
   // 3. Find out a node
   // 3.1 read the node
+  parent_add_to_cache_flag = false;
   page_buffer = (dsm->get_rbuf(coro_id)).get_page_buffer();
   is_valid = read_node(p, type_correct, page_buffer, p_ptr, depth,from_cache,cxt, coro_id);
   p_node = (InternalPage *)page_buffer;
-  parent_page = *p_node;
+  parent_page = p_node;
+  parent_page_ptr = p.addr();  //先不着急加到cache里面去   有可能会变成进行节点类型转换
 
 
   if (!is_valid) {
@@ -488,9 +509,10 @@ l1:
   if (from_cache && !type_correct) {  // invalidate the out dated node type
       index_cache->invalidate(entry_ptr_ptr, entry_ptr);
   }
-  if (depth == hdr.depth) {
+  if (depth == hdr.depth && !from_cache) {
  //   printf("thread  %d 4 node value is %" PRIu64" \n",(int)dsm->getMyThreadID( ),(uint64_t)p_node->hdr);
     index_cache->add_to_cache(k, 0,p_node, GADD(p.addr(), sizeof(GlobalAddress) + sizeof(Header)));
+    parent_add_to_cache_flag = true;
   }
 //  if(hdr.depth == 0) goto insert_finish;
   for (int i = 0; i < hdr.partial_len; ++ i) {
@@ -1713,7 +1735,7 @@ re_switch:
 }
 //新建很多个缓冲节点 有重复的往里面放  
 bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,InternalBuffer* bnode,int leaf_type,int klen,int vlen,GlobalAddress leaf_addr,CacheEntry**&entry_ptr_ptr,CacheEntry*& entry_ptr,bool from_cache,InternalEntry& old_e, GlobalAddress p_ptr,CoroContext *cxt, int coro_id) {
-  //先获取锁 再修改 否则不修改
+  //先获取锁 再修改 否则不修改  搞异地更新吧 ！！！！！
   static const uint64_t lock_cas_offset = ROUND_DOWN(STRUCT_OFFSET(InternalBuffer, lock_byte), 3);  //8B对齐
   static const uint64_t lock_mask       = 1UL << ((STRUCT_OFFSET(InternalBuffer, lock_byte) - lock_cas_offset) * 8);
   auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
@@ -1783,10 +1805,10 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
       }
     }
   }
-//  if(!leaf_flag) new_bnode_num ++;
+  //new_bnode_num ++; //异地写 多申请一个
 
-  bnode_addrs = new GlobalAddress[new_bnode_num + 1];
-  leaf_flag?  dsm->alloc_bnodes(new_bnode_num, bnode_addrs) :dsm->alloc_bnodes(new_bnode_num+1, bnode_addrs);
+  bnode_addrs = new GlobalAddress[new_bnode_num + 2];   //最后一个放转换为内部节点后的buffe的地址 
+  leaf_flag?  dsm->alloc_bnodes(new_bnode_num , bnode_addrs) :dsm->alloc_bnodes(new_bnode_num+1, bnode_addrs);
   auto leaves_buffer =(dsm->get_rbuf(0)).get_range_buffer();
   for(int i =0;i<(int) rs.size();i++)
   {
@@ -1914,7 +1936,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   //  dsm->write((const char*)leaf_buffer, leaf_addr, sizeof(Leaf_kv), false, cxt);
 
     rs_write[new_bnode_num +1].source     = (uint64_t)old_page_buffer;
-    rs_write[new_bnode_num +1].dest       = old_e.addr();
+    rs_write[new_bnode_num +1].dest       = (uint64_t)old_e.addr();  //是最后一个地址
     rs_write[new_bnode_num +1].size       = sizeof(InternalBuffer);
     rs_write[new_bnode_num +1].is_on_chip = false;
   //  dsm->write((const char*)old_bnode_buffer, e_ptr, sizeof(InternalBuffer), false, cxt);
@@ -1927,6 +1949,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   new_entry.child_type = 2;
   new_entry.node_type = static_cast<uint8_t>(NODE_256);
 //  new (cas_node_type_buffer) InternalEntry(new_entry);
+  // new_entry.packed_addr = {bnode_addrs[new_bnode_num].nodeID, bnode_addrs[new_bnode_num].offset >> ALLOC_ALLIGN_BIT};
   bool res =dsm->cas_sync(p_ptr, (uint64_t)old_e, (uint64_t)new_entry, cas_node_type_buffer, cxt);
 
   // assert(res == true && new_entry.child_type == 2);
