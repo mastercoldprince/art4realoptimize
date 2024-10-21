@@ -32,21 +32,6 @@ v = (uint64_t)page->hdr;
   for (int i = 0; i < (int)p_node->hdr.partial_len; ++ i) byte_array.push_back(p_node->hdr.partial[i]);  //再存下新的内部节点的partialkey  也就是 byte_arry里面存放由根节点到这个内部节点的所有键（包括内部节点本身的部分键）
 
   auto new_entry = new CacheEntry(p_node,node_type,node_addr);
-  
-  bool is_leaf = false;
-  int id = -1;
-  if(node_type == 0)
-  {
-    for(int i =0;i<256;i++)
-    {
-      if(new_entry->records[i].val !=0 && new_entry->records[i].child_type == 0) 
-      {
-        is_leaf =true;
-        id = i;
-      }
-  }
-  }
-
 
   _insert(byte_array, new_entry);
 #ifndef CACHE_ENABLE_ART

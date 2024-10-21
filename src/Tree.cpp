@@ -1808,7 +1808,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   //new_bnode_num ++; //异地写 多申请一个
 
   bnode_addrs = new GlobalAddress[new_bnode_num + 2];   //最后一个放转换为内部节点后的buffe的地址 
-  leaf_flag?  dsm->alloc_bnodes(new_bnode_num , bnode_addrs) :dsm->alloc_bnodes(new_bnode_num+1, bnode_addrs);
+  leaf_flag?  dsm->alloc_bnodes(new_bnode_num +1, bnode_addrs) :dsm->alloc_bnodes(new_bnode_num+1+1, bnode_addrs);  //最后一个是异地的内部节点的新地址
   auto leaves_buffer =(dsm->get_rbuf(0)).get_range_buffer();
   for(int i =0;i<(int) rs.size();i++)
   {
@@ -1836,7 +1836,8 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   for (int i = 0; i < new_bnode_num ; ++ i) {    //会涉及到多次cas 开销 --->上锁
     auto bnode_buffer = (dsm->get_rbuf(coro_id)).get_buffer_buffer();
     std::vector<Key> leaf_key;
-    GlobalAddress rev_ptr = GADD(old_e.addr(), sizeof(GlobalAddress) + sizeof(Header) + bnodes_entry_index[i][1] * sizeof(BufferEntry));
+        GlobalAddress rev_ptr_add = leaf_flag? bnode_addrs[new_bnode_num]:bnode_addrs[new_bnode_num+1];
+    GlobalAddress rev_ptr = leaf_flag? GADD(bnode_addrs[new_bnode_num], sizeof(GlobalAddress) + sizeof(Header) + bnodes_entry_index[i][1] * sizeof(BufferEntry)):GADD(bnode_addrs[new_bnode_num+1], sizeof(GlobalAddress) + sizeof(Header) + bnodes_entry_index[i][1] * sizeof(BufferEntry));
     new_bnodes[i] = new (bnode_buffer) InternalBuffer();
     new_bnodes[i]->rev_ptr.val = rev_ptr.val;
     for(int j =0;j<bnodes_entry_index[i][0];j++)
@@ -1936,7 +1937,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   //  dsm->write((const char*)leaf_buffer, leaf_addr, sizeof(Leaf_kv), false, cxt);
 
     rs_write[new_bnode_num +1].source     = (uint64_t)old_page_buffer;
-    rs_write[new_bnode_num +1].dest       = (uint64_t)old_e.addr();  //是最后一个地址
+    rs_write[new_bnode_num +1].dest       = bnode_addrs[new_bnode_num];  //是最后一个地址
     rs_write[new_bnode_num +1].size       = sizeof(InternalBuffer);
     rs_write[new_bnode_num +1].is_on_chip = false;
   //  dsm->write((const char*)old_bnode_buffer, e_ptr, sizeof(InternalBuffer), false, cxt);
@@ -1949,7 +1950,8 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   new_entry.child_type = 2;
   new_entry.node_type = static_cast<uint8_t>(NODE_256);
 //  new (cas_node_type_buffer) InternalEntry(new_entry);
-  // new_entry.packed_addr = {bnode_addrs[new_bnode_num].nodeID, bnode_addrs[new_bnode_num].offset >> ALLOC_ALLIGN_BIT};
+  new_entry.packed_addr = {bnode_addrs[new_bnode_num].nodeID, bnode_addrs[new_bnode_num].offset >> ALLOC_ALLIGN_BIT};
+  assert(new_entry.packed_addr.mn_id == 0);
   bool res =dsm->cas_sync(p_ptr, (uint64_t)old_e, (uint64_t)new_entry, cas_node_type_buffer, cxt);
 
   // assert(res == true && new_entry.child_type == 2);
@@ -1959,7 +1961,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   {
     index_cache->invalidate(entry_ptr_ptr, entry_ptr);  //首先是invalid 父节点 然后在外面invalid缓冲节点本身
   }
-   index_cache->add_to_cache(k, 0,(InternalPage*)old_page, GADD(old_e.addr(), sizeof(GlobalAddress) + sizeof(BufferHeader)));
+   index_cache->add_to_cache(k, 0,(InternalPage*)old_page, GADD(bnode_addrs[new_bnode_num], sizeof(GlobalAddress) + sizeof(BufferHeader)));
 
 // old_e = *(InternalEntry*) cas_node_type_buffer;
 if(res)
