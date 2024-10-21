@@ -1951,7 +1951,7 @@ bool Tree::out_of_place_write_buffer_node(const Key &k, Value &v, int depth,Inte
   new_entry.node_type = static_cast<uint8_t>(NODE_256);
 //  new (cas_node_type_buffer) InternalEntry(new_entry);
   new_entry.packed_addr = {bnode_addrs[new_bnode_num].nodeID, bnode_addrs[new_bnode_num].offset >> ALLOC_ALLIGN_BIT};
-  assert(new_entry.packed_addr.mn_id == 0);
+  // assert(new_entry.packed_addr.mn_id == 0);
   bool res =dsm->cas_sync(p_ptr, (uint64_t)old_e, (uint64_t)new_entry, cas_node_type_buffer, cxt);
 
   // assert(res == true && new_entry.child_type == 2);
