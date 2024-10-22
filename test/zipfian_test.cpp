@@ -46,6 +46,11 @@ extern uint64_t buffer_header_split[MAX_APP_THREAD];
 extern uint64_t buffer_reconstruct[MAX_APP_THREAD];
 extern uint64_t in_place_update[MAX_APP_THREAD];
 
+extern uint64_t search_from_cache_time[8][MAX_APP_THREAD];
+extern uint64_t read_buffer_node_time[8][MAX_APP_THREAD];  //找cache时间 一样的分8类
+extern uint64_t read_internal_node_time[8][MAX_APP_THREAD];  //找cache时间 一样的分8类
+extern uint64_t read_leaves_time[8][MAX_APP_THREAD]; 
+
 int kReadRatio;
 int kThreadCount;
 int kNodeCount;
@@ -444,7 +449,35 @@ printf("No cache\n");
     for(int i=0;i<MAX_APP_THREAD;i++)
       insert_total_time[j] += insert_time[j][i];
     }
+    uint64_t search_cache_total_time[8];
+    memset(search_cache_total_time,0,sizeof(uint64_t)*8);
+    for(int j =0;j<8;j++)
+    {
+    for(int i=0;i<MAX_APP_THREAD;i++)
+      search_cache_total_time[j] += search_from_cache_time[j][i];
+    }
 
+    uint64_t read_buffer_total_time[8];
+    memset(read_buffer_total_time,0,sizeof(uint64_t)*8);
+    for(int j =0;j<8;j++)
+    {
+    for(int i=0;i<MAX_APP_THREAD;i++)
+      read_buffer_total_time[j] += read_buffer_node_time[j][i];
+    }
+    uint64_t read_internal_total_time[8];
+    memset(read_internal_total_time,0,sizeof(uint64_t)*8);
+    for(int j =0;j<8;j++)
+    {
+    for(int i=0;i<MAX_APP_THREAD;i++)
+      read_internal_total_time[j] += read_internal_node_time[j][i];
+    }
+    uint64_t read_leaves_total_time[8];
+    memset(read_leaves_total_time,0,sizeof(uint64_t)*8);
+    for(int j =0;j<8;j++)
+    {
+    for(int i=0;i<MAX_APP_THREAD;i++)
+      read_leaves_total_time[j] += read_leaves_time[j][i];
+    }
     tree->clear_debug_info();
 
 //    save_latency(++ count);
@@ -489,6 +522,10 @@ printf("No cache\n");
     {
       printf("insert cnt : %" PRIu64",internal empty entry : %" PRIu64",internal extend empty entry : %" PRIu64",internal header split : %" PRIu64",buffer empty entry : %" PRIu64",buffer header split : %" PRIu64",buffer reconstruct : %" PRIu64" in place update : %" PRIu64" \n",insert[0],insert[1],insert[2],insert[3],insert[4],insert[5],insert[6],insert[7]);
       printf("insert time : %" PRIu64",internal empty entry time: %" PRIu64",internal extend empty entry time: %" PRIu64",internal header split time: %" PRIu64",buffer empty entry time: %" PRIu64",buffer header split time: %" PRIu64",buffer reconstruct time: %" PRIu64" in place update time: %" PRIu64"\n",insert_total_time[0],insert_total_time[1],insert_total_time[2],insert_total_time[3],insert_total_time[4],insert_total_time[5],insert_total_time[6],insert_total_time[7]);
+      printf("search cache time : %" PRIu64",1 : %" PRIu64",2 : %" PRIu64",3 : %" PRIu64",4 : %" PRIu64",5 : %" PRIu64",6 : %" PRIu64" 7 : %" PRIu64"\n",search_cache_total_time[0],search_cache_total_time[1],search_cache_total_time[2],search_cache_total_time[3],search_cache_total_time[4],search_cache_total_time[5],search_cache_total_time[6],search_cache_total_time[7]);
+      printf("read buffer time : %" PRIu64",1 : %" PRIu64",2 : %" PRIu64",3 : %" PRIu64",4 : %" PRIu64",5 : %" PRIu64",6 : %" PRIu64" 7 : %" PRIu64"\n",read_buffer_total_time[0],read_buffer_total_time[1],read_buffer_total_time[2],read_buffer_total_time[3],read_buffer_total_time[4],read_buffer_total_time[5],read_buffer_total_time[6],read_buffer_total_time[7]);
+      printf("read internal time : %" PRIu64",1 : %" PRIu64",2 : %" PRIu64",3 : %" PRIu64",4 : %" PRIu64",5 : %" PRIu64",6 : %" PRIu64" 7 : %" PRIu64"\n",read_internal_total_time[0],read_internal_total_time[1],read_internal_total_time[2],read_internal_total_time[3],read_internal_total_time[4],read_internal_total_time[5],read_internal_total_time[6],read_internal_total_time[7]);
+      printf("read leaves time : %" PRIu64",1 : %" PRIu64",2 : %" PRIu64",3 : %" PRIu64",4 : %" PRIu64",5 : %" PRIu64",6 : %" PRIu64" 7 : %" PRIu64"\n",read_leaves_total_time[0],read_leaves_total_time[1],read_leaves_total_time[2],read_leaves_total_time[3],read_leaves_total_time[4],read_leaves_total_time[5],read_leaves_total_time[6],read_leaves_total_time[7]);               
     } 
 /*
     if (dsm->getMyNodeID() == 0) {
