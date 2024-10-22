@@ -168,7 +168,7 @@ bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, Cac
 
   SearchRetStk ret;
   if(_search(byte_array, ret)) {
-    while(!ret.empty()) {
+next:    while(!ret.empty()) {
       const auto& item = ret.top();    //已经是最接近叶节点的一个缓冲节点了    一定是一个缓冲节点？   不一定 可能失效 
       if(item.entry_ptr == 0) return false;
       auto cache_entry = item.entry_ptr;
@@ -213,6 +213,13 @@ bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, Cac
               parent_parent_type = cache_entry->node_type;
               cache_entry_parent_ptr = ret.top().entry_ptr_ptr;
               cache_entry_parent = cache_entry;
+              if(parent_parent_type == 1) //如果缓冲节点的上一层还是一个缓冲节点  那么需要把他失效了 
+              {
+                ret.pop();
+                invalidate(cache_entry_parent_ptr,cache_entry_parent);
+                invalidate(entry_ptr_ptr,entry_ptr);
+                goto next;
+              }
               uint8_t partial = k.at(ret.top().next_idx);
               for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {  //一个个查看slot
                 auto& e = cache_entry->records[i];

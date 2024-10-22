@@ -459,6 +459,10 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
 
         if(from_cache && buffer_from_cache_flag)   index_cache->invalidate(cache_entry_buffer_ptr, cache_entry_buffer); //invalid 缓冲节点
         if (!res) {  //获取锁失败  获取锁失败可能是一个内部节点 所以p还是需要改
+        if(from_cache)
+        {
+          index_cache->invalidate(cache_entry_parent_ptr, cache_entry_parent);
+        }
         auto entry_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
         dsm->read_sync((char *)entry_buffer, p_ptr, sizeof(InternalEntry), cxt);
         p = *(InternalEntry *)entry_buffer;
