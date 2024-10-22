@@ -393,7 +393,7 @@ if(parent_type ==0)  //一个内部节点    1.继续往下找  2. 有一个空�
         is_valid = read_leaves(leaf_addrs, leaf_buffer,leaf_cnt,leaves_ptr,from_cache,cxt,coro_id);
         auto read_leaves_stop = std::chrono::high_resolution_clock::now();
         auto read_leaves_duration = std::chrono::duration_cast<std::chrono::nanoseconds>(read_leaves_stop - read_leaves_start);  
-        read_leaves_time[dsm->getMyThreadID()] += read_leaves_duration.count();
+        read_leaves_time[0][dsm->getMyThreadID()] += read_leaves_duration.count();
         read_leaves_time_this += read_leaves_duration.count();
 
         if (!is_valid) {
