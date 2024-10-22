@@ -209,6 +209,7 @@ public:
   void free(const GlobalAddress& addr, int size);
 
   void alloc_nodes(int node_num, GlobalAddress *addrs, bool align = true);
+  void alloc_bnodes(int node_num, GlobalAddress *addrs, bool align = true);
 
   void rpc_call_dir(const RawMessage &m, uint16_t node_id,
                     uint16_t dir_id = 0) {
@@ -259,6 +260,11 @@ inline GlobalAddress DSM::alloc(size_t size, bool align) {
 inline void DSM::alloc_nodes(int node_num, GlobalAddress *addrs, bool align) {
   for (int i = 0; i < node_num; ++ i) {
     addrs[i] = alloc(define::allocationPageSize, align);
+  }
+}
+inline void DSM::alloc_bnodes(int node_num, GlobalAddress *addrs, bool align) {
+  for (int i = 0; i < node_num; ++ i) {
+    addrs[i] = alloc(define::allocationBufferSize, align);
   }
 }
 

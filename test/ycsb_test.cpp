@@ -76,7 +76,7 @@ extern uint64_t latency[MAX_APP_THREAD][MAX_CORO_NUM][LATENCY_WINDOWS];
 uint64_t latency_th_all[LATENCY_WINDOWS];
 
 std::default_random_engine e;
-std::uniform_int_distribution<Value> randval(kValueMin, kValueMax);
+std::uniform_int_distribution<uint64_t> randval(kValueMin, kValueMax);
 
 Tree *tree;
 DSM *dsm;
@@ -115,7 +115,7 @@ public:
       }
     }
     tp[local_thread_id][coro_id]++;
-    req[cur].v = randval(e);  // make value different per-epoch
+    req[cur].v = int2value(randval(e));  // make value different per-epoch
     return req[cur];
   }
 
@@ -172,13 +172,16 @@ void thread_load(int id) {
     assert(false);
   }
   Key k;
+  Value v;
+  uint64_t int_v = randval(e);
+  v = int2value(int_v);
   int cnt = 0;
   if (!kIsStr) {  // int workloads
     uint64_t int_k;
     while (load_in >> op >> int_k) {
       k = int2key(int_k);
       assert(op == "INSERT");
-      tree->insert(k, randval(e), nullptr, 0, false, true);
+      tree->insert(k, v, nullptr, 0, false, true);
       if (++ cnt % LOAD_HEARTBEAT == 0) {
         printf("thread %lu: %d load entries loaded.\n", loader_id, cnt);
       }
@@ -193,7 +196,7 @@ void thread_load(int id) {
       tmp >> op >> str_k;
       k = str2key(str_k);
       assert(op == "INSERT");
-      tree->insert(k, randval(e), nullptr, 0, false, true);
+      tree->insert(k, v, nullptr, 0, false, true);
       if (++ cnt % LOAD_HEARTBEAT == 0) {
         printf("thread %lu: %d load entries loaded.\n", loader_id, cnt);
       }
@@ -515,7 +518,7 @@ int main(int argc, char *argv[]) {
       printf("read leaf retry rate: %lf\n", read_leaf_retry_cnt * 1.0 / try_read_leaf_cnt);
       printf("read invalid leaf rate: %lf\n", leaf_cache_invalid_cnt * 1.0 / try_read_leaf_cnt);
       printf("read node repair rate: %lf\n", read_node_repair_cnt * 1.0 / try_read_node_cnt);
-      printf("read invalid node rate: %lf\n", all_retry_cnt[INVALID_NODE] * 1.0 / try_read_node_cnt);
+      // printf("read invalid node rate: %lf\n", all_retry_cnt[INVALID_NODE] * 1.0 / try_read_node_cnt);
       for (int i = 1; i < MAX_NODE_TYPE_NUM; ++ i) {
         printf("node_type%d %lu   ", i, read_node_type_cnt[i]);
       }

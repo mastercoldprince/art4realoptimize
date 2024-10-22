@@ -198,17 +198,40 @@ inline void LocalLockTable::release_local_read_lock(const Key& k, std::pair<bool
 
 // write-combining
 inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key& k, const Value& v, CoroQueue *waiting_queue, CoroContext *cxt, int coro_id) {
-  auto &node = local_locks[hasher.get_hashed_lock_index(k)];
+  auto &node = local_locks[hasher.get_hashed_lock_index(k)];  //同一个键映射出来的node是同一个  
+  std::string s;
+  std::string s_u;
+  for(int i=0;i<k[define::maxkeyLen -1];i++)
+  {
+    s[i]=k[i];
+  }
 
+/*
+  printf("key :%s ,hash index: %" PRIu64"\n ",s.c_str(),hasher.get_hashed_lock_index(k));
+*/
   Key* unique_key = nullptr;
   Key* new_key = new Key(k);
+  Key u_k;
   bool res = node.unique_write_key.compare_exchange_strong(unique_key, new_key);
-  if (!res) {
+
+  if (!res) {   
     delete new_key;
-    if (*unique_key != k) {  // conflict keys
+    if (*unique_key != k) {  // conflict keys  已经有别的key先当unique了
       return std::make_pair(false, true);
     }
   }
+//  if(res) printf("now k is uk\n");
+  
+if(unique_key)
+{  
+    u_k = *(unique_key);
+    for(int i=0;i<(*unique_key)[define::maxkeyLen -1];i++)
+  {
+    s_u[i]=(*unique_key)[i];
+  }
+}  
+
+
 
   node.wc_lock.lock();
   node.wc_buffer = v;     // local overwrite (combining)
@@ -216,8 +239,10 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
 
   uint8_t ticket = node.write_ticket.fetch_add(1);  // acquire local lock
   uint8_t current = node.write_current.load(std::memory_order_relaxed);
+  uint8_t count=0;
 
-  while (ticket != current) { // lock failed
+  while (ticket != current ) { // lock failed
+
     if (cxt != nullptr) {
       waiting_queue->push(std::make_pair(coro_id, [=, &node](){
         return ticket == node.write_current.load(std::memory_order_relaxed);
@@ -225,7 +250,10 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
       (*cxt->yield)(*cxt->master);
     }
     current = node.write_current.load(std::memory_order_relaxed);
+   // count ++;
+//    if(count == 10)     printf("key :%s,len:%d ,uniq key: %s  len: %d\n ",s.c_str(),(int)k[define::maxkeyLen -1],s_u.c_str(),(int)(*unique_key)[define::maxkeyLen -1]);
   }
+//  if(ticket != current)printf("%d \n",sizeof(u_k));
   unique_key = node.unique_write_key.load();
   if (!unique_key || *unique_key != k) {  // conflict keys
     if (node.write_window) {
@@ -235,6 +263,7 @@ inline std::pair<bool, bool> LocalLockTable::acquire_local_write_lock(const Key&
       }
     }
     // node.write_handover = false;
+   // printf("current 1\n");
     node.write_current.fetch_add(1);
     return std::make_pair(false, true);
   }
@@ -259,8 +288,8 @@ inline bool LocalLockTable::get_combining_value(const Key& k, Value& v) {
 }
 
 // write-combining
-inline void LocalLockTable::release_local_write_lock(const Key& k, std::pair<bool, bool> acquire_ret) {
-  if (acquire_ret.second) return;
+inline void LocalLockTable::release_local_write_lock(const Key& k, std::pair<bool, bool> acquire_ret) {  //有的键没有释放成功？？？
+  if (acquire_ret.second) return;  //是有冲突的键 不能使用WC  无需操作
 
   auto &node = local_locks[hasher.get_hashed_lock_index(k)];
 
@@ -291,6 +320,7 @@ inline void LocalLockTable::release_local_write_lock(const Key& k, std::pair<boo
       node.window_start = false;
     }
   }
+     // printf("current 2\n");
   node.write_current.fetch_add(1);
   node.w_lock.unlock();
 
@@ -325,6 +355,7 @@ inline bool LocalLockTable::acquire_local_lock(const GlobalAddress& addr, CoroQu
 
 // lock-handover
 inline void LocalLockTable::release_local_lock(const GlobalAddress& addr, RemoteFunc unlock_func) {
+  printf("res 1\n");
   auto &node = local_locks[hasher.get_hashed_lock_index(addr)];
 
   uint8_t ticket = node.write_ticket.load(std::memory_order_relaxed);
@@ -352,6 +383,7 @@ inline void LocalLockTable::release_local_lock(const GlobalAddress& addr, Remote
 // lock-handover + embedding lock
 inline void LocalLockTable::release_local_lock(const GlobalAddress& addr, RemoteFunc unlock_func, RemoteFunc write_without_unlock, RemoteFunc write_and_unlock) {
   auto &node = local_locks[hasher.get_hashed_lock_index(addr)];
+    printf("res 2\n");
 
   uint8_t ticket = node.write_ticket.load(std::memory_order_relaxed);
   uint8_t current = node.write_current.load(std::memory_order_relaxed);
@@ -418,6 +450,7 @@ inline bool LocalLockTable::acquire_local_lock(const Key& k, CoroQueue *waiting_
 // cas-handover
 inline void LocalLockTable::release_local_lock(const Key& k, bool& res, InternalEntry& ret_p) {
   auto &node = local_locks[hasher.get_hashed_lock_index(k)];
+    printf("res 3\n");
 
   auto unique_key = node.unique_write_key.load(std::memory_order_relaxed);
   if (unique_key && *unique_key == k) {
@@ -494,7 +527,7 @@ inline void LocalLockTable::release_local_write_lock(const GlobalAddress& addr, 
   uint8_t current = node.write_current.load(std::memory_order_relaxed);
 
   node.write_handover = ticket != (uint8_t)(current + 1);
-
+      printf("current 3\n");
   node.write_current.fetch_add(1);
   return;
 }

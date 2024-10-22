@@ -13,11 +13,12 @@
 #include <queue>
 #include <atomic>
 #include <stack>
+#include <variant>
 
 
 struct CacheNodeValue {
-  volatile CacheEntry* cache_entry;
-  volatile void * next;
+  CacheEntry* cache_entry;
+  void * next;
 
   CacheNodeValue() :  cache_entry(nullptr), next(nullptr) {}
   CacheNodeValue(CacheEntry* cache_entry, void *next) :
@@ -151,12 +152,12 @@ private:
 
 
 struct SearchRet {
-  volatile CacheEntry** entry_ptr_ptr;
+  CacheEntry** entry_ptr_ptr;
   CacheEntry* entry_ptr;
   int next_idx;
   // uint64_t counter;
   SearchRet() {}
-  SearchRet(volatile CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr, int next_idx) :
+  SearchRet(CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr, int next_idx) :
     entry_ptr_ptr(entry_ptr_ptr), entry_ptr(entry_ptr), next_idx(next_idx) {}
 };
 
@@ -166,11 +167,14 @@ class RadixCache {
 public:
   RadixCache(int cache_size, DSM *dsm);
 
-  void add_to_cache(const Key& k, const InternalPage* p_node, const GlobalAddress &node_addr);
+  void add_to_cache(const Key& k,int node_type, const InternalPage* p_node, const GlobalAddress &node_addr);
+//  void add_buffer_to_cache(const Key& k, const InternalBuffer* p_node, const GlobalAddress &node_addr);
+  void change_node_type(CacheEntry*& entry_ptr){entry_ptr->node_type = 0;}
 
-  bool search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx);
+  bool search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& parent_parent_type,int& entry_idx,CacheEntry**& cache_entry_parent_ptr,CacheEntry* & cache_entry_parent,int& first_buffer);
   void search_range_from_cache(const Key &from, const Key &to, std::vector<RangeCache> &result);
-  void invalidate(volatile CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr);
+  void invalidate(CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr);
+  void clear();
   void statistics();
 
 private:
@@ -199,7 +203,7 @@ private:
 
   // FIFIO Eviction
   DSM *dsm;
-  tbb::concurrent_queue<std::pair<volatile CacheEntry**, CacheEntry*> > eviction_list;
+  tbb::concurrent_queue<std::pair< CacheEntry**, CacheEntry*> > eviction_list;
 };
 
 #endif // _RADIX_CACHE_H_

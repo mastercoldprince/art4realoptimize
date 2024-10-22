@@ -80,6 +80,7 @@ public:
     r.is_search = rand_r(&seed) % 100 < kReadRatio;
     r.is_insert = !r.is_search;
 
+/*
 #ifdef TEST_INSERT
     if (r.is_insert) {
       r.k = int2key(insert_start_key);
@@ -90,7 +91,8 @@ public:
       if (!k) k = 1;
       r.k = int2key(k);
     }
-#else
+*/
+// #else
     uint64_t dis = mehcached_zipf_next(&state);
 #ifdef NO_WRITE_CONFLICT
     if (r.is_insert) {
@@ -106,8 +108,8 @@ public:
 #else
     r.k = to_key(dis);
 #endif
-#endif
-    r.v = ++ val;
+// #endif
+    r.v = v_add_one(int2value(val));
 
     tp[id][coro_id]++;
     return r;
@@ -155,7 +157,7 @@ void thread_load(int id) {
   uint64_t end_warm_key = kWarmRatio * kKeySpace;
   for (uint64_t i = 1; i < end_warm_key; ++i) {
     if (i % all_loader_thread == loader_id) {
-      tree->insert(to_key(i), i * 2, nullptr, 0, false, true);
+      tree->insert(to_key(i), int2value(i * 2), nullptr, 0, false, true);
     }
   }
   printf("loader %lu load finish\n", loader_id);
@@ -387,7 +389,7 @@ int main(int argc, char *argv[]) {
       printf("read leaf retry rate: %lf\n", read_leaf_retry_cnt * 1.0 / try_read_leaf_cnt);
       printf("read invalid leaf rate: %lf\n", leaf_cache_invalid_cnt * 1.0 / try_read_leaf_cnt);
       printf("read node repair rate: %lf\n", read_node_repair_cnt * 1.0 / try_read_node_cnt);
-      printf("read invalid node rate: %lf\n", all_retry_cnt[INVALID_NODE] * 1.0 / try_read_node_cnt);
+      // printf("read invalid node rate: %lf\n", all_retry_cnt[INVALID_NODE] * 1.0 / try_read_node_cnt);
       for (int i = 1; i < MAX_NODE_TYPE_NUM; ++ i) {
         printf("node_type%d %lu   ", i, read_node_type_cnt[i]);
       }

@@ -15,17 +15,27 @@
 struct CacheEntry {
   // fixed
   uint8_t depth;
-  GlobalAddress addr;
+  uint8_t node_type;   // 标识本身是一个什么节点  0 internal 1 buffer
+  GlobalAddress addr;  //表示这个节点的第一个slot的起始地址？？
   std::vector<InternalEntry> records;
   // faa
   // volatile mutable uint64_t counter;
 
   CacheEntry() {}
-  CacheEntry(const InternalPage* p_node, const GlobalAddress& addr) :
-             depth(p_node->hdr.depth + p_node->hdr.partial_len), addr(addr) {
-    for (int i = 0; i < node_type_to_num(p_node->hdr.type()); ++ i) {
-      const auto& e = p_node->records[i];
-      records.push_back(e);
+  CacheEntry(const InternalPage* p_node, int node_type, const GlobalAddress& addr) :
+             depth(p_node->hdr.depth + p_node->hdr.partial_len), node_type(node_type), addr(addr){
+    if(node_type == 0)
+    {
+      for (int i = 0; i < node_type_to_num(p_node->hdr.type()); ++ i) {
+        const auto& e = p_node->records[i];
+        records.push_back(e);
+    }
+    }
+    else{
+      for (int i = 0; i < 256; ++ i) {
+        const auto& e = p_node->records[i];
+        records.push_back(e);
+    }
     }
   }
 
@@ -51,17 +61,17 @@ class NormalCache {
 public:
   NormalCache(int cache_size, DSM *dsm);
 
-  void add_to_cache(const Key& k, const InternalPage* p_node, const GlobalAddress &node_addr);
+  void add_to_cache(const Key& k, int node_type,const InternalPage* p_node, const GlobalAddress &node_addr);
 
-  bool search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx);
+  bool search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx);
   void search_range_from_cache(const Key &from, const Key &to, std::vector<RangeCache> &result);
-  void invalidate(volatile CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr);
+  void invalidate(CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr);
   void statistics();
 
 private:
   void _insert(const CacheKey& byte_array, CacheEntry* new_entry);
 
-  bool _search(CacheKey& byte_prefix, uint8_t last_byte, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx);
+  bool _search(CacheKey& byte_prefix, uint8_t last_byte,CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx);
 
   void _evict();
   // void _evict_one();
@@ -75,7 +85,7 @@ private:
   // std::atomic<uint64_t> map_size;
   tbb::concurrent_queue<CacheKey> keys;
 
-  using CacheMap = tbb::concurrent_unordered_map<CacheKey, volatile CacheEntry*, cache_key_hash>;
+  using CacheMap = tbb::concurrent_unordered_map<CacheKey,CacheEntry*, cache_key_hash>;
   CacheMap cache_map;
 
   // GC
@@ -84,7 +94,7 @@ private:
 
   // Eviction
   DSM *dsm;
-  tbb::concurrent_queue<std::pair<volatile CacheEntry**, CacheEntry*> > eviction_list;
+  tbb::concurrent_queue<std::pair< CacheEntry**, CacheEntry*> > eviction_list;
 };
 
 
