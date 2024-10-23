@@ -168,7 +168,7 @@ bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, Cac
 
   SearchRetStk ret;
   if(_search(byte_array, ret)) {
-    while(!ret.empty()) {
+next:    while(!ret.empty()) {
       const auto& item = ret.top();    //已经是最接近叶节点的一个缓冲节点了    一定是一个缓冲节点？   不一定 可能失效 
       if(item.entry_ptr == 0) return false;
       auto cache_entry = item.entry_ptr;
@@ -189,20 +189,21 @@ bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, Cac
 
         }
         else{       //如果是最接近叶节点的缓冲节点直接返回该缓冲节点  或者返回多个槽？
-            for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {  //一个个查看slot
-               BufferEntry e = *((BufferEntry*)&cache_entry->records[i]);
-            if (e != BufferEntry::Null() && e.partial == next_partial) {       //找到部分键匹配的了  应该返回这个缓冲节点本身 而不是缓冲节点的槽  所以需要在上一个entry里面去找buffer对应的slot的位置  现在是buffer 上一级起码还有一个节点
+            entry_ptr = cache_entry;
+            entry_ptr_ptr = item.entry_ptr_ptr;
+            // for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {  //一个个查看slot
             
-              entry_ptr = cache_entry;
+              // entry_ptr = cache_entry;
               // __sync_fetch_and_add(&(entry_ptr->counter), 1UL);
-              entry_ptr_ptr = item.entry_ptr_ptr;
-              entry_idx = i; //叶节点开始的位置 也可能不是一个叶节点
+              // entry_ptr_ptr = item.entry_ptr_ptr;
+              // entry_idx = i; //叶节点开始的位置 也可能不是一个叶节点
                //有可能是生成第一个缓冲节点 所以不会有上一节的节点
 
               ret.pop();
               if(ret.empty())  //已经是最后一个节点了
               {
                 first_buffer = 1;
+                return false;
               }
               else{
               cache_entry = ret.top().entry_ptr;//获取上一级的entry  找一个这个buffer在上一级是个啥？ 
@@ -210,18 +211,25 @@ bool RadixCache::search_from_cache(const Key& k,CacheEntry**& entry_ptr_ptr, Cac
               parent_parent_type = cache_entry->node_type;
               cache_entry_parent_ptr = ret.top().entry_ptr_ptr;
               cache_entry_parent = cache_entry;
+              if(parent_parent_type == 1) //如果缓冲节点的上一层还是一个缓冲节点  那么需要把他失效了 
+              {
+                ret.pop();
+                invalidate(cache_entry_parent_ptr,cache_entry_parent);
+                invalidate(entry_ptr_ptr,entry_ptr);
+                goto next;
+              }
               uint8_t partial = k.at(ret.top().next_idx);
               for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {  //一个个查看slot
-                const auto& e = cache_entry->records[i];
+                auto& e = cache_entry->records[i];
                 if (e != BufferEntry::Null()&&e != InternalEntry::Null() && e.partial == partial) { 
                 entry_idx = i;   //返回这个buffer在父节点的下标
                 return true;
                 }
               }
               }
-              return true;
-            }
-          }
+          //     return true;
+          //   }
+          // }
         }
 
       }

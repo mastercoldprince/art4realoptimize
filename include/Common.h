@@ -94,7 +94,7 @@ constexpr uint64_t GB = 1024ull * MB;
 constexpr uint16_t kCacheLineSize = 64;
 
 // Remote Allocation
-constexpr uint64_t dsmSize           = 64;        // GB  [CONFIG]
+constexpr uint64_t dsmSize           = 72;        // GB  [CONFIG]
 constexpr uint64_t kChunkSize        = 16 * MB;   // B
 
 // Rdma Buffer
@@ -103,7 +103,7 @@ constexpr int64_t kPerThreadRdmaBuf  = rdmaBufferSize * define::GB / MAX_APP_THR
 constexpr int64_t kPerCoroRdmaBuf    = kPerThreadRdmaBuf / MAX_CORO_NUM;
 
 // Cache (MB)
-constexpr int kIndexCacheSize = 600;
+constexpr int kIndexCacheSize = 800;
 
 // KV
 constexpr uint32_t maxkeyLen = 128;   
