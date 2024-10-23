@@ -38,7 +38,7 @@ int kNodeCount;
 
 
 uint64_t kKeySpace = 60 * define::MB;
-double kWarmRatio = 0.2;
+double kWarmRatio = 1;
 double zipfan = 0.99;
 int kCoroCnt = 2;
 #ifdef TEST_INSERT
@@ -208,18 +208,18 @@ void thread_run(int id) {
   auto gen = new RequsetGenBench(dsm, 0, 0);
   auto thread_id = dsm->getMyThreadID();
 
-  while (!need_stop) {
-    auto r = gen->next();
-
-    timer.begin();
-    work_func(tree, r, nullptr, 0);
-    auto us_10 = timer.end() / 100;
-
-    if (us_10 >= LATENCY_WINDOWS) {
-      us_10 = LATENCY_WINDOWS - 1;
-    }
-    latency[thread_id][0][us_10]++;
-  }
+  // while (!need_stop) {
+  //   auto r = gen->next();
+  //
+  //   timer.begin();
+  //   work_func(tree, r, nullptr, 0);
+  //   auto us_10 = timer.end() / 100;
+  //
+  //   if (us_10 >= LATENCY_WINDOWS) {
+  //     us_10 = LATENCY_WINDOWS - 1;
+  //   }
+  //   latency[thread_id][0][us_10]++;
+  // }
 #endif
   printf("thread %d exit.\n", id);
 }
