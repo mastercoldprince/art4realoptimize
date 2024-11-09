@@ -1,0 +1,128 @@
+[
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/AbstractMessageConnection.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/AbstractMessageConnection.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/AbstractMessageConnection.cpp",
+  "output": "CMakeFiles/SMART.dir/src/AbstractMessageConnection.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/Common.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/Common.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/Common.cpp",
+  "output": "CMakeFiles/SMART.dir/src/Common.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/DSM.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/DSM.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/DSM.cpp",
+  "output": "CMakeFiles/SMART.dir/src/DSM.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/DSMKeeper.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/DSMKeeper.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/DSMKeeper.cpp",
+  "output": "CMakeFiles/SMART.dir/src/DSMKeeper.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/Debug.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/Debug.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/Debug.cpp",
+  "output": "CMakeFiles/SMART.dir/src/Debug.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/Directory.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/Directory.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/Directory.cpp",
+  "output": "CMakeFiles/SMART.dir/src/Directory.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/DirectoryConnection.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/DirectoryConnection.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/DirectoryConnection.cpp",
+  "output": "CMakeFiles/SMART.dir/src/DirectoryConnection.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/Keeper.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/Keeper.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/Keeper.cpp",
+  "output": "CMakeFiles/SMART.dir/src/Keeper.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/NormalCache.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/NormalCache.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/NormalCache.cpp",
+  "output": "CMakeFiles/SMART.dir/src/NormalCache.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/RadixCache.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/RadixCache.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/RadixCache.cpp",
+  "output": "CMakeFiles/SMART.dir/src/RadixCache.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/RawMessageConnection.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/RawMessageConnection.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/RawMessageConnection.cpp",
+  "output": "CMakeFiles/SMART.dir/src/RawMessageConnection.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/RdmaCache.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/RdmaCache.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/RdmaCache.cpp",
+  "output": "CMakeFiles/SMART.dir/src/RdmaCache.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/ThreadConnection.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/ThreadConnection.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/ThreadConnection.cpp",
+  "output": "CMakeFiles/SMART.dir/src/ThreadConnection.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/Tree.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/Tree.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/Tree.cpp",
+  "output": "CMakeFiles/SMART.dir/src/Tree.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/rdma/Operation.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/rdma/Operation.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/rdma/Operation.cpp",
+  "output": "CMakeFiles/SMART.dir/src/rdma/Operation.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/rdma/Resource.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/rdma/Resource.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/rdma/Resource.cpp",
+  "output": "CMakeFiles/SMART.dir/src/rdma/Resource.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/rdma/StateTrans.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/rdma/StateTrans.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/rdma/StateTrans.cpp",
+  "output": "CMakeFiles/SMART.dir/src/rdma/StateTrans.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/SMART.dir/src/rdma/Utility.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/rdma/Utility.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/src/rdma/Utility.cpp",
+  "output": "CMakeFiles/SMART.dir/src/rdma/Utility.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/redundant_test.dir/test/redundant_test.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/test/redundant_test.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/test/redundant_test.cpp",
+  "output": "CMakeFiles/redundant_test.dir/test/redundant_test.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/ycsb_test.dir/test/ycsb_test.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/test/ycsb_test.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/test/ycsb_test.cpp",
+  "output": "CMakeFiles/ycsb_test.dir/test/ycsb_test.cpp.o"
+},
+{
+  "directory": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCACHE_ENABLE_ART -DTREE_ENABLE_ART -DTREE_ENABLE_CACHE -DTREE_ENABLE_EMBEDDING_LOCK -DTREE_ENABLE_FINE_GRAIN_NODE -DTREE_ENABLE_IN_PLACE_UPDATE -DTREE_ENABLE_READ_DELEGATION -DTREE_ENABLE_WRITE_COMBINING -DUSE_CORO -I/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/include -Wall -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-but-set-variable -Wsign-compare -O3 -std=c++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -o CMakeFiles/zipfian_test.dir/test/zipfian_test.cpp.o -c /Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/test/zipfian_test.cpp",
+  "file": "/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/test/zipfian_test.cpp",
+  "output": "CMakeFiles/zipfian_test.dir/test/zipfian_test.cpp.o"
+}
+]

@@ -1,0 +1,6 @@
+/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build/CMakeFiles/SMART.dir
+/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build/CMakeFiles/redundant_test.dir
+/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build/CMakeFiles/ycsb_test.dir
+/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build/CMakeFiles/zipfian_test.dir
+/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build/CMakeFiles/edit_cache.dir
+/Users/freezer/Documents/PushingP/1.DM-index/art4realoptimize/build/CMakeFiles/rebuild_cache.dir

@@ -18,7 +18,7 @@ public:
   uint64_t dsmSize;       // G
 
   DSMConfig(const CacheConfig &cacheConfig = CacheConfig(),
-            uint32_t machineNR = 2, uint64_t dsmSize = define::dsmSize)
+            uint32_t machineNR = 1, uint64_t dsmSize = define::dsmSize)
       : cacheConfig(cacheConfig), machineNR(machineNR), dsmSize(dsmSize) {}
 };
 
