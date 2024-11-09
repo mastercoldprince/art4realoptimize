@@ -128,6 +128,8 @@ void DSM::initRDMAConnection() {
 
   keeper = new DSMKeeper(thCon, dirCon, remoteInfo, conf.machineNR);
   myNodeID = keeper->getMyNodeID();
+  Debug::notifyInfo("Sum of cache.size and conf.dsmSize: %d GB", cache.size + conf.dsmSize);
+
 }
 
 void DSM::read(char *buffer, GlobalAddress gaddr, size_t size, bool signal,
